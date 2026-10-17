@@ -13,6 +13,7 @@ import { JSON_NATIVES, JSON_NAMES } from './stdlib/json.js';
 import { RE_NATIVES, RE_NAMES } from './stdlib/re.js';
 import { TURTLE_NATIVES, TURTLE_NAMES } from './stdlib/turtle.js';
 import { KARA_NATIVES, KARA_NAMES } from './stdlib/kara.js';
+import { FS_NATIVES, FS_NAMES } from './stdlib/fs.js';
 import { COPY_NATIVES, COPY_NAMES } from './stdlib/copy.js';
 import { EXCEPTION_CLASSES } from './exceptions.js';
 import {
@@ -420,6 +421,7 @@ export const BUILTINS = {
   ...RE_NATIVES,
   ...TURTLE_NATIVES,
   ...KARA_NATIVES,
+  ...FS_NATIVES,
   ...COPY_NATIVES,
 };
 
@@ -479,6 +481,7 @@ export const MODULES = {
   _re: RE_NAMES,
   _turtle_host: TURTLE_NAMES,
   kara: KARA_NAMES,
+  _fs: FS_NAMES,
   _sys: ['write_err'],
   copy: COPY_NAMES,
 };

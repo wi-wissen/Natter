@@ -17,6 +17,7 @@ export const KINDS = {
   unpack: 'ValueError', attr: 'AttributeError', recursion: 'RecursionError', overflow: 'OverflowError',
   assertion: 'AssertionError', powFraction: 'ValueError', mathDomain: 'ValueError',
   importUnknown: 'ModuleNotFoundError', stopIteration: 'StopIteration', internal: 'RuntimeError', host: 'RuntimeError',
+  fileNotFound: 'FileNotFoundError', fileExists: 'FileExistsError', isDir: 'IsADirectoryError', notDir: 'NotADirectoryError',
   raised: 'RuntimeError', badExcept: 'SyntaxError', eof: 'EOFError', mathRange: 'OverflowError',
 };
 

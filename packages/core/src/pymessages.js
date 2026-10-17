@@ -84,6 +84,10 @@ export function pyMessage(e) {
     case 'mathRange': return 'math range error';
     case 'overflow': return 'integer too large';
     case 'stopIteration': return '';
+    case 'fileNotFound': return `[Errno 2] No such file or directory: ${pyStr(p.path)}`;
+    case 'fileExists': return `[Errno 17] File exists: ${pyStr(p.path)}`;
+    case 'isDir': return `[Errno 21] Is a directory: ${pyStr(p.path)}`;
+    case 'notDir': return `[Errno 20] Not a directory: ${pyStr(p.path)}`;
     case 'eof': return 'EOF when reading a line';
     case 'kara': return message(`err.script.kara.${p.what}`, p, 'en');
     case 'internal': return p.message ?? 'internal error';

@@ -72,7 +72,7 @@ describe('Error messages', () => {
     expect(errOf('a, b = [1, 2, 3]')).toMatchObject({ kind: 'ValueError', code: 'err.script.unpack' });
     expect(errOf('def f(a):\n    pass\nf(1, 2)')).toMatchObject({ code: 'err.script.argCount' });
     expect(errOf('def f(a):\n    pass\nf(b=2)')).toMatchObject({ code: 'err.script.argUnexpected' });
-    expect(errOf('import os')).toMatchObject({ kind: 'ModuleNotFoundError' });
+    expect(errOf('import nothing_here')).toMatchObject({ kind: 'ModuleNotFoundError' });
   });
 
   it('break outside a loop, return outside a function', () => {

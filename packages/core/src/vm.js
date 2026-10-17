@@ -71,6 +71,7 @@ export class VM {
     /** @type {Map<string, PyModule>} modules imported so far */
     this.moduleCache = new Map();
     this.host = opts.host ?? {};
+    this.opts = opts;
     /** Virtual clock (ms): what time.time() shows and sleep() advances when the host has no clock */
     this.virtualMs = 0;
     this.natives = { ...BUILTINS, ...(opts.natives ?? {}) };
@@ -81,6 +82,8 @@ export class VM {
     this.syncBudget = Infinity;
     /** @type {Map<string, () => any>} predefined names resolved on access (not saved) */
     this.dynamic = new Map(Object.entries(opts.dynamic ?? {}));
+    // open() is written in Python (module _fileio) and loaded when a program first uses it
+    this.dynamic.set('open', () => this.importModule('_fileio', this.curTask).ns.get('open'));
     /** @type {Map<string, any>} global variables assigned by the program */
     this.globals = new Map();
     /** @type {Map<number, Task>} */

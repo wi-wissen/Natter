@@ -54,7 +54,7 @@ export function runToEnd(source, opts = {}) {
     if (e instanceof ScriptError) return { output, error: e.toJSON(), vm: null };
     throw e;
   }
-  const vm = new VM(prog, { globals: opts.globals, host: { print: (t) => { output += t; }, printErr: (t) => { errors += t; }, ...(opts.host ?? {}) }, seed: opts.seed ?? 1 });
+  const vm = new VM(prog, { globals: opts.globals, files: opts.files, host: { print: (t) => { output += t; }, printErr: (t) => { errors += t; }, ...(opts.host ?? {}) }, seed: opts.seed ?? 1 });
   const task = vm.start();
   let budget = opts.budget ?? 50_000_000;
   for (;;) {

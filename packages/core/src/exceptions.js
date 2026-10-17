@@ -24,13 +24,16 @@ const TREE = [
   ['ImportError', 'Exception'], ['ModuleNotFoundError', 'ImportError'],
   ['LookupError', 'Exception'], ['IndexError', 'LookupError'], ['KeyError', 'LookupError'],
   ['NameError', 'Exception'], ['UnboundLocalError', 'NameError'],
-  ['OSError', 'Exception'], ['FileNotFoundError', 'OSError'], ['PermissionError', 'OSError'],
+  ['OSError', 'Exception'], ['FileNotFoundError', 'OSError'], ['PermissionError', 'OSError'], ['FileExistsError', 'OSError'],
+  ['IsADirectoryError', 'OSError'], ['NotADirectoryError', 'OSError'], ['TimeoutError', 'OSError'], ['ConnectionError', 'OSError'],
   ['RuntimeError', 'Exception'], ['NotImplementedError', 'RuntimeError'], ['RecursionError', 'RuntimeError'],
   ['StopIteration', 'Exception'],
   ['SyntaxError', 'Exception'], ['IndentationError', 'SyntaxError'], ['TabError', 'IndentationError'],
   ['TypeError', 'Exception'], ['ValueError', 'Exception'],
 ];
 for (const [name, base] of TREE) EXCEPTION_CLASSES[name] = new PyClass(name, [EXCEPTION_CLASSES[base]], new Map(), 'exception');
+EXCEPTION_CLASSES.IOError = EXCEPTION_CLASSES.OSError;
+EXCEPTION_CLASSES.EnvironmentError = EXCEPTION_CLASSES.OSError;
 // str(KeyError('k')) shows the repr of the key
 EXCEPTION_CLASSES.KeyError.dict.set('__str__', native('KeyError.__str__'));
 

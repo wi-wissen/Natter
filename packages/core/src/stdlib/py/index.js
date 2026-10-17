@@ -13,6 +13,9 @@ import re from './re.js';
 import textwrap from './textwrap.js';
 import pprint from './pprint.js';
 import turtle from './turtle.js';
+import _fileio from './fileio.js';
+import os from './os.js';
+import posixpath from './posixpath.js';
 
 /** @type {Record<string, string>} */
-export const PYMODULES = { collections, functools, itertools, statistics, string, json, sys, time, _calendar, datetime, re, textwrap, pprint, turtle };
+export const PYMODULES = { collections, functools, itertools, statistics, string, json, sys, time, _calendar, datetime, re, textwrap, pprint, turtle, _fileio, os, posixpath };

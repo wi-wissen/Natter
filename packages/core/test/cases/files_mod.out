@@ -1,0 +1,28 @@
+10 notes.txt w False
+True
+eins
+'zwei' 9
+['\n', 'drei\n', 'vier\n', 'funf\n']
+True True
+1 eins
+2 zwei
+3 drei
+4 vier
+5 funf
+['eins', 'zwei', 'drei', 'vier', 'funf', 'sechs']
+EINS
+zwe
+30
+FileExistsError [Errno 17] File exists: 'neu.txt'
+FileNotFoundError [Errno 2] No such file or directory: 'fehlt.txt'
+UnsupportedOperation not writable
+UnsupportedOperation not readable
+ValueError I/O operation on closed file.
+['a', 'neu.txt', 'notes.txt'] ['b'] True True False
+a/b/c.txt c.txt a/b ('a/b.c', '.txt') ('a/b', 'c')
+a/c/d /b 4
+['a', 'notes.txt']
+[Errno 2] No such file or directory: 'alt.txt'
+IsADirectoryError [Errno 21] Is a directory: 'a'
+FileNotFoundError [Errno 2] No such file or directory: 'fehlt/x.txt'
+[('.', ['a'], ['notes.txt']), ('./a', ['b'], []), ('./a/b', [], ['c.txt'])]
