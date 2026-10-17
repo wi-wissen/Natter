@@ -2,7 +2,7 @@
 
 A small Python interpreter written in JavaScript, made for teaching in the browser.
 
-- **Small:** the core is about 76 KB gzipped (260 KB minified) with the standard library, including error messages in two languages.
+- **Small:** the core is about 80 KB gzipped (270 KB minified) with the standard library, including error messages in two languages.
 - **Never freezes:** programs run in slices with an instruction budget, so an endless loop stops instead of blocking the page.
 - **Debugger built in:** breakpoints, step into/over/out, variables and call stack.
 - **Friendly errors:** English and German messages with hints, in the style of CPython 3.12.
@@ -29,7 +29,7 @@ The VM is a stack machine with its own frame stack (no JavaScript recursion). It
 
 0. Repository setup, interpreter core with its tests. **Done.**
 1. Language core: classes, exceptions, sets, generators, `with`, `input()`. **Done.**
-2. Standard library and deterministic math. **Mostly done:** `math`, `random`, `time`, `datetime`, `json`, `statistics`, `collections`, `itertools`, `functools`, `string`, `copy`, `sys`. Still to do: `re`, `pprint`, `textwrap`, correctly rounded `math`.
+2. Standard library and deterministic math. **Done:** `math`, `random`, `time`, `datetime`, `json`, `statistics`, `collections`, `itertools`, `functools`, `string`, `copy`, `sys`. `re`, `pprint`, `textwrap` and correctly rounded `math` are in, too.
 3. `turtle` and `kara`.
 4. Projects with several files, `import`, assets.
 5. Games with the full Pygame Zero reference.

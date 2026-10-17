@@ -1,0 +1,383 @@
+6 [] 
+[] [] []
+[] 
+10 [] 
+[] [] []
+[] 
+17 [] 
+[] [] []
+[] 
+30 [] 
+[] [] []
+[] 
+70 [] 
+[] [] []
+[] 
+6 ['word'] > word
+['word'] ['word'] ['word']
+['word'] word
+10 ['word'] > word
+['word'] ['word'] ['word']
+['word'] word
+17 ['word'] > word
+['word'] ['word'] ['word']
+['word'] word
+30 ['word'] > word
+['word'] ['word'] ['word']
+['word'] word
+70 ['word'] > word
+['word'] ['word'] ['word']
+['word'] word
+6 ['Hello', 'world,', 'this', 'is a', 'test', 'of the', 'wrappi', 'ng', 'code.'] > Hell
+  o wo
+  rld,
+  this
+  is a
+  test
+  of
+  the
+  wrap
+  ping
+  code
+  .
+['Hello', 'world,', 'this', 'is a', 'test', 'of the', 'wrapping', 'code.'] ['Hello', 'world,', 'this', 'is a', 'test', 'of the', 'wrappi', 'ng', 'code.'] ['Hello ', 'world,', ' this ', 'is a ', 'test ', 'of the', ' wrapp', 'ing ', 'code.']
+['Hello', '[...]'] [...]
+10 ['Hello', 'world,', 'this is a', 'test of', 'the', 'wrapping', 'code.'] > Hello
+  world,
+  this is
+  a test
+  of the
+  wrapping
+  code.
+['Hello', 'world,', 'this is a', 'test of', 'the', 'wrapping', 'code.'] ['Hello', 'world,', 'this is a', 'test of', 'the', 'wrapping', 'code.'] ['Hello ', 'world, ', 'this is a ', 'test of ', 'the ', 'wrapping ', 'code.']
+['Hello', '[...]'] [...]
+17 ['Hello world, this', 'is a test of the', 'wrapping code.'] > Hello world,
+  this is a test
+  of the wrapping
+  code.
+['Hello world, this', 'is a test of the', 'wrapping code.'] ['Hello world, this', 'is a test of the', 'wrapping code.'] ['Hello world, this', ' is a test of the', ' wrapping code.']
+['Hello world, this', 'is a test [...]'] Hello [...]
+30 ['Hello world, this is a test of', 'the wrapping code.'] > Hello world, this is a test
+  of the wrapping code.
+['Hello world, this is a test of', 'the wrapping code.'] ['Hello world, this is a test of', 'the wrapping code.'] ['Hello world, this is a test of', ' the wrapping code.']
+['Hello world, this is a test of', 'the wrapping code.'] Hello world, this is a [...]
+70 ['Hello world, this is a test of the wrapping code.'] > Hello world, this is a test of the wrapping code.
+['Hello world, this is a test of the wrapping code.'] ['Hello world, this is a test of the wrapping code.'] ['Hello world, this is a test of the wrapping code.']
+['Hello world, this is a test of the wrapping code.'] Hello world, this is a test of the wrapping code.
+6 ['A', 'double', 'spaced', 'text', 'with', 'gaps'] > A  d
+  oubl
+  e  s
+  pace
+  d
+  text
+  with
+  gaps
+['A', 'double', 'spaced', 'text', 'with', 'gaps'] ['A', 'double', 'spaced', 'text', 'with', 'gaps'] ['A  ', 'double', '  ', 'spaced', '   ', 'text ', 'with  ', 'gaps']
+['A', '[...]'] [...]
+10 ['A  double', 'spaced', 'text with', 'gaps'] > A
+  double
+  spaced
+  text
+  with
+  gaps
+['A  double', 'spaced', 'text with', 'gaps'] ['A  double', 'spaced', 'text with', 'gaps'] ['A  double', '  spaced', '   text ', 'with  gaps']
+['A  double', '[...]'] A [...]
+17 ['A  double  spaced', 'text with  gaps'] > A  double
+  spaced   text
+  with  gaps
+['A  double  spaced', 'text with  gaps'] ['A  double  spaced', 'text with  gaps'] ['A  double  spaced', '   text with  ', 'gaps']
+['A  double  spaced', 'text with  gaps'] A double [...]
+30 ['A  double  spaced   text with', 'gaps'] > A  double  spaced   text
+  with  gaps
+['A  double  spaced   text with', 'gaps'] ['A  double  spaced   text with', 'gaps'] ['A  double  spaced   text with', '  gaps']
+['A  double  spaced   text with', 'gaps'] A double spaced text with gaps
+70 ['A  double  spaced   text with  gaps'] > A  double  spaced   text with  gaps
+['A  double  spaced   text with  gaps'] ['A  double  spaced   text with  gaps'] ['A  double  spaced   text with  gaps']
+['A  double  spaced   text with  gaps'] A double spaced text with gaps
+6 ['Superc', 'alifra', 'gilist', 'icexpi', 'alidoc', 'ious', 'is', 'long'] > Supe
+  rcal
+  ifra
+  gili
+  stic
+  expi
+  alid
+  ocio
+  us
+  is
+  long
+['Supercalifragilisticexpialidocious', 'is', 'long'] ['Superc', 'alifra', 'gilist', 'icexpi', 'alidoc', 'ious', 'is', 'long'] ['Superc', 'alifra', 'gilist', 'icexpi', 'alidoc', 'ious ', 'is ', 'long']
+['Superc', '[...]'] [...]
+10 ['Supercalif', 'ragilistic', 'expialidoc', 'ious is', 'long'] > Supercal
+  ifragili
+  sticexpi
+  alidocio
+  us is
+  long
+['Supercalifragilisticexpialidocious', 'is long'] ['Supercalif', 'ragilistic', 'expialidoc', 'ious is', 'long'] ['Supercalif', 'ragilistic', 'expialidoc', 'ious is ', 'long']
+['Supercalif', '[...]'] [...]
+17 ['Supercalifragilis', 'ticexpialidocious', 'is long'] > Supercalifragil
+  isticexpialidoc
+  ious is long
+['Supercalifragilisticexpialidocious', 'is long'] ['Supercalifragilis', 'ticexpialidocious', 'is long'] ['Supercalifragilis', 'ticexpialidocious', ' is long']
+['Supercalifragilis', '[...]'] [...]
+30 ['Supercalifragilisticexpialidoc', 'ious is long'] > Supercalifragilisticexpialid
+  ocious is long
+['Supercalifragilisticexpialidocious', 'is long'] ['Supercalifragilisticexpialidoc', 'ious is long'] ['Supercalifragilisticexpialidoc', 'ious is long']
+['Supercalifragilisticexpialidoc', 'ious is long'] [...]
+70 ['Supercalifragilisticexpialidocious is long'] > Supercalifragilisticexpialidocious is long
+['Supercalifragilisticexpialidocious is long'] ['Supercalifragilisticexpialidocious is long'] ['Supercalifragilisticexpialidocious is long']
+['Supercalifragilisticexpialidocious is long'] Supercalifragilisticexpialidocious is long
+6 ['well-', 'known', 'twenty', '-one', 'self-', 'aware', 'state-', 'of-', 'the-', 'art', 'thing'] > well
+  -kno
+  wn t
+  went
+  y-
+  one
+  self
+  -awa
+  re s
+  tate
+  -of-
+  the-
+  art
+  thin
+  g
+['well-', 'known', 'twenty-', 'one', 'self-', 'aware', 'state-', 'of-', 'the-', 'art', 'thing'] ['well-k', 'nown t', 'wenty-', 'one se', 'lf-awa', 're sta', 'te-of-', 'the-ar', 't', 'thing'] ['well-', 'known ', 'twenty', '-one ', 'self-', 'aware ', 'state-', 'of-', 'the-', 'art ', 'thing']
+['well-', '[...]'] [...]
+10 ['well-known', 'twenty-one', 'self-aware', 'state-of-', 'the-art', 'thing'] > well-
+  known
+  twenty-
+  one
+  self-
+  aware
+  state-
+  of-the-
+  art
+  thing
+['well-known', 'twenty-one', 'self-aware', 'state-of-', 'the-art', 'thing'] ['well-known', 'twenty-one', 'self-aware', 'state-of-t', 'he-art', 'thing'] ['well-known', ' twenty-', 'one self-', 'aware ', 'state-of-', 'the-art ', 'thing']
+['well-known', '[...]'] [...]
+17 ['well-known', 'twenty-one self-', 'aware state-of-', 'the-art thing'] > well-known
+  twenty-one
+  self-aware
+  state-of-the-
+  art thing
+['well-known', 'twenty-one self-', 'aware state-of-', 'the-art thing'] ['well-known', 'twenty-one', 'self-aware', 'state-of-the-art', 'thing'] ['well-known ', 'twenty-one self-', 'aware state-of-', 'the-art thing']
+['well-known', 'twenty-one [...]'] well-known [...]
+30 ['well-known twenty-one self-', 'aware state-of-the-art thing'] > well-known twenty-one self-
+  aware state-of-the-art thing
+['well-known twenty-one self-', 'aware state-of-the-art thing'] ['well-known twenty-one', 'self-aware state-of-the-art', 'thing'] ['well-known twenty-one self-', 'aware state-of-the-art thing']
+['well-known twenty-one self-', 'aware state-of-the-art thing'] well-known twenty-one [...]
+70 ['well-known twenty-one self-aware state-of-the-art thing'] > well-known twenty-one self-aware state-of-the-art thing
+['well-known twenty-one self-aware state-of-the-art thing'] ['well-known twenty-one self-aware state-of-the-art thing'] ['well-known twenty-one self-aware state-of-the-art thing']
+['well-known twenty-one self-aware state-of-the-art thing'] well-known twenty-one self-aware state-of-the-art thing
+6 ['tab', 'separa', 'ted', 'text', 'here', 'and', 'more'] > tab
+  sepa
+  rate
+  d
+  text
+  here
+  and
+  more
+['tab', 'separated', 'text', 'here', 'and', 'more'] ['tab', 'separa', 'ted', 'text', 'here', 'and', 'more'] ['tab', '     s', 'eparat', 'ed    ', '   ', 'text ', 'here  ', '     ', 'and ', 'more']
+['tab', '[...]'] [...]
+10 ['tab', 'separated', 'text here', 'and more'] > tab
+  separate
+  d
+  text
+  here
+  and more
+['tab', 'separated', 'text here', 'and more'] ['tab', 'separated', 'text here', 'and more'] ['tab     ', 'separated', '       ', 'text here', '       and', ' more']
+['tab [...]'] tab [...]
+17 ['tab     separated', 'text here', 'and more'] > tab
+  separated
+  text here
+  and more
+['tab     separated', 'text here', 'and more'] ['tab     separated', 'text here', 'and more'] ['tab     separated', '       text here', '       and more']
+['tab     separated', 'text here [...]'] tab [...]
+30 ['tab     separated       text', 'here       and more'] > tab     separated       text
+  here       and more
+['tab     separated       text', 'here       and more'] ['tab     separated       text', 'here       and more'] ['tab     separated       text ', 'here       and more']
+['tab     separated       text', 'here       and more'] tab separated text here [...]
+70 ['tab     separated       text here       and more'] > tab     separated       text here       and more
+['tab     separated       text here       and more'] ['tab     separated       text here       and more'] ['tab     separated       text here       and more']
+['tab     separated       text here       and more'] tab separated text here and more
+6 ['first', 'line', 'second', 'line', 'is a', 'bit', 'longer', 'third'] > firs
+  t
+  line
+  seco
+  nd
+  line
+  is a
+  bit
+  long
+  er
+  thir
+  d
+['first', 'line', 'second', 'line', 'is a', 'bit', 'longer', 'third'] ['first', 'line', 'second', 'line', 'is a', 'bit', 'longer', 'third'] ['first ', 'line ', 'second', ' line ', 'is a ', 'bit ', 'longer', '  ', 'third']
+['first', '[...]'] [...]
+10 ['first line', 'second', 'line is a', 'bit longer', 'third'] > first
+  line
+  second
+  line is
+  a bit
+  longer
+  third
+['first line', 'second', 'line is a', 'bit longer', 'third'] ['first line', 'second', 'line is a', 'bit longer', 'third'] ['first line', ' second ', 'line is a ', 'bit longer', '  third']
+['first line', '[...]'] [...]
+17 ['first line second', 'line is a bit', 'longer  third'] > first line
+  second line is
+  a bit longer
+  third
+['first line second', 'line is a bit', 'longer  third'] ['first line second', 'line is a bit', 'longer  third'] ['first line second', ' line is a bit ', 'longer  third']
+['first line second', 'line is a [...]'] first line [...]
+30 ['first line second line is a', 'bit longer  third'] > first line second line is a
+  bit longer  third
+['first line second line is a', 'bit longer  third'] ['first line second line is a', 'bit longer  third'] ['first line second line is a ', 'bit longer  third']
+['first line second line is a', 'bit longer  third'] first line second line [...]
+70 ['first line second line is a bit longer  third'] > first line second line is a bit longer  third
+['first line second line is a bit longer  third'] ['first line second line is a bit longer  third'] ['first line second line is a bit longer  third']
+['first line second line is a bit longer  third'] first line second line is a bit longer third
+6 ['   lea', 'ding', 'spaces', 'and tr', 'ailing'] >    l
+  eadi
+  ng s
+  pace
+  s
+  and
+  trai
+  ling
+['leading', 'spaces', 'and', 'trailing'] ['   lea', 'ding', 'spaces', 'and tr', 'ailing'] ['   lea', 'ding ', 'spaces', ' and t', 'railin', 'g   ']
+['   lea', '[...]'] [...]
+10 ['   leading', 'spaces and', 'trailing'] > leading
+  spaces
+  and
+  trailing
+['   leading', 'spaces and', 'trailing'] ['   leading', 'spaces and', 'trailing'] ['   leading', ' spaces ', 'and ', 'trailing', '   ']
+['   leading', '[...]'] [...]
+17 ['   leading spaces', 'and trailing'] >    leading
+  spaces and
+  trailing
+['   leading spaces', 'and trailing'] ['   leading spaces', 'and trailing'] ['   leading spaces', ' and trailing   ']
+['   leading spaces', 'and trailing'] leading [...]
+30 ['   leading spaces and trailing'] >    leading spaces and
+  trailing
+['   leading spaces and trailing'] ['   leading spaces and trailing'] ['   leading spaces and trailing', '   ']
+['   leading spaces and trailing'] leading spaces and trailing
+70 ['   leading spaces and trailing'] >    leading spaces and trailing
+['   leading spaces and trailing'] ['   leading spaces and trailing'] ['   leading spaces and trailing   ']
+['   leading spaces and trailing'] leading spaces and trailing
+6 ['ä ö ü', 'ß are', 'wide', 'chars', 'in', 'some', 'fonts', 'but', 'not', 'here,', 'Übergr', 'ößentr', 'äger'] > ä ö
+  ü ß
+  are
+  wide
+  char
+  s in
+  some
+  font
+  s
+  but
+  not
+  here
+  , Üb
+  ergr
+  ößen
+  träg
+  er
+['ä ö ü', 'ß are', 'wide', 'chars', 'in', 'some', 'fonts', 'but', 'not', 'here,', 'Übergrößenträger'] ['ä ö ü', 'ß are', 'wide', 'chars', 'in', 'some', 'fonts', 'but', 'not', 'here,', 'Übergr', 'ößentr', 'äger'] ['ä ö ü ', 'ß are ', 'wide ', 'chars ', 'in ', 'some ', 'fonts ', 'but ', 'not ', 'here, ', 'Übergr', 'ößentr', 'äger']
+['ä ö ü', '[...]'] [...]
+10 ['ä ö ü ß', 'are wide', 'chars in', 'some fonts', 'but not', 'here, Über', 'größenträg', 'er'] > ä ö ü ß
+  are wide
+  chars in
+  some
+  fonts
+  but not
+  here, Üb
+  ergrößen
+  träger
+['ä ö ü ß', 'are wide', 'chars in', 'some fonts', 'but not', 'here,', 'Übergrößenträger'] ['ä ö ü ß', 'are wide', 'chars in', 'some fonts', 'but not', 'here, Über', 'größenträg', 'er'] ['ä ö ü ß ', 'are wide ', 'chars in ', 'some fonts', ' but not ', 'here, Über', 'größenträg', 'er']
+['ä ö ü ß', 'are [...]'] ä ö [...]
+17 ['ä ö ü ß are wide', 'chars in some', 'fonts but not', 'here,', 'Übergrößenträger'] > ä ö ü ß are
+  wide chars in
+  some fonts but
+  not here, Überg
+  rößenträger
+['ä ö ü ß are wide', 'chars in some', 'fonts but not', 'here,', 'Übergrößenträger'] ['ä ö ü ß are wide', 'chars in some', 'fonts but not', 'here,', 'Übergrößenträger'] ['ä ö ü ß are wide ', 'chars in some ', 'fonts but not ', 'here, ', 'Übergrößenträger']
+['ä ö ü ß are wide', 'chars in [...]'] ä ö ü ß are [...]
+30 ['ä ö ü ß are wide chars in some', 'fonts but not here,', 'Übergrößenträger'] > ä ö ü ß are wide chars in
+  some fonts but not here,
+  Übergrößenträger
+['ä ö ü ß are wide chars in some', 'fonts but not here,', 'Übergrößenträger'] ['ä ö ü ß are wide chars in some', 'fonts but not here,', 'Übergrößenträger'] ['ä ö ü ß are wide chars in some', ' fonts but not here, ', 'Übergrößenträger']
+['ä ö ü ß are wide chars in some', 'fonts but not here, [...]'] ä ö ü ß are wide chars [...]
+70 ['ä ö ü ß are wide chars in some fonts but not here, Übergrößenträger'] > ä ö ü ß are wide chars in some fonts but not here, Übergrößenträger
+['ä ö ü ß are wide chars in some fonts but not here, Übergrößenträger'] ['ä ö ü ß are wide chars in some fonts but not here, Übergrößenträger'] ['ä ö ü ß are wide chars in some fonts but not here, Übergrößenträger']
+['ä ö ü ß are wide chars in some fonts but not here, Übergrößenträger'] ä ö ü ß are wide chars in some fonts but not here, Übergrößenträger
+6 ['a b c', 'd e f', 'g h i', 'j k l', 'm n o', 'p q r', 's t u', 'v w x', 'y z'] > a b
+  c d
+  e f
+  g h
+  i j
+  k l
+  m n
+  o p
+  q r
+  s t
+  u v
+  w x
+  y z
+['a b c', 'd e f', 'g h i', 'j k l', 'm n o', 'p q r', 's t u', 'v w x', 'y z'] ['a b c', 'd e f', 'g h i', 'j k l', 'm n o', 'p q r', 's t u', 'v w x', 'y z'] ['a b c ', 'd e f ', 'g h i ', 'j k l ', 'm n o ', 'p q r ', 's t u ', 'v w x ', 'y z']
+['a b c', '[...]'] [...]
+10 ['a b c d e', 'f g h i j', 'k l m n o', 'p q r s t', 'u v w x y', 'z'] > a b c d
+  e f g h
+  i j k l
+  m n o p
+  q r s t
+  u v w x
+  y z
+['a b c d e', 'f g h i j', 'k l m n o', 'p q r s t', 'u v w x y', 'z'] ['a b c d e', 'f g h i j', 'k l m n o', 'p q r s t', 'u v w x y', 'z'] ['a b c d e ', 'f g h i j ', 'k l m n o ', 'p q r s t ', 'u v w x y ', 'z']
+['a b c d e', 'f g [...]'] a b [...]
+17 ['a b c d e f g h i', 'j k l m n o p q r', 's t u v w x y z'] > a b c d e f g h
+  i j k l m n o p
+  q r s t u v w x
+  y z
+['a b c d e f g h i', 'j k l m n o p q r', 's t u v w x y z'] ['a b c d e f g h i', 'j k l m n o p q r', 's t u v w x y z'] ['a b c d e f g h i', ' j k l m n o p q ', 'r s t u v w x y z']
+['a b c d e f g h i', 'j k l m n o [...]'] a b c d e f [...]
+30 ['a b c d e f g h i j k l m n o', 'p q r s t u v w x y z'] > a b c d e f g h i j k l m n
+  o p q r s t u v w x y z
+['a b c d e f g h i j k l m n o', 'p q r s t u v w x y z'] ['a b c d e f g h i j k l m n o', 'p q r s t u v w x y z'] ['a b c d e f g h i j k l m n o ', 'p q r s t u v w x y z']
+['a b c d e f g h i j k l m n o', 'p q r s t u v w x y z'] a b c d e f g h i j k l [...]
+70 ['a b c d e f g h i j k l m n o p q r s t u v w x y z'] > a b c d e f g h i j k l m n o p q r s t u v w x y z
+['a b c d e f g h i j k l m n o p q r s t u v w x y z'] ['a b c d e f g h i j k l m n o p q r s t u v w x y z'] ['a b c d e f g h i j k l m n o p q r s t u v w x y z']
+['a b c d e f g h i j k l m n o p q r s t u v w x y z'] a b c d e f g h i j k l m n o p q r s t u v w x y z
+6 ['xxxxxx', 'xxxxxx', 'xxxxxx', 'xxxxxx', 'xxxxxx'] > xxxx
+  xxxx
+  xxxx
+  xxxx
+  xxxx
+  xxxx
+  xxxx
+  xx
+['xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx'] ['xxxxxx', 'xxxxxx', 'xxxxxx', 'xxxxxx', 'xxxxxx'] ['xxxxxx', 'xxxxxx', 'xxxxxx', 'xxxxxx', 'xxxxxx']
+['xxxxxx', '[...]'] [...]
+10 ['xxxxxxxxxx', 'xxxxxxxxxx', 'xxxxxxxxxx'] > xxxxxxxx
+  xxxxxxxx
+  xxxxxxxx
+  xxxxxx
+['xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx'] ['xxxxxxxxxx', 'xxxxxxxxxx', 'xxxxxxxxxx'] ['xxxxxxxxxx', 'xxxxxxxxxx', 'xxxxxxxxxx']
+['xxxxxxxxxx', '[...]'] [...]
+17 ['xxxxxxxxxxxxxxxxx', 'xxxxxxxxxxxxx'] > xxxxxxxxxxxxxxx
+  xxxxxxxxxxxxxxx
+['xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx'] ['xxxxxxxxxxxxxxxxx', 'xxxxxxxxxxxxx'] ['xxxxxxxxxxxxxxxxx', 'xxxxxxxxxxxxx']
+['xxxxxxxxxxxxxxxxx', 'xxxxxxxxxxxxx'] [...]
+30 ['xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx'] > xxxxxxxxxxxxxxxxxxxxxxxxxxxx
+  xx
+['xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx'] ['xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx'] ['xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx']
+['xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx'] xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+70 ['xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx'] > xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+['xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx'] ['xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx'] ['xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx']
+['xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx'] xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+'a\nb' '#     a\n#     b' '+    a\n+    b'
+'a\n b' '# \ta\n# \t b' '+\ta\n+\t b'
+' a\nb' '#   a\n#  b' '+  a\n+ b'
+'a\n  b' '# a\n#   b' '+a\n+  b'
+'\n\na\n\nb\n' '\n\n#   a\n\n#   b\n  ' '+\n+\n+  a\n+\n+  b\n+  '
+'  a\n\tb' '#   a\n# \tb' '+  a\n+\tb'
+'' '' ''

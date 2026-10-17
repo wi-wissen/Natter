@@ -1,0 +1,26 @@
+['Python is a', 'programming language', 'that lets you work', 'quickly and', 'integrate systems', 'more effectively.']
+['Python is a programming language that', 'lets you work quickly and integrate', 'systems more effectively.']
+['Python is a programming language that lets you work quickly and integrate', 'systems more effectively.']
+Python is a programming
+language that lets you work
+quickly and integrate systems
+more effectively.
+* Python is a programming
+  language that lets you work
+  quickly and integrate
+  systems more effectively.
+Python is a programming language [...] | Hello world! | [...]
+a
+  b
+c
+ 
+x
+
+y
+> a
+> b
+
+> c
+['a-very-long-', 'hyphenated-', 'word-here', 'and then', 'more'] ['Supercalif', 'ragilistic', 'expialidoc', 'ious!']
+['one two', '[...]'] [] ['  lead and trail']
+['long', 'word', 'long', 'word', 'long', 'word']

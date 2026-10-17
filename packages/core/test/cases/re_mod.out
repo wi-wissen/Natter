@@ -1,0 +1,18 @@
+('12', '34') Müller
+['1', '22', '333'] [('a', '1'), ('b', '2'), ('c', '3')] ['a', '']
+a b c home at me work at you -a-b--d-
+a2b4c6 ('bbnbna', 2)
+['a', 'b', 'c', 'd'] ['a', ',', 'b', ',', 'c'] ['', 'a', '', 'b', 'c', ''] ['a', 'b,c']
+2024 05 {'year': '2024', 'month': '05'} (7, 14) 12 14 <re.Match object; span=(7, 14), match='2024-05'>
+<re.Match object; span=(0, 3), match='123'> None None (1, 2)
+['eins', 'zwei'] ['zwei'] ['a\nb', 'a-b']
+['ab', 'ab'] ['Hallo', 'Welt'] ['grün', 'äö']
+['aA', 'aa'] 1 re.compile('a+')
+['Hallo', 'HALLO'] a\.b\*c ['22', '444']
+['ein', 'Zwei', 'drei'] ['🐍🐍', '🐍'] 1
+a<1>b<2> ('a', None) None
+abc abc!
+! ['b'] ['a']
+Newton, Isaac
+error PatternError
+TypeError

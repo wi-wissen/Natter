@@ -265,6 +265,12 @@ export function typeName(v) {
 }
 
 /** Names that are both a type and a conversion function (int(…), isinstance(x, int)). */
+/** `is`: identity; the built-in types are made on demand (type(1) is int), so they are the same when their names are. */
+function sameObject(a, b) {
+  if (a === b || (a === null && b === undefined) || (a === undefined && b === null)) return true;
+  return a instanceof PyBuiltin && b instanceof PyBuiltin && a.name === b.name && (TYPE_NAMES.has(a.name) || a.name.startsWith('class:'));
+}
+
 export const TYPE_NAMES = new Set(['int', 'float', 'str', 'bool', 'list', 'tuple', 'dict', 'set', 'frozenset', 'range', 'slice', 'type']);
 
 /** Key for dictionaries (Python: 1 == 1.0 == True are the same key). */
@@ -429,8 +435,8 @@ export function compare(op, a, b) {
     case '>=': return a instanceof PyInstance || b instanceof PyInstance ? richCompare('>=', a, b) : isNum(a) && isNum(b) ? num(a) >= num(b) : (lt(b, a, '>=') || eq(a, b));
     case 'in': return contains(b, a);
     case 'not in': return !contains(b, a);
-    case 'is': return a === b || (a === null && b === undefined);
-    case 'is not': return !(a === b);
+    case 'is': return sameObject(a, b);
+    case 'is not': return !sameObject(a, b);
     default: throw err('syntax', { op });
   }
 }

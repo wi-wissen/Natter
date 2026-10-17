@@ -1,0 +1,12 @@
+{
+  "pack": "turtle",
+  "title": { "de": "Turtle", "en": "Turtle" },
+  "assets": [
+    { "name": "turtle", "file": "turtle.svg",
+      "tags": ["character", "mascot", "turtle"],
+      "de": "Schildkröte von oben, schaut nach rechts", "en": "Turtle seen from above, facing right" },
+    { "name": "turtle_side", "file": "turtle_side.svg",
+      "tags": ["character", "mascot", "turtle"],
+      "de": "Schildkröte von der Seite, schaut nach rechts", "en": "Turtle seen from the side, facing right" }
+  ]
+}

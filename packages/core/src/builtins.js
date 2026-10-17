@@ -10,6 +10,7 @@ import { MATH_NATIVES, MATH_NAMES, MATH_CONSTS } from './stdlib/math.js';
 import { RANDOM_NATIVES, RANDOM_NAMES } from './stdlib/random.js';
 import { CLOCK_NATIVES, CLOCK_NAMES } from './stdlib/clock.js';
 import { JSON_NATIVES, JSON_NAMES } from './stdlib/json.js';
+import { RE_NATIVES, RE_NAMES } from './stdlib/re.js';
 import { COPY_NATIVES, COPY_NAMES } from './stdlib/copy.js';
 import { EXCEPTION_CLASSES } from './exceptions.js';
 import {
@@ -113,6 +114,25 @@ function mappingItems(ctx, src) {
 
 /** Iterator over a finished list (enumerate, zip, map, reversed). */
 const listIter = (items, label) => new PyIterator(new PyList(items), 0, label);
+
+/** start/end of str methods as slice bounds (None and negative numbers like in slicing). */
+function sliceBounds(n, start, end) {
+  const fix = (v, dflt) => (v === undefined || v === null ? dflt : Math.max(0, Math.min(n, needInt(v, 'index') < 0 ? n + needInt(v, 'index') : needInt(v, 'index'))));
+  return [fix(start, 0), fix(end, n)];
+}
+
+function strFind(name, s, a, kw, last) {
+  const [sub, start, end] = params(name, a, kw, ['sub', '?start', '?end']);
+  const t = needStr(sub, 'sub');
+  const [lo, hi] = sliceBounds(s.length, start, end);
+  if (lo > hi) return -1;
+  const part = s.slice(lo, hi);
+  const i = last ? part.lastIndexOf(t) : part.indexOf(t);
+  return i < 0 ? -1 : i + lo;
+}
+
+const objectIds = new WeakMap();
+let nextObjectId = 0x30000000;
 
 export const BUILTINS = {
   '_sys.write_err'(ctx, args) { ctx.vm.printErr(needStr(args[0], 'write'), ctx.task); return null; },
@@ -282,6 +302,11 @@ export const BUILTINS = {
   id(ctx, args, kw) {
     const [x] = params('id', args, kw, ['obj']);
     if (x instanceof PyInstance) return 0x10000000 + x.id * 16;
+    if (typeof x === 'object' && x !== null && !(x instanceof PyFloat)) {
+      // containers and the like: one number per object, handed out in the order they are asked for
+      if (!objectIds.has(x)) { objectIds.set(x, nextObjectId); nextObjectId += 16; }
+      return objectIds.get(x);
+    }
     return fnv(keyOfLoose(x)) + 0x20000000;
   },
   hash(ctx, args, kw) {
@@ -390,6 +415,7 @@ export const BUILTINS = {
   ...RANDOM_NATIVES,
   ...CLOCK_NATIVES,
   ...JSON_NATIVES,
+  ...RE_NATIVES,
   ...COPY_NATIVES,
 };
 
@@ -446,6 +472,7 @@ export const MODULES = {
   random: RANDOM_NAMES,
   _time: CLOCK_NAMES,
   _json: JSON_NAMES,
+  _re: RE_NAMES,
   _sys: ['write_err'],
   copy: COPY_NAMES,
 };
@@ -552,7 +579,24 @@ export const METHODS = {
     lstrip: (c, s, a, kw) => strip(s, params('lstrip', a, kw, ['?chars'])[0], true, false),
     rstrip: (c, s, a, kw) => strip(s, params('rstrip', a, kw, ['?chars'])[0], false, true),
     split: (c, s, a, kw) => { const [sep, max] = params('split', a, kw, ['?sep', '?maxsplit']); return new PyList(splitStr(s, sep, max)); },
-    splitlines: (c, s) => new PyList(s.split(/\r?\n/).filter((x, i, arr) => i < arr.length - 1 || x !== '')),
+    splitlines: (c, s, a, kw) => {
+      const [keep = false] = params('splitlines', a, kw, ['?keepends']);
+      const out = [];
+      const re = /\r\n|[\n\r\v\f\x1c-\x1e\x85\u2028\u2029]/g;
+      let last = 0, m;
+      while ((m = re.exec(s))) { out.push(s.slice(last, keep ? m.index + m[0].length : m.index)); last = m.index + m[0].length; }
+      if (last < s.length) out.push(s.slice(last));
+      return new PyList(out);
+    },
+    expandtabs: (c, s, a, kw) => {
+      const [size = 8] = params('expandtabs', a, kw, ['?tabsize']);
+      const n = needInt(size, 'tabsize');
+      let out = '', col = 0;
+      for (const ch of s) {
+        if (ch === '\t') { const k = n > 0 ? n - (col % n) : 0; out += ' '.repeat(k); col += k; } else { out += ch; col = ch === '\n' || ch === '\r' ? 0 : col + 1; }
+      }
+      return out;
+    },
     join: (c, s, a, kw) => {
       const [it] = params('join', a, kw, ['iterable']);
       return iterItems(it).map((x, i) => { if (typeof x !== 'string') throw err('type', { what: 'joinStr', i, type: typeName(x) }); return x; }).join(s);
@@ -567,17 +611,17 @@ export const METHODS = {
     },
     startswith: (c, s, a, kw) => prefixTest(s, params('startswith', a, kw, ['prefix'])[0], (x, p) => x.startsWith(p)),
     endswith: (c, s, a, kw) => prefixTest(s, params('endswith', a, kw, ['suffix'])[0], (x, p) => x.endsWith(p)),
-    find: (c, s, a, kw) => s.indexOf(needStr(params('find', a, kw, ['sub'])[0], 'sub')),
-    rfind: (c, s, a, kw) => s.lastIndexOf(needStr(params('rfind', a, kw, ['sub'])[0], 'sub')),
-    index: (c, s, a, kw) => {
-      const i = s.indexOf(needStr(params('index', a, kw, ['sub'])[0], 'sub'));
-      if (i < 0) throw err('value', { what: 'substringNotFound' });
-      return i;
-    },
+    find: (c, s, a, kw) => strFind('find', s, a, kw, false),
+    rfind: (c, s, a, kw) => strFind('rfind', s, a, kw, true),
+    index: (c, s, a, kw) => { const i = strFind('index', s, a, kw, false); if (i < 0) throw err('value', { what: 'substringNotFound' }); return i; },
+    rindex: (c, s, a, kw) => { const i = strFind('rindex', s, a, kw, true); if (i < 0) throw err('value', { what: 'substringNotFound' }); return i; },
     count: (c, s, a, kw) => {
-      const sub = needStr(params('count', a, kw, ['sub'])[0], 'sub');
-      if (!sub) return s.length + 1;
-      return s.split(sub).length - 1;
+      const [sub, start, end] = params('count', a, kw, ['sub', '?start', '?end']);
+      const [lo, hi] = sliceBounds(s.length, start, end);
+      const part = s.slice(lo, hi);
+      const t = needStr(sub, 'sub');
+      if (!t) return lo > s.length ? 0 : part.length + 1;
+      return part.split(t).length - 1;
     },
     isdigit: (c, s) => s.length > 0 && /^\d+$/.test(s),
     isnumeric: (c, s) => s.length > 0 && /^\d+$/.test(s),
