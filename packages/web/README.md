@@ -1,6 +1,6 @@
 # @natter/web – Natter im Browser
 
-Gemeinsame Grundlage, um Natter-Programme in einer Webseite laufen zu lassen: ein **Runner** (Zeitscheiben, Warte-Handler, Host-Callbacks, Debugger), eine **Konsole** und die Zeichenflächen **turtle** und **kara**. Pygame Zero, guizero und Plots docken über dieselbe Schnittstelle an (`registerHost`, `registerWait`, `use`). Nutzt nur die öffentlichen Exporte von `@natter/core`.
+Gemeinsame Grundlage, um Natter-Programme in einer Webseite laufen zu lassen: ein **Runner** (Zeitscheiben, Warte-Handler, Host-Callbacks, Debugger), eine **Konsole**, die Zeichenflächen **turtle** und **kara**, **Formulare** (guizero) und **Plots** (matplotlib). Alle Module docken über dieselbe Schnittstelle an (`registerHost`, `registerWait`, `use`). Nutzt nur die öffentlichen Exporte von `@natter/core`.
 
 ```bash
 npm run web:build   # packages/web/dist/natter-web.js (ES-Modul, mit Kern) + Größe
@@ -8,7 +8,7 @@ npm run web:e2e     # bauen, dann Browsertests gegen demo/index.html (Chromium, 
 npx vitest run packages/web   # reine Logik (Koordinaten, Kara-Welt, http, Runner in Node)
 ```
 
-Demo: nach dem Bauen `packages/web/demo/index.html` über einen beliebigen statischen Server öffnen (Codefeld, Start/Stopp, Konsole, Turtle oder Kara je nach Programm, Beispiele). Browsertests: `node packages/web/e2e/run.mjs [Filter]`; Playwright kommt aus dem Projekt oder aus `PLAYWRIGHT_DIR` (Standard `/opt/node-tools/node_modules`), Chromium aus `PW_CHROMIUM`. Screenshots (Desktop 1440×900, Handy 412×915) landen in `e2e/out/`.
+Demo: nach dem Bauen `packages/web/demo/index.html` über einen beliebigen statischen Server öffnen (Codefeld, Start/Stopp, Konsole, Turtle oder Kara je nach Programm, Beispiele). Browsertests: `node packages/web/e2e/run.mjs [Filter]`, Formulare und Plots: `node packages/web/e2e/forms.mjs [Filter]`; Playwright kommt aus dem Projekt oder aus `PLAYWRIGHT_DIR` (Standard `/opt/node-tools/node_modules`), Chromium aus `PW_CHROMIUM`. Screenshots (Desktop 1440×900, Handy 412×915) landen in `e2e/out/`.
 
 ## Einbinden
 
@@ -66,3 +66,35 @@ Setzt `host.turtle(kind, args)` aus `docs/HOST-TURTLE-KARA.md` um: Ursprung in d
 ## Kara: `createKara(container, { stepSeconds, fit, maxScale })`
 
 Wiese von 3×3 bis 30×20 (Zellen passen sich an), Bäume, Beeren, Pilze (grün, wenn alle auf Beeren liegen), Marienkäfer mit Blickrichtung. `move`, `push`, `turn`, `put`, `remove` sind animiert (`stepSeconds`, Standard 0,3; auch später über `kara.stepSeconds` änderbar), `crash` zeigt den Zusammenstoß, der Fehler kommt wie jeder andere.
+
+## Formulare (guizero): `createForms(container, { lang, windows, image, images, onTitle })`
+
+Setzt `host.forms(op, data)` aus `docs/FORMS-BRIDGE.md` mit echten HTML-Elementen um: `Text` (div), `TextBox` (input/textarea, `hide_text` als Passwortfeld), `PushButton` (button, auch mit Bild), `CheckBox`, `ButtonGroup` (Radiogruppe), `Combo` (select), `ListBox` (eigene `role="listbox"` mit Tastatur, Mehrfachauswahl), `Slider` (range mit Wertanzeige, auch senkrecht), `Picture` (img), `Drawing` und `Waffle` (SVG), `Box`, `TitleBox` (fieldset), `MenuBar` (Menüleiste mit Aufklappmenüs). Ein vorangehender `Text` wird zum Namen (`aria-labelledby`) eines Eingabefelds.
+
+```js
+const forms = createForms(document.querySelector('#forms'), { lang: 'de' });   // Container braucht eine Höhe
+runner.use(forms);
+```
+
+- **Fenster:** App und `Window` sind Tafeln auf einer Arbeitsfläche (verschiebbar an der Titelleiste, Klick holt nach vorn, das App mittig, weitere daneben oder versetzt). Unter 600 px Breite (oder `windows: 'tabs'`) füllen Fenster die Breite, es ist immer eines zu sehen, ein Umschalter (Tabs) wählt, ein neu gezeigtes Fenster kommt nach vorn. `width`/`height` des Fensters sind die Pixel des Inhalts; was nicht passt, scrollt. `full_screen` füllt die Fläche, `modal` sperrt die anderen Fenster.
+- **Layout `auto`** wie Tk `pack`, gebaut aus verschachtelten Flex-„Hohlräumen“: jedes Kind nimmt sich an seiner Seite (`top`, `bottom`, `left`, `right`) einen Streifen und wird darin zentriert; `"fill"` dehnt nach guizeros Regeln (`fill`/`expand`). **Layout `grid`** ist ein CSS-Grid: Spalten und Zeilen so groß wie ihr größtes Kind, wachsen mit dem Inhalt, leere sind 0 breit, Spannen über `[spalte, zeile, spalten, zeilen]`, `align` klebt an die Zellseite, das Gitter sitzt oben links.
+- **Größen** wie in guizero: `Text`, `TextBox`, `PushButton`, `CheckBox`, `Combo` in Zeichen (`ch`) und Zeilen, `Box`, `ListBox`, `Picture`, `Drawing`, Fenster in Pixeln (eine `Box` mit Größe schneidet ab), `Waffle` in Feldern. Schrift: Tk-Punkte × `--nwf-pt` (1,4 px, auf Touch-Geräten 1,6 px); `Helvetica`/`Arial` = Schrift der Seite, `Courier` = Monospace.
+- **Farben:** Tk-Standardfarben (`#d9d9d9`, weiße Eingabefelder, schwarze Schrift) zeichnen in den Farben des Themas (hell/dunkel). Eine eigene Hintergrundfarbe gilt genau so; Text mit Standardfarbe wird darauf schwarz oder weiß, je nachdem, was lesbar ist.
+- **Ereignisse:** Klicks (`press1`, `release1`, `command`, Doppelklick als `double1`, rechte Taste `press3`), Eingaben (`change` bei jeder Änderung, Tasten als `key` mit Tk-`keysym`/`char` an das Widget mit Fokus oder das Fenster), `motion`/`drag1`/`enter`/`leave` nur, wenn das Widget oder sein Fenster sie auswertet (dann auch Wischen auf Touch), Menüs, Schließknopf (`close`), neue Fenstergrößen (`resize`; Widgets nur mit `when_resized`). Mauskoordinaten in Widget-Pixeln, bei verkleinerten Drawings zurückgerechnet. Ereignisse warten in einer Schlange, bis das Programm in `display()`/`update()` danach fragt; Mausbewegungen werden zusammengefasst.
+- **Zeitgeber** (`after`, `repeat`) laufen auf echter Zeit (`setTimeout` × `timeScale` des Runners), Stopp löscht sie.
+- **Dialoge** liegen als modale Karte über den Fenstern: `info`/`warn`/`error` (OK), `yesno` (Ja/Nein), `question` (Textfeld mit Startwert), `select_file` (Liste der Projektdateien, Dateitypen als Filter; zum Speichern ein Namensfeld), `select_folder`, `select_color` (Farbwähler). Escape bricht ab.
+- **Bilder:** `image(path, vm)` liefert `{ url, width, height }` synchron; sonst `images`/`forms.addImage(path, url, w, h)`/`await forms.loadImages({ path: url })`, sonst eine Projektdatei (`files`) als `data:`-URL (PNG, GIF, JPEG, BMP, WebP, SVG) oder SVG-Text.
+- **Ende:** Schließt der Nutzer das App-Fenster, endet `display()`. Nach Stopp oder Fehler bleiben die Fenster blass und gesperrt stehen, bis der nächste Lauf beginnt.
+- Für Tests und Seiten: `forms.info` (Fenster, Modus, Zeitgeber, wartet?), `forms.element(id)`, `forms.setWindowMode('auto'|'panels'|'tabs')`.
+
+Thema über CSS-Variablen (sonst die `--nw-*`-Werte der Konsole, sonst die Tokens von python.jetzt): `--nwf-font`, `--nwf-mono`, `--nwf-text`, `--nwf-muted`, `--nwf-line`, `--nwf-desk` (Fläche hinter den Fenstern), `--nwf-surface` (Fensterinhalt), `--nwf-field` (Eingabefelder), `--nwf-button`, `--nwf-button-hover`, `--nwf-titlebar`, `--nwf-accent`, `--nwf-on-accent`, `--nwf-shadow`, `--nwf-radius`, `--nwf-ctl-radius`, `--nwf-pt`, `--nwf-touch` (Mindesthöhe von Bedienelementen, auf Touch-Geräten 44 px), `--nwf-warn`, `--nwf-err`. Dunkelmodus nach `prefers-color-scheme`, außer `<html data-theme="light|dark">` legt es fest.
+
+## Plots: `createPlot(container, { lang, layout, dark, showOpenAtEnd, maxWidth, onSave, onShow })`
+
+Zeigt das SVG von `plt.show()` (Warteart `plot`, `docs/NUMPY-PLOT.md`) direkt in der Seite und setzt das Programm sofort fort. Eine Abbildung passt sich der Fläche an (so breit, dass sie ganz zu sehen ist, höchstens 1,5-fache Größe); „⤢“ gibt ihr die volle Breite. Mehrere Abbildungen stehen untereinander (`layout: 'tabs'`: als Tabs). Jede Abbildung hat „↓ SVG“ und „↓ PNG“ (Download über einen Blob-Link, PNG in doppelter Auflösung; in Sandbox-Ansichten wie Artifacts sind Downloads gesperrt). Figuren, die am Programmende noch offen sind (kein `show()`), erscheinen dann (`showOpenAtEnd: false` schaltet das ab).
+
+- **Dunkelmodus:** Das SVG hat einen weißen Hintergrund. Standard (`dark: 'paper'`) zeigt es als weißes Blatt; `dark: 'invert'` (oder der Knopf „Dunkel“, nur im Dunkelmodus sichtbar) kehrt die Farben um (`invert` + `hue-rotate`, Farben der Linien bleiben erkennbar). Heruntergeladen wird immer das Original.
+- **`savefig(datei)`:** ohne `onSave` erscheint eine Zeile „datei gespeichert: herunterladen“; `onSave(file, svg, wait)` kann die Datei selbst ablegen (z. B. im Projekt) und gibt dann `true` zurück.
+- `plot.show(svg, w, h, name)`, `plot.clear()`, `plot.saveSvg(i)`, `plot.savePng(i, scale)`, `plot.setDark('paper'|'invert')`, `plot.figures`. Hilfen: `downloadBlob(blob, name)`, `svgToPng(svg, w, h, scale)`.
+
+`detectModules(source)` meldet zusätzlich `forms` (Import von guizero) und `plot` (Import von matplotlib). Die Demo hat Beispiele für Zähler, Temperatur-Umrechner, Quiz, To-do-Liste, Uhr, Raster mit zweitem Fenster und Plots mit numpy.

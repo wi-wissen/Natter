@@ -1,0 +1,189 @@
+{
+ "pack": "anim",
+ "title": {
+  "de": "Animierte Figuren (nur Demo)",
+  "en": "Animated figures (demo only)"
+ },
+ "assets": [
+  {
+   "name": "enemy_walk_1",
+   "file": "enemy_walk_1.svg",
+   "tags": [
+    "demo"
+   ],
+   "de": "Gegner läuft (Bild 1)",
+   "en": "Enemy walking (frame 1)"
+  },
+  {
+   "name": "enemy_walk_2",
+   "file": "enemy_walk_2.svg",
+   "tags": [
+    "demo"
+   ],
+   "de": "Gegner läuft (Bild 2)",
+   "en": "Enemy walking (frame 2)"
+  },
+  {
+   "name": "enemy_walk_3",
+   "file": "enemy_walk_3.svg",
+   "tags": [
+    "demo"
+   ],
+   "de": "Gegner läuft (Bild 3)",
+   "en": "Enemy walking (frame 3)"
+  },
+  {
+   "name": "enemy_walk_4",
+   "file": "enemy_walk_4.svg",
+   "tags": [
+    "demo"
+   ],
+   "de": "Gegner läuft (Bild 4)",
+   "en": "Enemy walking (frame 4)"
+  },
+  {
+   "name": "ground_flat",
+   "file": "ground_flat.svg",
+   "tags": [
+    "demo"
+   ],
+   "de": "Bodenkachel, kachelt nach links und rechts",
+   "en": "Ground tile, tiles left-right"
+  },
+  {
+   "name": "heroine_fall",
+   "file": "heroine_fall.svg",
+   "tags": [
+    "demo"
+   ],
+   "de": "Heldin fällt",
+   "en": "Heroine falling"
+  },
+  {
+   "name": "heroine_idle_1",
+   "file": "heroine_idle_1.svg",
+   "tags": [
+    "demo"
+   ],
+   "de": "Heldin steht (Bild 1 der Animation)",
+   "en": "Heroine standing (frame 1 of the animation)"
+  },
+  {
+   "name": "heroine_idle_2",
+   "file": "heroine_idle_2.svg",
+   "tags": [
+    "demo"
+   ],
+   "de": "Heldin steht (Bild 2 der Animation)",
+   "en": "Heroine standing (frame 2 of the animation)"
+  },
+  {
+   "name": "heroine_idle_3",
+   "file": "heroine_idle_3.svg",
+   "tags": [
+    "demo"
+   ],
+   "de": "Heldin steht (Bild 3 der Animation)",
+   "en": "Heroine standing (frame 3 of the animation)"
+  },
+  {
+   "name": "heroine_idle_4",
+   "file": "heroine_idle_4.svg",
+   "tags": [
+    "demo"
+   ],
+   "de": "Heldin steht (Bild 4 der Animation)",
+   "en": "Heroine standing (frame 4 of the animation)"
+  },
+  {
+   "name": "heroine_jump",
+   "file": "heroine_jump.svg",
+   "tags": [
+    "demo"
+   ],
+   "de": "Heldin springt",
+   "en": "Heroine jumping"
+  },
+  {
+   "name": "heroine_land",
+   "file": "heroine_land.svg",
+   "tags": [
+    "demo"
+   ],
+   "de": "Heldin landet",
+   "en": "Heroine landing"
+  },
+  {
+   "name": "heroine_run_1",
+   "file": "heroine_run_1.svg",
+   "tags": [
+    "demo"
+   ],
+   "de": "Heldin läuft nach rechts (Bild 1)",
+   "en": "Heroine running right (frame 1)"
+  },
+  {
+   "name": "heroine_run_2",
+   "file": "heroine_run_2.svg",
+   "tags": [
+    "demo"
+   ],
+   "de": "Heldin läuft nach rechts (Bild 2)",
+   "en": "Heroine running right (frame 2)"
+  },
+  {
+   "name": "heroine_run_3",
+   "file": "heroine_run_3.svg",
+   "tags": [
+    "demo"
+   ],
+   "de": "Heldin läuft nach rechts (Bild 3)",
+   "en": "Heroine running right (frame 3)"
+  },
+  {
+   "name": "heroine_run_4",
+   "file": "heroine_run_4.svg",
+   "tags": [
+    "demo"
+   ],
+   "de": "Heldin läuft nach rechts (Bild 4)",
+   "en": "Heroine running right (frame 4)"
+  },
+  {
+   "name": "heroine_run_5",
+   "file": "heroine_run_5.svg",
+   "tags": [
+    "demo"
+   ],
+   "de": "Heldin läuft nach rechts (Bild 5)",
+   "en": "Heroine running right (frame 5)"
+  },
+  {
+   "name": "heroine_run_6",
+   "file": "heroine_run_6.svg",
+   "tags": [
+    "demo"
+   ],
+   "de": "Heldin läuft nach rechts (Bild 6)",
+   "en": "Heroine running right (frame 6)"
+  },
+  {
+   "name": "heroine_run_7",
+   "file": "heroine_run_7.svg",
+   "tags": [
+    "demo"
+   ],
+   "de": "Heldin läuft nach rechts (Bild 7)",
+   "en": "Heroine running right (frame 7)"
+  },
+  {
+   "name": "heroine_run_8",
+   "file": "heroine_run_8.svg",
+   "tags": [
+    "demo"
+   ],
+   "de": "Heldin läuft nach rechts (Bild 8)",
+   "en": "Heroine running right (frame 8)"
+  }
+ ]
+}

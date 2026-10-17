@@ -22,7 +22,7 @@ export async function chromiumPath() {
   try { await readFile(p); return p; } catch { return undefined; }
 }
 
-const TYPES = { '.html': 'text/html', '.js': 'text/javascript', '.mjs': 'text/javascript', '.css': 'text/css', '.svg': 'image/svg+xml', '.map': 'application/json', '.json': 'application/json', '.png': 'image/png' };
+const TYPES = { '.html': 'text/html', '.js': 'text/javascript', '.mjs': 'text/javascript', '.css': 'text/css', '.svg': 'image/svg+xml', '.map': 'application/json', '.json': 'application/json', '.png': 'image/png', '.wav': 'audio/wav' };
 
 /** Static server for packages/web plus /api/* answers for the requests tests. */
 export function serve(port = 0, { cors = true } = {}) {
@@ -37,7 +37,9 @@ export function serve(port = 0, { cors = true } = {}) {
     }
     const path = normalize(decodeURIComponent(url.pathname)).replace(/^(\.\.[/\\])+/, '');
     try {
-      const body = await readFile(join(ROOT, path.endsWith('/') ? path + 'index.html' : path));
+      // /assets/… is packages/assets (the demo finds it at ../../assets/ when the repository root is served)
+      const file = /^[/\\]assets[/\\]/.test(path) ? join(ROOT, '..', path) : join(ROOT, path.endsWith('/') ? path + 'index.html' : path);
+      const body = await readFile(file);
       res.writeHead(200, { 'content-type': TYPES[extname(path)] ?? 'application/octet-stream', 'cache-control': 'no-store' });
       res.end(body);
     } catch {
