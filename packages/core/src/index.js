@@ -56,6 +56,7 @@ export function runToEnd(source, opts = {}) {
   }
   const vm = new VM(prog, { globals: opts.globals, files: opts.files, host: { print: (t) => { output += t; }, printErr: (t) => { errors += t; }, ...(opts.host ?? {}) }, seed: opts.seed ?? 1 });
   const task = vm.start();
+  const plots = [];
   let budget = opts.budget ?? 50_000_000;
   for (;;) {
     const r = vm.run(task, budget);
@@ -68,19 +69,22 @@ export function runToEnd(source, opts = {}) {
     }
     if (r.status === 'waiting' && task.wait?.kind === 'turtle-event') { vm.resume(task, null); continue; } // no events in a headless run: the program ends
     if (r.status === 'waiting' && (task.wait?.kind === 'forms-event' || task.wait?.kind === 'forms-dialog')) { vm.resume(task, formsHeadless(vm, task.wait)); continue; } // guizero: timers on the virtual clock
+    // plt.show(): the SVG is collected (opts.plot sees it, too) and the program goes on
+    if (r.status === 'waiting' && task.wait?.kind === 'plot') { plots.push(task.wait); opts.plot?.(task.wait); vm.resume(task, null); continue; }
     if (r.status === 'waiting' && task.wait?.kind === 'http') { vm.resume(task, httpResult(opts.http ? opts.http(task.wait) : { error: 'network', message: 'No network in this run.' })); continue; }
     if (r.status !== 'waiting' || task.wait?.kind !== 'input') break;
     // input(): the next prepared line, or EOFError when there is none
     if (inputs.length) vm.resume(task, inputs.shift());
     else vm.resumeWithError(task, new ScriptError('eof', {}));
   }
-  return { output, errors, error: task.state === 'error' ? task.error : task.state === 'ready' ? { code: 'err.script.tooLong', kind: 'RuntimeError', params: {}, line: vm.lineOf(task) } : null, vm };
+  return { output, errors, plots, error: task.state === 'error' ? task.error : task.state === 'ready' ? { code: 'err.script.tooLong', kind: 'RuntimeError', params: {}, line: vm.lineOf(task) } : null, vm };
 }
 
 /** Names of the Kara module as predefined globals (for a host that starts programs with `move()` without an import). */
 import { KARA_NAMES } from './stdlib/kara.js';
 import { httpResult } from './stdlib/http.js';
 export { httpResult };
+export { turtleEvent } from './stdlib/turtle.js';
 import { formsHeadless } from './stdlib/forms.js';
 export { formsEvent } from './stdlib/forms.js';
 export { KARA_NAMES };
@@ -91,3 +95,6 @@ export function karaGlobals() {
 }
 
 export { formatTraceback } from './traceback.js';
+
+/** SVGs of the figures a program left open without plt.show() (a host may show them when the program ends). */
+export { renderOpenFigures } from './stdlib/plot.js';

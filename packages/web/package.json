@@ -1,0 +1,10 @@
+{
+  "name": "@natter/web",
+  "version": "0.0.0",
+  "description": "Browser host for Natter: runner with time slices, console, turtle and kara canvas",
+  "private": true,
+  "type": "module",
+  "main": "src/index.js",
+  "exports": { ".": "./src/index.js" },
+  "dependencies": { "@natter/core": "*" }
+}

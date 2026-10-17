@@ -292,6 +292,7 @@ class _ScreenState:
         self.timers = []
         self.listening = False
         self.running = False
+        self.exit_on_click = False
 
 
 _state = _ScreenState()
@@ -768,6 +769,8 @@ class Screen:
                 f = _state.keyrelease_handlers.get(ev[1])
                 if f is not None:
                     f()
+            elif kind == "click" and _state.exit_on_click:
+                break
             elif kind == "click" and _state.click_handler is not None:
                 _state.click_handler(ev[1], ev[2])
             elif kind == "timer":
@@ -781,6 +784,7 @@ class Screen:
 
     def exitonclick(self):
         _state.click_handler = None
+        _state.exit_on_click = True
         self.mainloop()
 
     def bye(self):

@@ -453,3 +453,5 @@ Object.assign(en, {
   "err.script.raised.npChoiceP": "The probabilities p must add up to 1 ({msg}).",
   "err.script.raised.npPlotLength": "x and y must have the same number of values ({msg}).",
 });
+Object.assign(de, { "err.script.raised.npStrMath": "Mit Texten kann numpy nicht rechnen ({msg}). Vergleichen (==) und Sortieren geht, Rechnen nur mit Zahlen.", "err.script.raised.npStrConvert": "Dieser Text ist keine Zahl ({msg})." });
+Object.assign(en, { "err.script.raised.npStrMath": "numpy cannot compute with texts ({msg}). Comparing (==) and sorting work, arithmetic needs numbers.", "err.script.raised.npStrConvert": "This text is not a number ({msg})." });

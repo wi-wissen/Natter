@@ -2,7 +2,7 @@
 // (floatmode 'maxprec', precision 8), exponent mode, padding, line wrapping at 75 characters and
 // summarising of large arrays ("..." after `threshold` elements, `edgeitems` at each end).
 
-import { toFixedExact } from '../values.js';
+import { toFixedExact, reprStr } from '../values.js';
 
 /** Default print options (np.set_printoptions changes a copy per VM). */
 export const PRINT_DEFAULTS = Object.freeze({ precision: 8, threshold: 1000, edgeitems: 3, linewidth: 75, suppress: false });
@@ -119,6 +119,7 @@ function floatFormatter(values, opts) {
 
 /** Formatter for one element type. @param {number[]} values the (summarised) data */
 function formatterFor(values, dtype, opts, zeroD) {
+  if (dtype.startsWith('<U')) return (x) => reprStr(x);
   if (dtype === 'bool') return (x) => (x ? (zeroD ? 'True' : ' True') : 'False');
   if (dtype === 'int64') {
     if (!values.length) return (x) => String(x);
@@ -134,6 +135,7 @@ const intText = (v) => (Number.isSafeInteger(v) ? String(v === 0 ? 0 : v) : BigI
 
 /** Text of a single number like numpy's str() of a scalar (for 0-d arrays). */
 export function scalarText(v, dtype) {
+  if (dtype.startsWith('<U')) return v;
   if (dtype === 'bool') return v ? 'True' : 'False';
   if (dtype === 'int64') return intText(v);
   return null;
@@ -224,7 +226,8 @@ export function arrayRepr(a, get, opts) {
   const body = array2string(a, get, opts, ', ', prefix, ')');
   const extras = [];
   if ((a.size === 0 && !(a.shape.length === 1 && a.shape[0] === 0)) || a.size > opts.threshold) extras.push(`shape=${shapeText(a.shape)}`);
-  if (a.size === 0) extras.push(`dtype=${a.dtype}`);
+  if (a.dtype.startsWith('<U')) extras.push(`dtype='${a.dtype}'`);
+  else if (a.size === 0) extras.push(`dtype=${a.dtype}`);
   if (!extras.length) return prefix + body + ')';
   const arrStr = prefix + body + ',';
   const extraStr = extras.join(', ') + ')';

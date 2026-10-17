@@ -79,10 +79,10 @@ describe('numpy in Natter', () => {
     expect(scriptErrorText(r.error, { lang: 'en' }).text).toMatch(/^The shapes of the arrays do not fit together/);
     const t = runToEnd('import numpy as np\na = np.arange(5)\nif a > 2:\n    pass');
     expect(scriptErrorText(t.error, { lang: 'de' }).text).toMatch(/a\.any\(\)/);
-    const s = runToEnd('import numpy as np\nnp.array([1, 2]) + "x"');
-    expect(s.error.kind).toBe('TypeError');
-    const n = runToEnd('import numpy as np\nnp.array(["a", "b"])');
-    expect(scriptErrorText(n.error, { lang: 'en' }).text).toBe("In Natter, numpy only works with numbers (int, float, bool), not with str.");
+    const s = runToEnd('import numpy as np\ntry:\n    np.array([1, 2]) + "x"\nexcept TypeError as e:\n    print(type(e).__name__)');
+    expect(s.output).toBe('UFuncTypeError\n');
+    const n = runToEnd('import numpy as np\nnp.array([1, None])');
+    expect(scriptErrorText(n.error, { lang: 'en' }).text).toBe('In Natter, numpy only works with numbers (int, float, bool), not with NoneType.');
     const e = runToEnd('import numpy as np\ntry:\n    np.arange(3).sum(axis=2)\nexcept IndexError as x:\n    print("caught", x)');
     expect(e.output).toBe('caught axis 2 is out of bounds for array of dimension 1\n');
   });

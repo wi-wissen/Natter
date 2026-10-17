@@ -423,7 +423,7 @@ function shuffleInPlace(bg, x, interval = randomInterval) {
 
 const take = (pop, idx) => (pop.arr ? toPy(pop.arr.data[pop.arr.offset + idx * pop.arr.strides[0]], pop.arr.dtype) : idx);
 function takeMany(pop, shape, idx) {
-  const out = new Float64Array(idx.length);
+  const out = pop.arr && typeof pop.arr.data[0] === 'string' ? new Array(idx.length) : new Float64Array(idx.length);
   for (let i = 0; i < idx.length; i++) out[i] = pop.arr ? pop.arr.data[pop.arr.offset + idx[i] * pop.arr.strides[0]] : idx[i];
   return wrap(new Nd(out, shape, pop.arr ? pop.arr.dtype : 'int64'));
 }

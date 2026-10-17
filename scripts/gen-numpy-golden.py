@@ -469,6 +469,61 @@ for f in [lambda: len(np.array(5)), lambda: np.zeros((2, 2)).reshape(3, 3),
         print(type(e).__name__ + ":", e)
 ''')
 
+case('text arrays', '''
+import numpy as np
+a = np.array(['Kopf', 'Zahl', 'Kopf'])
+print(a, repr(a), a.dtype, a.shape, a[0], a[1:], a == 'Kopf', np.sum(a == 'Kopf'), (a != 'Kopf').sum())
+np.random.seed(1)
+w = np.random.choice(['Kopf', 'Zahl'], 10)
+print(w, repr(w))
+print(np.unique(w, return_counts=True), np.random.choice(['a', 'bbb']))
+print(np.sort(np.array(['b', 'a', 'c'])), np.array(['x', 1]), repr(np.array(['x', 1.5])), np.array(['a', 'b']) + np.array(['c', 'd']))
+print(np.where(a == 'Kopf', 'K', 'Z'), a.tolist(), np.array(['a', 'b'])[np.array([True, False])], repr(np.array(['Ä', "it's"])))
+b = a.copy()
+b[0] = 'X'
+b[a == 'Zahl'] = 'zahl'
+print(b, np.concatenate([a, b]), np.arange(3).astype(str), repr(np.array([1.5]).astype(str)), np.array(['1', '2']).astype(int) + 1)
+x = np.array(['b', 'a'])
+x.sort()
+print(x, np.argsort(np.array(['b', 'a', 'c'])), repr(np.array([['ab', 'c'], ['d', 'efg']])))
+for f in [lambda: np.array(['a']) + 1, lambda: np.sqrt(np.array(['a']))]:
+    try:
+        print(f())
+    except TypeError as e:
+        print(type(e).__name__ + ":", e)
+''')
+case('school statistics', '''
+import numpy as np
+noten = np.array([[2, 3, 1, 4], [1, 1, 2, 2], [3, 4, 4, 5], [2, 2, 3, 1]])
+print(noten)
+print("Schnitt je Schüler:", noten.mean(axis=1))
+print("Schnitt je Fach:", noten.mean(axis=0))
+print("Bester Schnitt:", noten.mean(axis=1).min(), "von Schüler", noten.mean(axis=1).argmin())
+print("Anzahl Einsen:", np.sum(noten == 1), "Anteil:", np.mean(noten <= 2))
+print(f"Gesamt: {noten.mean():.2f}, Streuung {noten.std():.3f}")
+print(round(noten.std(ddof=1), 4), np.round(noten / 3, 2))
+groesse = np.array([162.5, 171.0, 168.2, 180.4, 175.9, 158.3, 190.1])
+print(groesse.mean(), np.median(groesse), groesse.max() - groesse.min(), np.percentile(groesse, [25, 75]))
+print(groesse[groesse > groesse.mean()], np.sort(groesse)[::-1][:3], (groesse - groesse.mean()) / groesse.std())
+temps = np.array([3.1, 4.5, 8.9, 13.2, 17.8, 21.0, 22.9, 22.3, 18.1, 12.9, 7.4, 3.9])
+monate = np.arange(1, 13)
+print(monate[temps > 15], temps.cumsum(), np.diff(temps), temps.reshape(4, 3).mean(axis=1))
+print(np.array([1, 2, 3]) * np.array([[1], [2]]), np.zeros((3, 3)) + np.arange(3))
+werte = np.random.RandomState(7).randint(1, 7, 600)
+print(np.bincount(werte)[1:], np.unique(werte, return_counts=True)[1] / 600)
+''')
+case('random tables', '''
+import numpy as np
+np.random.seed(123)
+print(np.random.rand(3, 4))
+print(np.random.randn(2, 5))
+print(np.random.randint(0, 100, (4, 6)))
+print(np.random.normal(50, 10, (2, 3)).round(1))
+print(np.round(np.random.uniform(0, 1, 7), 3))
+rng = np.random.default_rng(2024)
+print(rng.integers(1, 7, (3, 5)), rng.random((2, 2)), rng.normal(size=4))
+''')
+
 
 def run(src):
     out = io.StringIO()

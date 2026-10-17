@@ -8,7 +8,7 @@
 
 import {
   PyFloat, PyList, PyTuple, PySlice, PyInstance, PyClass, PyBuiltin, PyProperty, PyIterator, PyRange, PyDict, OBJECT,
-  isInt, isNum, num, typeName, sliceIndices, rangeItems, normBig, formatFloat, NOT_IMPLEMENTED, truthy,
+  isInt, isNum, num, typeName, sliceIndices, rangeItems, normBig, formatFloat, NOT_IMPLEMENTED, truthy, pow10,
 } from '../values.js';
 import { ScriptError } from '../errors.js';
 import { EXCEPTION_CLASSES as EXC } from '../exceptions.js';
@@ -88,7 +88,22 @@ class Flags {
 // ---------- Arrays ----------
 
 const DT_RANK = { bool: 0, int64: 1, float64: 2 };
-export const promote = (a, b) => (DT_RANK[a] >= DT_RANK[b] ? a : b);
+/** Text arrays have the dtype '<U' + length (like numpy); they support indexing, comparing, sorting, printing. */
+export const isStrDt = (dt) => dt.startsWith('<U');
+const strLen = (dt) => Number(dt.slice(2));
+/** Length of numbers turned into texts (numpy: '<U21' for int64, '<U32' for float64, '<U5' for bool). */
+const STR_LEN = { bool: 5, int64: 21, float64: 32 };
+export const promote = (a, b) => {
+  if (isStrDt(a) || isStrDt(b)) return `<U${Math.max(isStrDt(a) ? strLen(a) : STR_LEN[a], isStrDt(b) ? strLen(b) : STR_LEN[b])}`;
+  return DT_RANK[a] >= DT_RANK[b] ? a : b;
+};
+/** numbers only: text arrays give numpy's TypeError for maths. */
+function needNumeric(nd, name) {
+  if (isStrDt(nd.dtype)) throw npErr('TypeError', `ufunc '${name}' not supported for the input types, and the inputs could not be safely coerced to any supported types according to the casting rule ''safe''`, 'npStrMath');
+  return nd;
+}
+/** Text of a number in a text array (str() of the Python value). */
+const numText = (v, dt) => (dt === 'bool' ? (v ? 'True' : 'False') : dt === 'int64' ? String(v + 0) : formatFloat(v));
 export const prodOf = (shape) => { let n = 1; for (const s of shape) n *= s; return n; };
 export function cStrides(shape) {
   const s = new Array(shape.length);
@@ -116,9 +131,9 @@ export class Nd {
   }
 }
 
-function newData(n) {
+function newData(n, dtype = null) {
   if (n > NP_MAX) throw npErr('MemoryError', `Unable to allocate an array with ${n} elements (Natter allows at most ${NP_MAX}).`, 'npTooBig');
-  return new Float64Array(n);
+  return dtype && isStrDt(dtype) ? new Array(n).fill('') : new Float64Array(n);
 }
 
 export const fromFlat = (data, shape, dtype) => new Nd(data, shape, dtype);
@@ -148,9 +163,9 @@ function offsets(nd) {
 
 /** Values in C order (a view of the data when contiguous: read only!). */
 export function flat(nd) {
-  if (nd.contiguous()) return nd.data.subarray(nd.offset, nd.offset + nd.size);
-  if (nd.size && nd.strides.every((s) => s === 0)) return new Float64Array(nd.size).fill(nd.data[nd.offset]);
-  const o = offsets(nd), out = new Float64Array(o.length);
+  if (nd.contiguous()) return nd.data.subarray ? nd.data.subarray(nd.offset, nd.offset + nd.size) : nd.data.slice(nd.offset, nd.offset + nd.size);
+  if (nd.size && nd.strides.every((s) => s === 0)) return newData(nd.size, nd.dtype).fill(nd.data[nd.offset]);
+  const o = offsets(nd), out = newData(o.length, nd.dtype);
   for (let i = 0; i < o.length; i++) out[i] = nd.data[o[i]];
   return out;
 }
@@ -159,7 +174,17 @@ export function flat(nd) {
 export const copyNd = (nd, dtype = nd.dtype) => new Nd(castData(flat(nd).slice(), nd.dtype, dtype), nd.shape.slice(), dtype);
 
 function castData(data, from, to) {
-  if (from === to || to === 'float64') return data;
+  if (from === to) return data;
+  if (isStrDt(to)) return isStrDt(from) ? data : Array.from(data, (v) => numText(v, from));
+  if (isStrDt(from)) {
+    return Float64Array.from(data, (t) => {
+      const v = Number(t.trim());
+      if (to === 'bool') return t.length ? 1 : 0;
+      if (t.trim() === '' || Number.isNaN(v) && !/^[+-]?nan$/i.test(t.trim())) throw npErr('ValueError', to === 'int64' ? `invalid literal for int() with base 10: '${t}'` : `could not convert string to float: '${t}'`, 'npStrConvert');
+      return to === 'int64' ? castInt(v) : v;
+    });
+  }
+  if (to === 'float64') return data;
   if (to === 'bool') { for (let i = 0; i < data.length; i++) data[i] = data[i] !== 0 ? 1 : 0; return data; }
   if (from === 'float64') for (let i = 0; i < data.length; i++) data[i] = castInt(data[i]);
   return data;
@@ -167,6 +192,7 @@ function castData(data, from, to) {
 const castInt = (v) => (Number.isFinite(v) ? Math.trunc(v) + 0 : -9223372036854775808);
 
 export function astype(ctx, nd, dtype) {
+  if (dtype === 'str') dtype = isStrDt(nd.dtype) ? nd.dtype : `<U${STR_LEN[nd.dtype]}`;
   if (dtype === nd.dtype) return copyNd(nd);
   const src = flat(nd);
   if (dtype === 'int64' && nd.dtype === 'float64' && ctx) {
@@ -201,7 +227,7 @@ export function broadcastTo(nd, shape) {
 
 /** Values of nd broadcast to `shape`, in C order. */
 function flatAs(nd, shape) {
-  if (nd.size === 1) return new Float64Array(prodOf(shape)).fill(nd.data[nd.offset]);
+  if (nd.size === 1) return newData(prodOf(shape), nd.dtype).fill(nd.data[nd.offset]);
   if (nd.shape.length === shape.length && nd.shape.every((s, i) => s === shape[i])) return flat(nd);
   return flat(broadcastTo(nd, shape));
 }
@@ -222,6 +248,7 @@ export function wrap(nd) { const o = new PyInstance(NDARRAY); o.nd = nd; return 
 /** Python value of one element. */
 export function toPy(v, dtype) {
   if (dtype === 'float64') return new PyFloat(v);
+  if (typeof v === 'string') return v;
   if (dtype === 'bool') return v !== 0;
   if (v === 0) return 0;
   return Number.isSafeInteger(v) ? v : normBig(BigInt(v));
@@ -268,12 +295,14 @@ export function toNd(v, dtype = null) {
     d[0] = scalarNum(v);
     return new Nd(castData(d, dtypeOfScalar(v), dt), [], dt);
   }
+  if (typeof v === 'string') return new Nd([v], [], dtype && dtype !== 'str' ? dtype : `<U${v.length}`);
   if (!(v instanceof PyList || v instanceof PyTuple || v instanceof PyRange)) {
-    if (v === null || v === undefined) throw npErr('TypeError', "Natter's numpy only works with numbers, not None", 'npNotNumber', { type: 'NoneType' });
+    if (v === null || v === undefined) throw npErr('TypeError', "Natter's numpy only works with numbers and texts, not None", 'npNotNumber', { type: 'NoneType' });
     scalarNum(v);
   }
   const shape = shapeOf(v, []);
   const n = prodOf(shape);
+  if (hasText(v)) return textNd(v, shape, n, dtype);
   const data = newData(n);
   let kind = 0, k = 0;
   const fill = (x) => {
@@ -291,14 +320,39 @@ export function toNd(v, dtype = null) {
   };
   fill(v);
   const inferred = n === 0 ? 'float64' : ['bool', 'int64', 'float64'][kind];
-  const dt = dtype ?? inferred;
+  const dt = dtype === 'str' ? `<U${STR_LEN[inferred]}` : dtype ?? inferred;
   return new Nd(castData(data, inferred, dt), shape, dt);
+}
+
+/** Does a nested list contain a text (or a text array)? */
+function hasText(x) {
+  if (typeof x === 'string') return true;
+  if (isArr(x)) return isStrDt(x.nd.dtype);
+  if (x instanceof PyList || x instanceof PyTuple) return x.items.some(hasText);
+  return false;
+}
+
+/** Text array from nested lists: numbers become their texts, the length is numpy's itemsize. */
+function textNd(v, shape, n, dtype) {
+  const data = new Array(n);
+  let k = 0, len = 0;
+  const fill = (x) => {
+    if (isArr(x)) { const f = flat(x.nd); for (const t of f) data[k++] = isStrDt(x.nd.dtype) ? t : numText(t, x.nd.dtype); len = Math.max(len, isStrDt(x.nd.dtype) ? strLen(x.nd.dtype) : STR_LEN[x.nd.dtype]); } else if (x instanceof PyList || x instanceof PyTuple) { for (const y of x.items) fill(y); } else if (typeof x === 'string') { data[k++] = x; len = Math.max(len, x.length); } else {
+      const dt = dtypeOfScalar(x);
+      data[k++] = numText(scalarNum(x), dt);
+      len = Math.max(len, STR_LEN[dt]);
+    }
+  };
+  fill(v);
+  const dt = `<U${len}`;
+  if (dtype && dtype !== 'str' && !isStrDt(dtype)) return new Nd(castData(data, dt, dtype), shape, dtype);
+  return new Nd(data, shape, dtype && isStrDt(dtype) ? dtype : dt);
 }
 
 /** Operand of an operator: array, number or list (Python numbers keep the array's dtype where they fit). */
 function operand(v) {
   if (isArr(v)) return v.nd;
-  if (isNum(v) || v instanceof PyList || v instanceof PyTuple) return toNd(v);
+  if (isNum(v) || v instanceof PyList || v instanceof PyTuple || (typeof v === 'string')) return toNd(v);
   return null;
 }
 
@@ -308,6 +362,7 @@ const DTYPE_NAMES = {
   float64: 'float64', float: 'float64', f8: 'float64', d: 'float64', float32: 'float64', f4: 'float64', float16: 'float64', double: 'float64',
   int64: 'int64', int: 'int64', i8: 'int64', int32: 'int64', i4: 'int64', int16: 'int64', int8: 'int64', uint8: 'int64', uint16: 'int64', uint32: 'int64', uint64: 'int64', intp: 'int64', l: 'int64',
   bool: 'bool', bool_: 'bool', '?': 'bool', b1: 'bool',
+  str: 'str', str_: 'str', U: 'str', unicode: 'str',
 };
 
 /** dtype argument (np.float64, float, 'int32', a dtype object …) → 'bool' | 'int64' | 'float64'. */
@@ -319,6 +374,7 @@ export function resolveDtype(v) {
   else if (v instanceof PyBuiltin) name = v.name.replace(/^_np\./, '').replace(/^class:/, '');
   const dt = name !== null ? DTYPE_NAMES[name] : undefined;
   if (dt) return dt;
+  if (name && /^<?U\d+$/.test(name)) return `<U${name.replace(/^<?U/, '')}`;
   throw npErr('TypeError', `data type ${typeof v === 'string' ? `'${v}'` : typeName(v)} not understood (Natter's numpy knows int64, float64 and bool)`, 'npDtype');
 }
 
@@ -364,6 +420,7 @@ function binaryDtype(op, a, b) {
 export function binop(ctx, op, A, B) {
   const shape = broadcastShapes(A.shape, B.shape);
   if (!shape) throw broadcastErr(A.shape, B.shape);
+  if (isStrDt(A.dtype) || isStrDt(B.dtype)) return textBinop(op, A, B, shape);
   const dt = binaryDtype(op, A.dtype, B.dtype);
   const n = prodOf(shape);
   const x = flatAs(A, shape), y = flatAs(B, shape);
@@ -390,6 +447,11 @@ export function binop(ctx, op, A, B) {
           if (y[i] < 0) throw npErr('ValueError', 'Integers to negative integer powers are not allowed.', 'npIntPower');
           out[i] = intPow(x[i], y[i]);
         }
+      } else if (B.size === 1 && (y[0] === 2 || y[0] === 0.5 || y[0] === -1 || y[0] === 1)) {
+        // numpy's fast_scalar_power: a ** 2 is square, ** 0.5 sqrt, ** -1 reciprocal (exactly what numpy computes)
+        const e = y[0];
+        if (e === 0.5) fl.name = 'sqrt'; else if (B.dtype !== 'float64') fl.name = e === 2 ? 'square' : e === -1 ? 'reciprocal' : fl.name;
+        for (let i = 0; i < n; i++) { const v = x[i]; out[i] = e === 2 ? v * v : e === 0.5 ? Math.sqrt(v) : e === -1 ? 1 / v : v; fl.check(out[i], v, e === -1 ? v : e); }
       } else for (let i = 0; i < n; i++) { out[i] = fpow(x[i], y[i]); fl.check(out[i], x[i], y[i]); }
       break;
     case '==': for (let i = 0; i < n; i++) out[i] = x[i] === y[i] ? 1 : 0; break;
@@ -411,8 +473,28 @@ export function binop(ctx, op, A, B) {
   return new Nd(out, shape, dt);
 }
 
+/** Operators on text arrays: comparisons and + (joining texts). */
+function textBinop(op, A, B, shape) {
+  const n = prodOf(shape), x = flatAs(A, shape), y = flatAs(B, shape);
+  const both = isStrDt(A.dtype) && isStrDt(B.dtype);
+  if (op === '+' && both) {
+    const out = newData(n, '<U1');
+    for (let i = 0; i < n; i++) out[i] = x[i] + y[i];
+    return new Nd(out, shape, `<U${strLen(A.dtype) + strLen(B.dtype)}`);
+  }
+  const CMP = { '==': (a, b) => a === b, '!=': (a, b) => a !== b, '<': (a, b) => a < b, '>': (a, b) => a > b, '<=': (a, b) => a <= b, '>=': (a, b) => a >= b };
+  if (CMP[op] && (both || op === '==' || op === '!=')) {
+    const out = newData(n);
+    for (let i = 0; i < n; i++) out[i] = both ? (CMP[op](x[i], y[i]) ? 1 : 0) : op === '!=' ? 1 : 0;
+    return new Nd(out, shape, 'bool');
+  }
+  throw npErr('UFuncTypeError', `ufunc '${UFUNC_NAME[op] ?? op}' did not contain a loop with signature matching types (dtype('${A.dtype}'), dtype('${B.dtype}')) -> None`, 'npStrMath');
+}
+
 /** max/min/... of two arrays: function f(x, y) element-wise, result dtype promoted (or forced). */
-function zipWith(ctx, A, B, f, dtype = promote(A.dtype, B.dtype), name = null) {
+function zipWith(ctx, A, B, f, dtype = null, name = null) {
+  needNumeric(A, name ?? 'ufunc'); needNumeric(B, name ?? 'ufunc');
+  dtype ??= promote(A.dtype, B.dtype);
   const shape = broadcastShapes(A.shape, B.shape);
   if (!shape) throw broadcastErr(A.shape, B.shape);
   const x = flatAs(A, shape), y = flatAs(B, shape), n = prodOf(shape), out = newData(n);
@@ -424,6 +506,7 @@ function zipWith(ctx, A, B, f, dtype = promote(A.dtype, B.dtype), name = null) {
 
 /** Element-wise function of one array. `dt`: 'float' (result float64), 'same' (keep dtype), 'bool'. */
 export function unaryMap(ctx, A, f, dt, name) {
+  needNumeric(A, name);
   if (dt === 'same' && A.dtype === 'bool' && (name === 'negative')) {
     throw npErr('TypeError', 'The numpy boolean negative, the `-` operator, is not supported, use the `~` operator or the logical_not function instead.', 'npBoolNeg');
   }
@@ -616,7 +699,7 @@ function resolveIndex(nd, key) {
 export function getIndex(nd, key) {
   const r = resolveIndex(nd, key);
   if (r.view) return r.view;
-  const out = newData(r.offs.length);
+  const out = newData(r.offs.length, nd.dtype);
   for (let i = 0; i < out.length; i++) out[i] = nd.data[r.offs[i]];
   return new Nd(out, r.shape, nd.dtype);
 }
@@ -628,7 +711,10 @@ export function setIndex(ctx, nd, key, value) {
   const b = broadcastTo(V, shape);
   if (!b) throw npErr('ValueError', `could not broadcast input array from shape ${shapeErr(V.shape)} into shape ${shapeErr(shape)}`, 'npAssignShape');
   let vals = flat(b);
-  if (nd.dtype !== V.dtype) {
+  if (isStrDt(nd.dtype) || isStrDt(V.dtype)) {
+    if (nd.dtype !== V.dtype) vals = castData(isStrDt(V.dtype) ? Array.from(vals) : vals.slice(), V.dtype, nd.dtype);
+    if (isStrDt(nd.dtype)) { const L = strLen(nd.dtype); vals = Array.from(vals, (t) => t.slice(0, L)); }
+  } else if (nd.dtype !== V.dtype) {
     if (nd.dtype === 'int64' && V.dtype === 'float64') {
       for (let i = 0; i < vals.length; i++) if (!Number.isFinite(vals[i])) throw npErr('ValueError', `cannot convert float ${Number.isNaN(vals[i]) ? 'NaN' : 'infinity'} to integer`, 'npNanToInt');
     }
@@ -709,6 +795,7 @@ export function pairwiseSum(a, lo, n) {
  * Returns an Nd with the axis removed (or kept with length 1).
  */
 function reduceAxis(nd, axis, keepdims, fn, dtype, name) {
+  needNumeric(nd, name ?? 'add');
   if (axis === null || axis === undefined) {
     const f = flat(nd);
     if (!f.length && name) throw npErr('ValueError', `zero-size array to reduction operation ${name} which has no identity`, 'npEmptyReduce');
@@ -852,6 +939,7 @@ export function linspace(start, stop, num, endpoint = true) {
 // ---------- Linear algebra ----------
 
 export function matmul(ctx, A, B, name = 'matmul') {
+  needNumeric(A, name); needNumeric(B, name);
   if (A.ndim === 0 || B.ndim === 0) {
     if (name === 'dot') return binop(ctx, '*', A, B);
     throw npErr('ValueError', "matmul: Input operand 0 does not have enough dimensions (has 0, gufunc core with signature (n?,k),(k,m?)->(n?,m?) requires 1)");
@@ -880,6 +968,7 @@ export function matmul(ctx, A, B, name = 'matmul') {
 
 /** LU decomposition with partial pivoting (like LAPACK getrf). Returns null when singular. */
 function lu(A) {
+  needNumeric(A, 'linalg');
   const n = A.shape[0];
   const a = Array.from(flat(astype(null, A, 'float64')));
   const piv = [...Array(n).keys()];
@@ -994,7 +1083,7 @@ function sortAlong(nd, axis, arg) {
   if (nd.ndim === 0) throw npErr('AxisError', `axis ${axis} is out of bounds for array of dimension 0`, 'npAxis');
   const moved = axisLast(nd, ax);
   const f = flat(moved), len = nd.shape[ax], m = len ? f.length / len : 0;
-  const out = new Float64Array(f.length);
+  const out = newData(f.length, arg ? null : nd.dtype);
   const cmp = (x, y) => (Number.isNaN(x) ? (Number.isNaN(y) ? 0 : 1) : Number.isNaN(y) ? -1 : x < y ? -1 : x > y ? 1 : 0);
   for (let r = 0; r < m; r++) {
     const lo = r * len;
@@ -1002,7 +1091,7 @@ function sortAlong(nd, axis, arg) {
       const idx = [...Array(len).keys()].sort((i, j) => cmp(f[lo + i], f[lo + j]) || i - j);
       for (let i = 0; i < len; i++) out[lo + i] = idx[i];
     } else {
-      const part = Array.from(f.subarray(lo, lo + len)).sort(cmp);
+      const part = Array.from(f.slice(lo, lo + len)).sort(cmp);
       for (let i = 0; i < len; i++) out[lo + i] = part[i];
     }
   }
@@ -1028,7 +1117,7 @@ function concat(ctx, arrays, axis) {
   const dt = arrays.reduce((d, a) => promote(d, a.dtype), 'bool');
   const shape = nd0.shape.slice();
   shape[ax] = arrays.reduce((s, a) => s + a.shape[ax], 0);
-  const out = newData(prodOf(shape));
+  const out = newData(prodOf(shape), dt);
   const res = new Nd(out, shape, dt);
   let start = 0;
   for (const a of arrays) {
@@ -1052,6 +1141,7 @@ const seqArrays = (v, name) => {
 
 /** histogram like numpy (equal bins; edges from linspace). */
 export function histogram(ctx, a, bins, range, weights, edgesDtype = 'float64') {
+  needNumeric(a, 'histogram');
   const f = Array.from(flat(a));
   let lo, hi;
   if (range) [lo, hi] = range;
@@ -1143,11 +1233,11 @@ const intPowF = (x, e) => { let r = 1; for (let i = 0; i < e; i++) r *= x; retur
 function roundNd(nd, decimals) {
   if (nd.dtype !== 'float64') {
     if (decimals >= 0) return copyNd(nd);
-    const p = 10 ** -decimals; // rules-ok: integer power of ten
+    const p = pow10(-decimals);
     return unaryMap(null, nd, (x) => rint(x / p) * p, 'same', 'round');
   }
   if (decimals === 0) return unaryMap(null, nd, rint, 'same', 'rint');
-  const f = decimals > 0 ? 10 ** decimals : 10 ** -decimals; // rules-ok: integer power of ten
+  const f = pow10(Math.abs(decimals));
   return unaryMap(null, nd, decimals > 0 ? (x) => rint(x * f) / f : (x) => rint(x / f) * f, 'same', 'round');
 }
 
@@ -1195,7 +1285,7 @@ function statNative(name, ddofDefault = 0, sqrt = false) {
 function cumNative(name, mul) {
   return (ctx, args, kw) => {
     const [a, axis] = params(name, args, kw, ['a', '?axis', '?dtype', '?out']);
-    let nd = A(a);
+    let nd = needNumeric(A(a), name);
     const ax0 = axisArg(axis);
     if (ax0 === null) nd = reshape(nd.contiguous() ? nd : copyNd(nd), [nd.size]);
     const ax = ax0 === null ? 0 : normAxis(ax0, nd.ndim);
@@ -1211,6 +1301,7 @@ function cumNative(name, mul) {
 }
 
 function percentileOf(ctx, nd, qs, axis, scale, name) {
+  needNumeric(nd, 'percentile');
   const qv = flat(toNd(qs, 'float64'));
   const qnd = toNd(qs);
   for (const q of qv) if (!(q >= 0 && q <= scale)) throw npErr('ValueError', scale === 100 ? 'Percentiles must be in the range [0, 100]' : 'Quantiles must be in the range [0, 1]', 'npPercentile');
@@ -1231,6 +1322,7 @@ function percentileOf(ctx, nd, qs, axis, scale, name) {
 }
 
 function medianOf(ctx, nd, axis) {
+  needNumeric(nd, 'median');
   const ax = axis === null ? null : normAxis(axis, nd.ndim);
   const work = ax === null ? reshape(nd.contiguous() ? nd : copyNd(nd), [nd.size]) : nd;
   const a2 = ax === null ? 0 : ax;
@@ -1363,9 +1455,10 @@ export const NP_NATIVES = {
     let shape = broadcastShapes(C.shape, X.shape);
     shape = shape && broadcastShapes(shape, Y.shape);
     if (!shape) throw npErr('ValueError', `operands could not be broadcast together with shapes ${shapeErr(C.shape)} ${shapeErr(X.shape)} ${shapeErr(Y.shape)} `, 'npBroadcast');
-    const fc = flatAs(C, shape), fx = flatAs(X, shape), fy = flatAs(Y, shape), out = newData(fc.length);
+    const dt = promote(X.dtype, Y.dtype);
+    const fc = flatAs(C, shape), fx = castData(Array.from(flatAs(X, shape)), X.dtype, dt), fy = castData(Array.from(flatAs(Y, shape)), Y.dtype, dt), out = newData(fc.length, dt);
     for (let i = 0; i < out.length; i++) out[i] = fc[i] !== 0 ? fx[i] : fy[i];
-    return wrap(new Nd(out, shape, promote(X.dtype, Y.dtype)));
+    return wrap(new Nd(out, shape, dt));
   },
   '_np.nonzero'(ctx, args, kw) { const [a] = params('nonzero', args, kw, ['a']); return T(nonzero(A(a)).map(wrap)); },
   '_np.argwhere'(ctx, args, kw) {
@@ -1460,7 +1553,8 @@ export const NP_NATIVES = {
   '_np.unique'(ctx, args, kw) {
     const [a, ri, rinv, rc] = params('unique', args, kw, ['ar', '?return_index', '?return_inverse', '?return_counts', '?axis']);
     const nd = A(a), f = Array.from(flat(nd));
-    const order = [...f.keys()].sort((i, j) => (Number.isNaN(f[i]) ? (Number.isNaN(f[j]) ? i - j : 1) : Number.isNaN(f[j]) ? -1 : f[i] - f[j] || i - j));
+    const cmpv = (x, y) => (x < y ? -1 : x > y ? 1 : 0);
+    const order = [...f.keys()].sort((i, j) => (Number.isNaN(f[i]) ? (Number.isNaN(f[j]) ? i - j : 1) : Number.isNaN(f[j]) ? -1 : cmpv(f[i], f[j]) || i - j));
     const vals = [], first = [], counts = [], inv = new Float64Array(f.length);
     for (const i of order) {
       const v = f[i];
@@ -1468,7 +1562,7 @@ export const NP_NATIVES = {
       else { vals.push(v); first.push(i); counts.push(1); }
       inv[i] = vals.length - 1;
     }
-    const u = wrap(new Nd(Float64Array.from(vals), [vals.length], nd.dtype));
+    const u = wrap(new Nd(isStrDt(nd.dtype) ? vals : Float64Array.from(vals), [vals.length], nd.dtype));
     const extra = [];
     if (truthy(ri ?? false)) extra.push(wrap(new Nd(Float64Array.from(first), [first.length], 'int64')));
     if (truthy(rinv ?? false)) extra.push(wrap(new Nd(inv, nd.ndim <= 1 ? [f.length] : nd.shape.slice(), 'int64')));
@@ -1537,7 +1631,7 @@ export const NP_NATIVES = {
   },
   '_np.polyfit'(ctx, args, kw) {
     const [x, y, deg] = params('polyfit', args, kw, ['x', 'y', 'deg']);
-    const X = Array.from(flat(A(x, 'x'))), Y = Array.from(flat(A(y, 'y')));
+    const X = Array.from(flat(needNumeric(A(x, 'x'), 'polyfit'))), Y = Array.from(flat(needNumeric(A(y, 'y'), 'polyfit')));
     if (X.length !== Y.length) throw npErr('TypeError', 'expected x and y to have same length', 'npPolyfit');
     return wrap(new Nd(Float64Array.from(polyfit(X, Y, Number(num(deg)))), [Number(num(deg)) + 1], 'float64'));
   },
@@ -1616,7 +1710,7 @@ function closeTo(x, y, rt, at, en) {
 }
 
 function covRows(x, y) {
-  const X = A(x);
+  const X = needNumeric(A(x), 'cov');
   const rows = X.ndim === 1 ? [Array.from(flat(X))] : iterNd(X).map((r) => toFloatList(r));
   if (y !== undefined && y !== null) { const Y = A(y); if (Y.ndim === 1) rows.push(Array.from(flat(Y))); else for (const r of iterNd(Y)) rows.push(toFloatList(r)); }
   return rows;
@@ -1778,14 +1872,14 @@ const DTYPE_METHODS = {
   __str__: (ctx, args) => args[0].dt,
   __eq__: (ctx, args) => { try { return resolveDtype(args[1]) === args[0].dt; } catch { return false; } },
   __ne__: (ctx, args) => { try { return resolveDtype(args[1]) !== args[0].dt; } catch { return true; } },
-  __hash__: (ctx, args) => ({ bool: 1, int64: 2, float64: 3 })[args[0].dt],
+  __hash__: (ctx, args) => ({ bool: 1, int64: 2, float64: 3 })[args[0].dt] ?? 100 + strLen(args[0].dt),
 };
 for (const [name, f] of Object.entries(DTYPE_METHODS)) {
   NP_NATIVES[`_np.dtype.${name}`] = f;
   DTYPE.dict.set(name, new PyBuiltin(`_np.dtype.${name}`));
 }
 NP_NATIVES['_np.dtypep.name'] = (ctx, args) => args[0].dt;
-NP_NATIVES['_np.dtypep.kind'] = (ctx, args) => ({ bool: 'b', int64: 'i', float64: 'f' })[args[0].dt];
+NP_NATIVES['_np.dtypep.kind'] = (ctx, args) => ({ bool: 'b', int64: 'i', float64: 'f' })[args[0].dt] ?? 'U';
 DTYPE.dict.set('name', new PyProperty(new PyBuiltin('_np.dtypep.name')));
 DTYPE.dict.set('kind', new PyProperty(new PyBuiltin('_np.dtypep.kind')));
 NP_NATIVES['_np.dtype.__init__'] = (ctx, args) => { args[0].dt = resolveDtype(args[1]); return null; };

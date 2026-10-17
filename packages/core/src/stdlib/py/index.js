@@ -39,3 +39,5 @@ export const PYMODULES = { collections, functools, itertools, statistics, string
 // numpy subset and matplotlib.pyplot (dotted names are submodules, see vm.importModule)
 import { numpy, numpy_random, numpy_linalg } from './numpy.js';
 Object.assign(PYMODULES, { numpy, 'numpy.random': numpy_random, 'numpy.linalg': numpy_linalg });
+import { matplotlib, pyplot } from './pyplot.js';
+Object.assign(PYMODULES, { matplotlib, 'matplotlib.pyplot': pyplot });

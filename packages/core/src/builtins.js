@@ -21,6 +21,7 @@ import { FORMS_NATIVES, FORMS_NAMES } from './stdlib/forms.js';
 import { EXCEPTION_CLASSES } from './exceptions.js';
 import { NP_NATIVES, NP_NAMES, NP_CONSTS } from './stdlib/numpy.js';
 import { NPRANDOM_NATIVES, NPRANDOM_NAMES, NPRANDOM_CONSTS } from './stdlib/nprandom.js';
+import { PLOT_NATIVES, PLOT_NAMES, PLOT_CONSTS } from './stdlib/plot.js';
 import {
   PyFloat, PyList, PyTuple, PyDict, PyRange, PyBuiltin, PyIterator, PyView, PyFunction, PyPartial, PyBoundMethod,
   PyModule, PyHost, checkInt, isInt, isNum, num, typeName, truthy, eq, lt, iterItems, makeIter, iterNext, DONE, length,
@@ -433,6 +434,7 @@ export const BUILTINS = {
   ...FORMS_NATIVES,
   ...NP_NATIVES,
   ...NPRANDOM_NATIVES,
+  ...PLOT_NATIVES,
 };
 
 /**
@@ -498,10 +500,11 @@ export const MODULES = {
   copy: COPY_NAMES,
   _forms_host: FORMS_NAMES,
   _np: [...NP_NAMES, ...NPRANDOM_NAMES, ...Object.keys(NPRANDOM_CONSTS)],
+  _plot: PLOT_NAMES,
 };
 
 /** Values of module attributes that are not functions (constants, classes). */
-const MODULE_CONSTS = { math: MATH_CONSTS, _np: { ...NP_CONSTS, ...NPRANDOM_CONSTS } };
+const MODULE_CONSTS = { math: MATH_CONSTS, _np: { ...NP_CONSTS, ...NPRANDOM_CONSTS }, _plot: PLOT_CONSTS };
 
 /** Attribute of a built-in module or undefined. */
 export function moduleAttr(mod, name) {
