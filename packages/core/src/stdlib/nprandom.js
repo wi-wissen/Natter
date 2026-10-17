@@ -598,19 +598,18 @@ for (const [name, f] of Object.entries(RS_METHODS)) {
   NPRANDOM_NATIVES[`_np.RandomState.${name}`] = f;
   RANDOMSTATE.dict.set(name, new PyBuiltin(`_np.RandomState.${name}`));
   // module-level legacy functions: np.random.rand(...) uses the global state (self = None)
-  if (name !== '__init__') NPRANDOM_NATIVES[`_np.random_${name}`] = (ctx, args, kw) => f(ctx, [null, ...args], kw);
+  if (name !== '__init__') NPRANDOM_NATIVES[`_np._random_${name}`] = (ctx, args, kw) => f(ctx, [null, ...args], kw);
 }
 for (const [name, f] of Object.entries(GEN_METHODS)) {
   NPRANDOM_NATIVES[`_np.Generator.${name}`] = f;
   GENERATOR.dict.set(name, new PyBuiltin(`_np.Generator.${name}`));
 }
-NPRANDOM_NATIVES['_np.random_default_rng'] = (ctx, args, kw) => {
+NPRANDOM_NATIVES['_np._random_default_rng'] = (ctx, args, kw) => {
   const [seed] = params('default_rng', args, kw, ['?seed']);
   const g = new PyInstance(GENERATOR);
   GEN_METHODS.__init__(ctx, [g, seed]);
   return g;
 };
-NPRANDOM_NATIVES['_np.random_get_state_pos'] = (ctx) => legacyState(ctx, null).pos;
 
-export const NPRANDOM_NAMES = Object.keys(NPRANDOM_NATIVES).filter((n) => n.startsWith('_np.random_')).map((n) => n.slice(4));
-export const NPRANDOM_CONSTS = { RandomState: RANDOMSTATE, Generator: GENERATOR };
+export const NPRANDOM_NAMES = Object.keys(NPRANDOM_NATIVES).filter((n) => n.startsWith('_np._random_')).map((n) => n.slice(4));
+export const NPRANDOM_CONSTS = { _RandomState: RANDOMSTATE, _Generator: GENERATOR };

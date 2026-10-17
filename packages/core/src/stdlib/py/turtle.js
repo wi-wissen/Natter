@@ -506,6 +506,13 @@ class Turtle(TNavigator):
         _emit("shapesize", self._id, w, l, o)
 
     turtlesize = shapesize
+    pu = penup
+    up = penup
+    pd = pendown
+    down = pendown
+    width = pensize
+    st = showturtle
+    ht = hideturtle
 
     def resizemode(self, rmode=None):
         if rmode is None:

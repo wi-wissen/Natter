@@ -348,6 +348,8 @@ except ValueError as e:
 print(np.expand_dims(a, 0).shape, np.squeeze(np.ones((1, 3, 1))).shape, np.transpose(np.arange(6).reshape(2, 3)))
 x, y = np.meshgrid(np.array([1, 2, 3]), np.array([10, 20]))
 print(x, y)
+m = np.arange(6).reshape(2, 3)
+print(np.flip(np.arange(4)), np.flip(m), np.flip(m, axis=1), np.repeat([1, 2], 3), np.repeat(np.array([1, 2]), [1, 2]), np.tile([1, 2], 3), np.tile(np.array([1, 2]), (2, 2)), np.tile(m, 2))
 ''')
 case('linear algebra', '''
 import numpy as np
@@ -522,6 +524,16 @@ print(np.random.normal(50, 10, (2, 3)).round(1))
 print(np.round(np.random.uniform(0, 1, 7), 3))
 rng = np.random.default_rng(2024)
 print(rng.integers(1, 7, (3, 5)), rng.random((2, 2)), rng.normal(size=4))
+''')
+
+case('nan statistics', '''
+import numpy as np
+e = np.array([[1.0, np.nan, 3.0], [4.0, 5.0, np.nan]])
+print(np.nansum(e), np.nanmean(e), np.nanstd(e), np.nanvar(e, ddof=1), np.nanmax(e), np.nanmin(e), np.nanmedian(e))
+print(np.nansum(e, axis=0), np.nanmean(e, axis=1), np.nanstd(e, axis=0), np.nanmax(e, axis=1), np.nanmean(e, axis=0))
+r = np.random.RandomState(4).rand(1000)
+r[::7] = np.nan
+print(np.nanmean(r), np.nanstd(r), np.nansum(r), np.isnan(r).sum())
 ''')
 
 

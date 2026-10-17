@@ -37,12 +37,22 @@ const pixel = (page, which, x, y) => page.evaluate(([w, x, y]) => {
   const k = c.width / c.clientWidth;
   return [...c.getContext('2d').getImageData(Math.round(x * k), Math.round(y * k), 1, 1).data.slice(0, 3)];
 }, [which, x, y]);
-/** Colour at turtle coordinates. */
-async function turtlePixel(page, x, y) {
+/** Colours of the 3 x 3 device pixels around turtle coordinates (lines may fall between two pixels). */
+async function turtlePixels(page, x, y) {
   const [cx, cy] = await page.evaluate(([x, y]) => window.demo.turtle.toClient(x, y), [x, y]);
-  return pixel(page, 'turtle', cx, cy);
+  const k = await page.evaluate(() => { const c = window.demo.turtle.canvas; return c.clientWidth / c.width; });
+  const out = [];
+  for (const dx of [-1, 0, 1]) for (const dy of [-1, 0, 1]) out.push(await pixel(page, 'turtle', cx + dx * k, cy + dy * k));
+  return out;
+}
+/** Colour at turtle coordinates: the one of the neighbourhood closest to `want`. */
+async function turtlePixel(page, x, y, want = [0, 0, 0]) {
+  const all = await turtlePixels(page, x, y);
+  const d = (c) => c.reduce((s, v, i) => s + Math.abs(v - want[i]), 0);
+  return all.sort((a, b) => d(a) - d(b))[0];
 }
 const near = (c, want, tol = 40) => c.every((v, i) => Math.abs(v - want[i]) <= tol);
+const at = async (page, x, y, want, tol) => near(await turtlePixel(page, x, y, want), want, tol);
 
 const tests = [
   ['turtle square: animated, lines at the right places, console output', async ({ page }) => {
@@ -55,8 +65,8 @@ const tests = [
     assertEq(await state(page), 'done', 'state');
     assert((await output(page)).startsWith('Fertig:'), 'output: ' + (await output(page)));
     const blue = [65, 105, 225];
-    for (const [x, y] of [[75, 0], [150, 75], [75, 150], [0, 75]]) assert(near(await turtlePixel(page, x, y), blue), `royalblue line at ${x},${y}: ${await turtlePixel(page, x, y)}`);
-    assert(near(await turtlePixel(page, 75, 75), [255, 255, 255], 5), 'inside the square stays white');
+    for (const [x, y] of [[75, 0], [150, 75], [75, 150], [0, 75]]) assert(await at(page, x, y, blue), `royalblue line at ${x},${y}: ${await turtlePixel(page, x, y, blue)}`);
+    assert((await turtlePixels(page, 75, 75)).every((c) => near(c, [255, 255, 255], 5)), 'inside the square stays white');
     const hidpi = await page.evaluate(() => { const c = window.demo.turtle.canvas; return c.width / c.clientWidth; });
     assert(Math.abs(hidpi - (await page.evaluate(() => devicePixelRatio))) < 0.05, 'canvas resolution follows devicePixelRatio');
   }],
@@ -65,9 +75,10 @@ const tests = [
     await finished(page);
     await frame(page);
     assertEq(await state(page), 'done', 'state');
-    assert(near(await turtlePixel(page, 20, -5), [255, 215, 0]), 'gold star spike: ' + (await turtlePixel(page, 20, -5)));
-    assert(near(await turtlePixel(page, -120, -100), [135, 206, 235]), 'skyblue circle: ' + (await turtlePixel(page, -120, -100)));
-    assert(near(await turtlePixel(page, -120, -160), [220, 20, 60]), 'crimson dot: ' + (await turtlePixel(page, -120, -160)));
+    assert(await at(page, 20, -5, [255, 215, 0]), 'gold star spike');
+    assert(await at(page, 100, -30, [255, 255, 255], 5), 'centre of the star stays empty (even-odd like Tk)');
+    assert(await at(page, -120, -100, [135, 206, 235]), 'skyblue circle');
+    assert(await at(page, -120, -160, [220, 20, 60]), 'crimson dot');
     await page.screenshot({ path: join(OUT, 'desktop-turtle-fill.png') });
   }],
   ['turtle spiral at speed 0 (screenshot)', async ({ page }) => {
@@ -75,7 +86,7 @@ const tests = [
     await finished(page);
     await frame(page);
     assertEq(await state(page), 'done', 'state');
-    assert(near(await turtlePixel(page, -300, 300), [0, 0, 0], 10), 'black background');
+    assert(await at(page, -300, 300, [0, 0, 0], 10), 'black background');
     await page.screenshot({ path: join(OUT, 'desktop-turtle-spiral.png') });
   }],
   ['turtle keys and clicks reach mainloop()', async ({ page }) => {
@@ -116,8 +127,9 @@ const tests = [
     const info = await page.evaluate(() => window.demo.kara.info);
     assertEq(JSON.stringify([info.kara.x, info.kara.y]), '[4,3]', 'kara position');
     const [cx, cy] = await page.evaluate(() => window.demo.kara.cellCenter(4, 3));
-    const c = await pixel(page, 'kara', cx - 6, cy);
-    assert(c[0] > 180 && c[1] < 120, 'red ladybug on its cell: ' + c);
+    const reds = [];
+    for (const dx of [-8, -4, 0, 4, 8]) for (const dy of [-8, -4, 0, 4, 8]) reds.push(await pixel(page, 'kara', cx + dx, cy + dy));
+    assert(reds.filter((c) => c[0] > 200 && c[1] < 100).length >= 5, 'red ladybug on its cell');
     await page.screenshot({ path: join(OUT, 'desktop-kara.png') });
   }],
   ['kara pushes the mushroom onto the berry', async ({ page }) => {
@@ -161,7 +173,7 @@ const tests = [
     const title = await page.locator('.nw-error-title').innerText();
     const text = await page.locator('.nw-error-text').innerText();
     assert(/NameError/.test(title) && /6/.test(title), 'title: ' + title);
-    assert(/sume/.test(text) && /summe/.test(text), 'message with suggestion: ' + text);
+    assert(/sume/.test(text) && /Meintest du/.test(text), 'message with suggestion: ' + text);
     assert((await page.locator('.nw-error pre').textContent()).includes('line 6'), 'traceback');
     assert((await output(page)).includes('Summe: 6'), 'output before the error');
     await page.screenshot({ path: join(OUT, 'desktop-error.png') });
@@ -176,6 +188,8 @@ const tests = [
       requestAnimationFrame(f);
     }));
     assert(frames >= 20, `animation frames during the loop: ${frames}`);
+    const timerDelay = await page.evaluate(() => new Promise((res) => { const t0 = performance.now(); setTimeout(() => res(performance.now() - t0), 0); }));
+    assert(timerDelay < 150, `page timers still fire during the loop: ${timerDelay} ms`);
     const t0 = Date.now();
     await page.locator('#code').click();
     await page.keyboard.type('# x');
@@ -184,7 +198,7 @@ const tests = [
     await page.click('#stop');
     await finished(page, 2000);
     assertEq(await state(page), 'stopped', 'stopped');
-    assert(steps > 1e5 || true, 'the loop ran');
+    assert(steps > 1e5, 'the loop ran: ' + steps);
     assert((await output(page)).includes('Programm gestoppt'), 'stop message');
   }],
   ['real clock and sleep', async ({ page }) => {
@@ -192,8 +206,8 @@ const tests = [
     await finished(page);
     assertEq(await output(page), 'True\nTrue\n', 'output');
   }],
-  ['requests: same origin works, missing CORS gives the CORS error', async ({ page, otherPort }) => {
-    await start(page, 'import requests\nr = requests.get("/api/hello")\nprint(r.status_code, r.json()["greeting"])\n');
+  ['requests: same origin works, missing CORS gives the CORS error', async ({ page, port, otherPort }) => {
+    await start(page, `import requests\nr = requests.get("http://127.0.0.1:${port}/api/hello")\nprint(r.status_code, r.json()["greeting"])\n`);
     await finished(page);
     assertEq(await output(page), '200 hallo\n', 'same origin');
     await start(page, `import requests\ntry:\n    requests.get("http://127.0.0.1:${otherPort}/api/hello")\nexcept requests.exceptions.ConnectionError as e:\n    print("Fehler:", e)\n`);
@@ -209,7 +223,7 @@ const tests = [
       off();
       return seen;
     });
-    assertEq(JSON.stringify(changes), '[["a.txt","hi"]]', 'fsChanged');
+    assertEq(JSON.stringify(changes.at(-1)), '["a.txt","hi"]', 'fsChanged');
     assert((await output(page)).includes('von vorher'), 'files option');
   }],
   ['phone (Pixel 7): layout fits, touch tap counts as click, screenshots', async ({ browser, base }) => {

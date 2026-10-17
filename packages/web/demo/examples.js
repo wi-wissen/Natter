@@ -18,7 +18,7 @@ print("Fertig:", t.pos())
 turtle.bgcolor("black")
 t = turtle.Turtle()
 t.speed(0)
-t.width(2)
+t.pensize(2)
 farben = ["red", "orange", "yellow", "lime", "deepskyblue", "violet"]
 for i in range(180):
     t.pencolor(farben[i % 6])
@@ -79,9 +79,9 @@ screen.mainloop()
 ` },
   { id: 'kara-tree', title: 'Kara: bis zum Baum', code: `world(${Q}
 ##########
-#@       #
+#@      ##
 #        #
-#   .   ##
+#   .    #
 ##########
 ${Q})
 while not treeFront():
@@ -89,7 +89,7 @@ while not treeFront():
 turnRight()
 move()
 move()
-turnLeft()
+turnRight()
 while not onBerry():
     move()
 removeBerry()

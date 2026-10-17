@@ -71,12 +71,12 @@ def subplot(*args, **kwargs):
 
 def show(*args, **kwargs):
     for svg, width, height in _plot.render_all():
-        _plot.display(svg, width, height)
+        _plot.show(svg, width, height)
 
 
 def savefig(fname, **kwargs):
     svg, width, height = _plot.render(gcf())
-    _plot.display(svg, width, height, str(fname))
+    _plot.show(svg, width, height, str(fname))
 
 
 def plot(*args, **kwargs):

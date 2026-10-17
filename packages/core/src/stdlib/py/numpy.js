@@ -70,48 +70,48 @@ from numpy import random, linalg
 
 export const numpy_random = String.raw`
 import _np
-from _np import RandomState, Generator
+from _np import _RandomState as RandomState, _Generator as Generator
 
-default_rng = _np.random_default_rng
-seed = _np.random_seed
-rand = _np.random_rand
-randn = _np.random_randn
-random = _np.random_random
-random_sample = _np.random_random_sample
-ranf = _np.random_ranf
-sample = _np.random_sample
-randint = _np.random_randint
-random_integers = _np.random_random_integers
-uniform = _np.random_uniform
-normal = _np.random_normal
-standard_normal = _np.random_standard_normal
-exponential = _np.random_exponential
-poisson = _np.random_poisson
-binomial = _np.random_binomial
-choice = _np.random_choice
-shuffle = _np.random_shuffle
-permutation = _np.random_permutation
+default_rng = _np._random_default_rng
+seed = _np._random_seed
+rand = _np._random_rand
+randn = _np._random_randn
+random = _np._random_random
+random_sample = _np._random_random_sample
+ranf = _np._random_ranf
+sample = _np._random_sample
+randint = _np._random_randint
+random_integers = _np._random_random_integers
+uniform = _np._random_uniform
+normal = _np._random_normal
+standard_normal = _np._random_standard_normal
+exponential = _np._random_exponential
+poisson = _np._random_poisson
+binomial = _np._random_binomial
+choice = _np._random_choice
+shuffle = _np._random_shuffle
+permutation = _np._random_permutation
 `;
 
 export const numpy_linalg = String.raw`
 import _np
-from _np import LinAlgError
+from _np import _LinAlgError as LinAlgError
 
 
 def det(a):
-    return _np.linalg_det(a)
+    return _np._linalg_det(a)
 
 
 def inv(a):
-    return _np.linalg_inv(a)
+    return _np._linalg_inv(a)
 
 
 def solve(a, b):
-    return _np.linalg_solve(a, b)
+    return _np._linalg_solve(a, b)
 
 
 def norm(x, ord=None, axis=None):
     if ord is not None or axis is not None:
         raise NotImplementedError("Natter: norm() supports only the default (Euclidean/Frobenius) norm")
-    return _np.linalg_norm(x)
+    return _np._linalg_norm(x)
 `;

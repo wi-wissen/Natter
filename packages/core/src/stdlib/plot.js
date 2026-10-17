@@ -32,7 +32,8 @@ const ADV = new Map([...FONT_CHARS].map((c, i) => [c, FONT_W[i]]));
 /** Width of a text in px (font size in px). */
 export function textWidth(s, size) {
   let w = 0;
-  for (const c of String(s)) w += ADV.get(c) ?? 620;
+  const t = String(s).includes('$') ? mathText(String(s), size).plain : String(s);
+  for (const c of t) w += ADV.get(c) ?? 620;
   return (w / 1000) * size;
 }
 const ASC = 0.7915, DESC = 0.2085; // top of the text box → baseline, baseline → bottom (in em, from matplotlib's layout)
@@ -613,7 +614,67 @@ const esc = (t) => String(t).replace(/&/g, '&amp;').replace(/</g, '&lt;').replac
 
 function textSvg(x, y, text, { size, color = '#000000', anchor = 'start', rotate = 0, weight = null, alpha = 1 }) {
   const tr = rotate ? ` transform="rotate(${r2(-rotate)} ${r2(x)} ${r2(y)})"` : '';
-  return `<text x="${r2(x)}" y="${r2(y)}" font-size="${r2(size)}" fill="${color}"${alpha !== 1 ? ` fill-opacity="${r2(alpha)}"` : ''}${anchor !== 'start' ? ` text-anchor="${anchor}"` : ''}${weight ? ` font-weight="${weight}"` : ''}${tr}>${esc(text)}</text>`;
+  return `<text x="${r2(x)}" y="${r2(y)}" font-size="${r2(size)}" fill="${color}"${alpha !== 1 ? ` fill-opacity="${r2(alpha)}"` : ''}${anchor !== 'start' ? ` text-anchor="${anchor}"` : ''}${weight ? ` font-weight="${weight}"` : ''}${tr}>${mathText(String(text), size).svg}</text>`;
+}
+
+const TEX = {
+  alpha: 'α', beta: 'β', gamma: 'γ', delta: 'δ', epsilon: 'ε', varepsilon: 'ε', zeta: 'ζ', eta: 'η', theta: 'θ', lambda: 'λ', mu: 'μ', nu: 'ν',
+  xi: 'ξ', pi: 'π', rho: 'ρ', sigma: 'σ', tau: 'τ', phi: 'φ', varphi: 'φ', chi: 'χ', psi: 'ψ', omega: 'ω', Gamma: 'Γ', Delta: 'Δ', Theta: 'Θ',
+  Lambda: 'Λ', Pi: 'Π', Sigma: 'Σ', Phi: 'Φ', Psi: 'Ψ', Omega: 'Ω', cdot: '·', times: '×', div: '÷', pm: '±', infty: '∞', leq: '≤', le: '≤',
+  geq: '≥', ge: '≥', neq: '≠', ne: '≠', approx: '≈', circ: '∘', degree: '°', sqrt: '√', to: '→', rightarrow: '→', cdots: '⋯', ldots: '…', partial: '∂', int: '∫', sum: '∑',
+};
+
+/**
+ * matplotlib's mathtext, a small part: $…$ with ^ and _ (one character or {…}), Greek letters and a few symbols,
+ * \mathrm{…}; letters in math are italic. Returns SVG content and the plain text (for measuring).
+ */
+export function mathText(text, size) {
+  if (!/\$[^$]+\$/.test(text)) return { svg: esc(text), plain: text };
+  let svg = '', plain = '';
+  const parts = text.split('$');
+  parts.forEach((part, k) => {
+    if (k % 2 === 0) { svg += esc(part); plain += part; return; }
+    let i = 0, shift = 0;
+    const group = () => {
+      if (part[i] === '{') { let depth = 1, j = i + 1; while (j < part.length && depth) { if (part[j] === '{') depth++; else if (part[j] === '}') depth--; j++; } const g = part.slice(i + 1, j - 1); i = j; return g; }
+      if (part[i] === '\\') { const m = /^\\([A-Za-z]+)/.exec(part.slice(i)); if (m) { i += m[0].length; return m[0]; } }
+      return part[i++] ?? '';
+    };
+    const plainOf = (t) => t.replace(/\\(mathrm|text|mathit|mathbf)\{([^}]*)\}/g, '$2').replace(/\\([A-Za-z]+)/g, (m, n) => TEX[n] ?? n).replace(/\\[,;! ]/g, ' ').replace(/[{}^_]/g, '');
+    const emit = (t, italic) => {
+      const p = plainOf(t);
+      plain += p;
+      if (!italic) return esc(p);
+      return p.split(/([A-Za-z]+)/).map((w, j) => (j % 2 ? `<tspan font-style="italic">${w}</tspan>` : esc(w))).join('');
+    };
+    while (i < part.length) {
+      const c = part[i];
+      if (c === '^' || c === '_') {
+        i++;
+        const g = group();
+        const dy = c === '^' ? -0.35 * size : 0.2 * size;
+        svg += `<tspan dy="${r2(dy - shift)}" font-size="${r2(size * 0.7)}">${emit(g, true)}</tspan>`;
+        shift = dy;
+        continue;
+      }
+      if (shift) { svg += `<tspan dy="${r2(-shift)}"></tspan>`; shift = 0; }
+      if (c === '\\') {
+        const m = /^\\(mathrm|text|mathbf)\{([^}]*)\}/.exec(part.slice(i));
+        if (m) { svg += esc(m[2]); plain += m[2]; i += m[0].length; continue; }
+        const n = /^\\([A-Za-z]+|.)/.exec(part.slice(i));
+        const name = n[1];
+        i += n[0].length;
+        const t = TEX[name] ?? (/^[,;! ]$/.test(name) ? ' ' : name);
+        svg += esc(t); plain += t;
+        continue;
+      }
+      if (c === '{' || c === '}') { i++; continue; }
+      svg += emit(c, /[A-Za-z]/.test(c));
+      i++;
+    }
+    if (shift) svg += `<tspan dy="${r2(-shift)}"></tspan>`;
+  });
+  return { svg, plain };
 }
 
 function dashAttr(ls, lw) {
@@ -1334,8 +1395,8 @@ export const PLOT_NATIVES = {
   '_plot.clf'(ctx) { const fig = currentFigure(ctx.vm); fig.f.axes = []; fig.f.current = null; fig.f.suptitle = null; return null; },
   '_plot.render_all'(ctx) { return new PyList(renderOpenFigures(ctx.vm, true).map((r) => new PyTuple([r.svg, r.width, r.height]))); },
   '_plot.render'(ctx, args) { const fig = args[0] ?? currentFigure(ctx.vm); const [r] = renderOpenFigures({ plot: { figs: [fig] } }, false); return new PyTuple([r.svg, r.width, r.height]); },
-  '_plot.display'(ctx, args, kw) {
-    const [svg, width, height, file] = params('display', args, kw, ['svg', 'width', 'height', '?file']);
+  '_plot.show'(ctx, args, kw) {
+    const [svg, width, height, file] = params('show', args, kw, ['svg', 'width', 'height', '?file']);
     const info = { kind: 'plot', svg, width: Number(num(width)), height: Number(num(height)), ...(file ? { file } : {}) };
     (ctx.vm.plotsShown ??= []).push(info);
     return new Suspend(info);

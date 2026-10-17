@@ -24,8 +24,8 @@ const now = () => performance.now();
 export function createTurtle(container, opts = {}) {
   const W0 = opts.width ?? 960, H0 = opts.height ?? 810;
   const instantMs = opts.instantMs ?? 1;
+  let ready = false; // the stage reports its first size before the rest exists
   const stage = createStage(container, { width: W0, height: H0, fit: opts.fit, upscale: opts.upscale, className: 'nw-turtle', onResize: () => { if (ready) rebuild(true); } });
-  let ready = false;
   const cache = document.createElement('canvas');
   const cctx = /** @type {CanvasRenderingContext2D} */ (cache.getContext('2d'));
 
@@ -67,9 +67,12 @@ export function createTurtle(container, opts = {}) {
     return { id, x: 0, y: 0, heading: 0, shape, pencolor, fillcolor, pensize: 1, visible: true, stretch: [1, 1, 1], stamps: 0 };
   }
 
-  function drawShape(ctx, shape, x, y, heading, fill, pen, stretch) {
+  function drawShape(ctx, shape, x, y, heading, fill, pen, stretch0, sprite = false) {
     const [px, py] = view.toPx(x, y);
     const [dx, dy] = headingDir(view, x, y, heading);
+    // turtles keep their size on screen when the canvas is shown smaller (stamps belong to the picture and scale with it)
+    const k = sprite ? Math.min(2, Math.max(1, 1 / stage.scale)) : 1;
+    const stretch = [stretch0[0] * k, stretch0[1] * k, stretch0[2] ?? 1];
     if (shape === 'turtle') {
       const img = turtleImage(fill);
       if (img.ready) {
@@ -201,7 +204,7 @@ export function createTurtle(container, opts = {}) {
         if (anim.kind === 'move') { x = anim.x0 + (anim.x1 - anim.x0) * f; y = anim.y0 + (anim.y1 - anim.y0) * f; }
         else heading = anim.h0 + angleDiff(anim.h0, anim.h1) * f;
       }
-      drawShape(ctx, tu.shape, x, y, heading, tu.fillcolor, tu.pencolor, tu.stretch);
+      drawShape(ctx, tu.shape, x, y, heading, tu.fillcolor, tu.pencolor, tu.stretch, true);
     }
     if (anim) raf = requestAnimationFrame(render);
   }

@@ -18,6 +18,15 @@ describe('turtle host interface', () => {
     expect(out).toBe('closed\n');
   });
 
+  it('the short names pu, pd, up, down, width, st, ht exist on Turtle and as functions', () => {
+    let out = '';
+    const vm = new VM(compile('import turtle\nt = turtle.Turtle()\nt.pu()\nt.width(3)\nt.ht()\nprint(t.isdown(), t.pensize(), t.isvisible())\nt.pd()\nt.st()\nturtle.up()\nturtle.width(5)\nprint(t.isdown(), t.isvisible(), turtle.pensize())\n'), { host: { print: (t) => { out += t; } } });
+    const task = vm.start();
+    vm.run(task, 1e7);
+    expect(task.error).toBeNull();
+    expect(out).toBe('False 3 False\nTrue True 5\n');
+  });
+
   it('mainloop() keeps running after a click with a handler', () => {
     let out = '';
     const vm = new VM(compile('import turtle\nturtle.onscreenclick(lambda x, y: print(x, y))\nturtle.mainloop()\n'), { host: { print: (t) => { out += t; } } });

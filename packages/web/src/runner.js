@@ -69,7 +69,7 @@ export function createRunner(options = {}) {
   };
 
   let vm = null, main = null, source = '', state = /** @type {RunState} */ ('idle');
-  let runId = 0, scheduled = false, chunk = 5000, finishRun = null;
+  let runId = 0, scheduled = false, lastTimer = 0, chunk = 5000, finishRun = null;
   const inputQueue = [];
   /** @type {Map<any, { cancels: (() => void)[] }>} open waits by task */
   const open = new Map();
@@ -215,7 +215,9 @@ export function createRunner(options = {}) {
   function schedule(id) {
     if (scheduled) return;
     scheduled = true;
-    yieldSoon(() => { scheduled = false; if (id === runId) pump(id); });
+    const go = () => { scheduled = false; if (id === runId) pump(id); };
+    // MessageChannel is fast but may starve timers (setTimeout of sleep, turtle timers, pages): now and then use a timer
+    if (now() - lastTimer > 30) { lastTimer = now(); setTimeout(go, 0); } else yieldSoon(go);
   }
 
   /** One slice: run ready tasks until the time is up, then hand waits to their handlers. */

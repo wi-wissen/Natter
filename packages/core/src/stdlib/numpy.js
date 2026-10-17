@@ -1445,6 +1445,36 @@ export const NP_NATIVES = {
     const ax = axisArg(axis);
     return wrap(concat(ctx, [A(arr), A(values)], ax));
   },
+  '_np.flip'(ctx, args, kw) {
+    const [a, axis] = params('flip', args, kw, ['m', '?axis']);
+    const nd = A(a);
+    const axes = axis === undefined || axis === null ? nd.shape.map((_, i) => i) : [normAxis(axis, nd.ndim)];
+    const strides = nd.strides.slice();
+    let off = nd.offset;
+    for (const ax of axes) { if (nd.shape[ax]) off += (nd.shape[ax] - 1) * strides[ax]; strides[ax] = -strides[ax]; }
+    return wrap(new Nd(nd.data, nd.shape.slice(), nd.dtype, strides, off));
+  },
+  '_np.repeat'(ctx, args, kw) {
+    const [a, reps, axis] = params('repeat', args, kw, ['a', 'repeats', '?axis']);
+    const nd = A(a);
+    if (axisArg(axis) !== null) throw npErr('TypeError', "Natter's numpy supports repeat() only without axis");
+    const f = flat(nd), r = Array.from(flat(toNd(reps)));
+    const out = [];
+    for (let i = 0; i < f.length; i++) for (let k = 0; k < (r.length === 1 ? r[0] : r[i]); k++) out.push(f[i]);
+    const d = newData(out.length, nd.dtype);
+    out.forEach((v, i) => { d[i] = v; });
+    return wrap(new Nd(d, [out.length], nd.dtype));
+  },
+  '_np.tile'(ctx, args, kw) {
+    const [a, reps] = params('tile', args, kw, ['A', 'reps']);
+    let nd = A(a);
+    const r = isInt(reps) ? [Number(num(reps))] : iterItemsArr(reps).map((v) => Number(num(v)));
+    if (r.length > 2 || nd.ndim > 2) throw npErr('TypeError', "Natter's numpy supports tile() only for 1-D and 2-D");
+    if (r.length === 2 && nd.ndim === 1) nd = reshape(nd.contiguous() ? nd : copyNd(nd), [1, nd.size]);
+    const along = (x, n, ax) => concat(ctx, Array(n).fill(x), ax);
+    if (r.length === 1) return wrap(along(nd, r[0], nd.ndim - 1));
+    return wrap(along(along(nd, r[1], nd.ndim - 1), r[0], 0));
+  },
   // ----- element-wise -----
   '_np.where'(ctx, args, kw) {
     const [c, x, y] = params('where', args, kw, ['condition', '?x', '?y']);
@@ -1522,6 +1552,20 @@ export const NP_NATIVES = {
   '_np.std': statNative('std', 0, true),
   '_np.cumsum': cumNative('cumsum', false),
   '_np.cumprod': cumNative('cumprod', true),
+  '_np.nansum'(ctx, args, kw) { const [a, axis, , , keepdims] = params('nansum', args, kw, ['a', '?axis', '?dtype', '?out', '?keepdims']); const { arr } = nanParts(A(a), axisArg(axis), false); return result(sumNd(arr, axisArg(axis), truthy(keepdims ?? false))); },
+  '_np.nanmean'(ctx, args, kw) { const [a, axis, , , keepdims] = params('nanmean', args, kw, ['a', '?axis', '?dtype', '?out', '?keepdims']); return result(nanStat(ctx, A(a), axisArg(axis), 'mean', 0, truthy(keepdims ?? false))); },
+  '_np.nanvar'(ctx, args, kw) { const [a, axis, , , ddof, keepdims] = params('nanvar', args, kw, ['a', '?axis', '?dtype', '?out', '?ddof', '?keepdims']); return result(nanStat(ctx, A(a), axisArg(axis), 'var', optNum(ddof, 0), truthy(keepdims ?? false))); },
+  '_np.nanstd'(ctx, args, kw) { const [a, axis, , , ddof, keepdims] = params('nanstd', args, kw, ['a', '?axis', '?dtype', '?out', '?ddof', '?keepdims']); return result(nanStat(ctx, A(a), axisArg(axis), 'std', optNum(ddof, 0), truthy(keepdims ?? false))); },
+  '_np.nanmax'(ctx, args, kw) { const [a, axis] = params('nanmax', args, kw, ['a', '?axis', '?out', '?keepdims']); return result(nanMinMax(ctx, A(a), axisArg(axis), true)); },
+  '_np.nanmin'(ctx, args, kw) { const [a, axis] = params('nanmin', args, kw, ['a', '?axis', '?out', '?keepdims']); return result(nanMinMax(ctx, A(a), axisArg(axis), false)); },
+  '_np.nanmedian'(ctx, args, kw) {
+    const [a, axis] = params('nanmedian', args, kw, ['a', '?axis']);
+    const nd = A(a);
+    if (axisArg(axis) !== null) throw npErr('TypeError', "Natter's numpy supports nanmedian() only without axis");
+    const f = Array.from(flat(needNumeric(nd, 'nanmedian'))).filter((v) => !Number.isNaN(v));
+    if (!f.length) { npWarn(ctx, 'All-NaN slice encountered'); return new PyFloat(NaN); }
+    return medianOf(ctx, new Nd(Float64Array.from(f), [f.length], 'float64'), null);
+  },
   '_np.median'(ctx, args, kw) { const [a, axis] = params('median', args, kw, ['a', '?axis']); return medianOf(ctx, A(a), axisArg(axis)); },
   '_np.percentile'(ctx, args, kw) { const [a, q, axis] = params('percentile', args, kw, ['a', 'q', '?axis']); return percentileOf(ctx, A(a), q, axisArg(axis), 100); },
   '_np.quantile'(ctx, args, kw) { const [a, q, axis] = params('quantile', args, kw, ['a', 'q', '?axis']); return percentileOf(ctx, A(a), q, axisArg(axis), 1); },
@@ -1614,16 +1658,16 @@ export const NP_NATIVES = {
     for (let i = 0; i < nd.shape[0]; i++) { const j = i + kk; if (j >= 0 && j < nd.shape[1]) vals.push(nd.data[nd.offset + i * nd.strides[0] + j * nd.strides[1]]); }
     return wrap(new Nd(Float64Array.from(vals), [vals.length], nd.dtype));
   },
-  '_np.linalg_det'(ctx, args) { return new PyFloat(det(A(args[0]))); },
-  '_np.linalg_solve'(ctx, args) { const r = solve(A(args[0]), A(args[1])); if (!r) throw npErr('LinAlgError', 'Singular matrix', 'npSingular'); return wrap(r); },
-  '_np.linalg_inv'(ctx, args) {
+  '_np._linalg_det'(ctx, args) { return new PyFloat(det(A(args[0]))); },
+  '_np._linalg_solve'(ctx, args) { const r = solve(A(args[0]), A(args[1])); if (!r) throw npErr('LinAlgError', 'Singular matrix', 'npSingular'); return wrap(r); },
+  '_np._linalg_inv'(ctx, args) {
     const nd = A(args[0]);
     squareCheck(nd);
     const r = solve(nd, eyeNd(nd.shape[0]));
     if (!r) throw npErr('LinAlgError', 'Singular matrix', 'npSingular');
     return wrap(r);
   },
-  '_np.linalg_norm'(ctx, args) {
+  '_np._linalg_norm'(ctx, args) {
     const nd = A(args[0]), f = flat(nd);
     let s = 0;
     for (let i = 0; i < f.length; i++) s += f[i] * f[i];
@@ -1691,14 +1735,51 @@ export const NP_NATIVES = {
   '_np.float64'(ctx, args) { return new PyFloat(args.length ? toNd(args[0]).data[0] : 0); },
   '_np.int64'(ctx, args) { const v = args.length ? toNd(args[0]).data[0] : 0; return toPy(castInt(v), 'int64'); },
   '_np.bool_'(ctx, args) { return args.length ? toNd(args[0]).data[0] !== 0 : false; },
-  '_np.ufunc'(ctx, args) {
+  '_np._ufunc'(ctx, args) {
     // generic one-argument function: _np.ufunc(name, x)
     const name = args[0];
     return result(applyUnary(ctx, name, A(args[1], 'x')));
   },
-  '_np.tofloats'(ctx, args) { return new PyList(toFloatList(args[0]).map((v) => new PyFloat(v))); },
-  '_np.isarray'(ctx, args) { return isArr(args[0]); },
+  '_np._tofloats'(ctx, args) { return new PyList(toFloatList(args[0]).map((v) => new PyFloat(v))); },
+  '_np._isarray'(ctx, args) { return isArr(args[0]); },
 };
+
+/** a with NaN replaced by v, and the count of the other values along the axis (numpy's _replace_nan). */
+function nanParts(nd, axis, keepdims, v = 0) {
+  needNumeric(nd, 'nan');
+  const f = flat(nd).slice(), mask = new Float64Array(f.length);
+  for (let i = 0; i < f.length; i++) if (Number.isNaN(f[i])) { f[i] = v; } else mask[i] = 1;
+  const arr = new Nd(f, nd.shape.slice(), nd.dtype === 'float64' ? 'float64' : nd.dtype);
+  const cnt = reduceAxis(new Nd(mask, nd.shape.slice(), 'int64'), axis, keepdims, sumFn, 'int64');
+  return { arr, cnt };
+}
+
+function nanStat(ctx, nd, axis, kind, ddof = 0, keepdims = false) {
+  const { arr, cnt } = nanParts(nd, axis, kind === 'mean' ? keepdims : true);
+  const sum = reduceAxis(arr, axis, kind === 'mean' ? keepdims : true, sumFn, nd.dtype === 'float64' ? 'float64' : 'float64');
+  let warned = false;
+  for (let i = 0; i < sum.data.length; i++) { if (cnt.data[i] === 0 && !warned) { npWarn(ctx, 'Mean of empty slice'); warned = true; } sum.data[i] /= cnt.data[i]; }
+  if (kind === 'mean') return sum;
+  const dev = binop(ctx, '-', arr.dtype === 'float64' ? arr : astype(null, arr, 'float64'), sum);
+  const src = flat(nd);
+  for (let i = 0; i < dev.data.length; i++) { const d = Number.isNaN(src[i]) ? 0 : dev.data[i]; dev.data[i] = d * d; }
+  const v = reduceAxis(dev, axis, keepdims, sumFn, 'float64');
+  const counts = keepdims ? flat(cnt) : axis === null || axis === undefined ? [flat(cnt)[0]] : flat(cnt);
+  for (let i = 0; i < v.data.length; i++) { const dof = counts[i] - ddof; if (dof <= 0) npWarn(ctx, 'Degrees of freedom <= 0 for slice.'); v.data[i] /= Math.max(dof, 0); if (kind === 'std') v.data[i] = Math.sqrt(v.data[i]); }
+  return v;
+}
+
+function nanMinMax(ctx, nd, axis, isMax) {
+  let allNan = false;
+  const r = reduceAxis(nd, axis, false, (a, lo, n) => {
+    let best = NaN;
+    for (let i = 0; i < n; i++) { const v = a[lo + i]; if (!Number.isNaN(v) && (Number.isNaN(best) || (isMax ? v > best : v < best))) best = v; }
+    if (Number.isNaN(best)) allNan = true;
+    return best;
+  }, nd.dtype, isMax ? 'fmax' : 'fmin');
+  if (allNan) npWarn(ctx, 'All-NaN slice encountered');
+  return r;
+}
 
 function eyeNd(n) { const d = new Float64Array(n * n); for (let i = 0; i < n; i++) d[i * n + i] = 1; return new Nd(d, [n, n], 'float64'); }
 
@@ -1888,9 +1969,10 @@ DTYPE.dict.set('__init__', new PyBuiltin('_np.dtype.__init__'));
 /** Names of the module _np (functions and the two classes). */
 export const NP_NAMES = [
   ...Object.keys(NP_NATIVES).filter((n) => /^_np\.[a-z_0-9]+$/i.test(n)).map((n) => n.slice(4)),
-  'ndarray', 'dtype', ...Object.keys(NP_EXCEPTIONS),
+  'ndarray', 'dtype', ...Object.keys(NP_EXCEPTIONS).map((k) => `_${k}`),
 ];
-export const NP_CONSTS = { ndarray: NDARRAY, dtype: DTYPE, ...NP_EXCEPTIONS };
+// the exception classes are '_'-names in _np, so `from numpy import *` does not shadow Python's own (MemoryError)
+export const NP_CONSTS = { ndarray: NDARRAY, dtype: DTYPE, ...Object.fromEntries(Object.entries(NP_EXCEPTIONS).map(([k, v]) => [`_${k}`, v])) };
 
 // random numbers live in nprandom.js; they need wrap/toNd from here
 export { array2string };

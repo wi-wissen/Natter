@@ -20,8 +20,8 @@ const C = {
  *   stepSeconds: duration of a move (turns and berries take a bit less); 0 = no animation
  */
 export function createKara(container, opts = {}) {
+  let ready = false; // the stage reports its first size before the rest exists
   const stage = createStage(container, { width: 5 * S, height: 3 * S, fit: opts.fit, upscale: true, maxScale: opts.maxScale ?? 1.6, className: 'nw-kara', onResize: () => { if (ready) draw(); } });
-  let ready = false;
   let world = null;
   let kara = { x: 0, y: 0, angle: 0 };
   let crash = null, anim = null, raf = 0;

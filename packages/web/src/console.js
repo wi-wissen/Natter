@@ -129,7 +129,7 @@ export function createConsole(container, opts = {}) {
       runner.on('output', (text, kind) => con.write(text, kind));
       runner.on('error', (error, ctx) => con.showError(error, { source: ctx.source }));
       runner.on('input', (prompt) => con.showInput(prompt));
-      runner.on('state', (s) => { if (s !== 'waiting') con.hideInput(); if (s === 'stopped') con.write('\n' + uiText(opts.lang ?? 'de').stopped + '\n', 'info'); });
+      runner.on('state', (s) => { if (s !== 'waiting') con.hideInput(); if (s === 'stopped') { const t = con.text; con.write((t && !t.endsWith('\n') ? '\n' : '') + uiText(opts.lang ?? 'de').stopped + '\n', 'info'); } });
       return con;
     },
     get text() { con.flush(); return out.textContent; },

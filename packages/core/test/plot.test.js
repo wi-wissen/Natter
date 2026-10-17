@@ -103,6 +103,28 @@ describe('pyplot in Natter', () => {
     expect(r.output).toBe('(-0.5, 10.5) [-2.0, 0.0, 2.0, 4.0, 6.0, 8.0, 10.0, 12.0]\n[1. 0. 0.] [1.  1.2]\n');
   });
 
+  it('mathtext, font sizes, Figure.savefig and the names that are not there', () => {
+    const r = runToEnd([
+      'import matplotlib.pyplot as plt',
+      'fig, ax = plt.subplots()',
+      'ax.plot([0, 1], [0, 1], label=r"$v_0 = \\alpha t^2$")',
+      'ax.set_title("Wurf", fontsize=16)',
+      'ax.legend()',
+      'fig.savefig("w.svg")',
+      'try:',
+      '    plt.yscale("log")',
+      'except NotImplementedError as e:',
+      '    print(e)',
+    ].join('\n'));
+    expect(r.error).toBeNull();
+    expect(r.output).toBe("Natter's matplotlib has no yscale() (yet). Logarithmic axes are not supported.\n");
+    const svg = r.plots[0].svg;
+    expect(r.plots[0].file).toBe('w.svg');
+    expect(svg).toContain('<tspan font-style="italic">v</tspan><tspan dy="2.78" font-size="9.72">0</tspan><tspan dy="-2.78"></tspan> = α <tspan font-style="italic">t</tspan><tspan dy="-4.86" font-size="9.72">2</tspan>');
+    expect(svg).toContain('α');
+    expect(svg).toMatch(/font-size="22.22"[^>]*>Wurf</);
+  });
+
   it('errors for the usual mistakes', () => {
     const r = runToEnd('import matplotlib.pyplot as plt\nplt.plot([1, 2, 3], [1, 2])');
     expect(r.error.kind).toBe('ValueError');
