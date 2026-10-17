@@ -81,7 +81,7 @@ Hi Grace!
   <h2>Why another Python?</h2>
   <p class="intro">Browser Python normally means shipping a large runtime. Natter is a compact interpreter that implements the part of Python taught in school, and implements it so that the things teachers need are easy.</p>
   <ul class="features">
-    <li><code class="chip">~65 KB</code><h3>Small start</h3><p>The core starts at about 65&nbsp;KB gzipped. Today every module is still bundled, which makes about 190&nbsp;KB; loading modules only when a program imports them is the next step.</p></li>
+    <li><code class="chip">~38 KB</code><h3>Small start</h3><p>The core starts at about 38&nbsp;KB gzipped. Modules such as <code>re</code>, numpy, forms or Pygame Zero load only when a program imports them (15 to 40&nbsp;KB each).</p></li>
     <li><code class="chip">while True:</code><h3>Never freezes</h3><p>Programs run in slices with an instruction budget. An endless loop stops and shows the line it is on.</p></li>
     <li><code class="chip">step("over")</code><h3>Debugger included</h3><p>Breakpoints, step into, over and out, variables and call stack. No patched runtime needed.</p></li>
     <li><code class="chip">Did you mean&hellip;?</code><h3>Friendly errors</h3><p>Messages in English and German with hints such as &ldquo;Did you mean&hellip;?&rdquo;, in the style of CPython 3.12.</p></li>

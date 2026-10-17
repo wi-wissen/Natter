@@ -2,7 +2,7 @@
 
 A small Python interpreter written in JavaScript, made for teaching in the browser.
 
-- **Small:** the core is about 80 KB gzipped (270 KB minified) with the standard library, including error messages in two languages.
+- **Small:** the core starts at about 38 KB gzipped (`packages/core/src/browser.js`). Standard modules, numpy, plots, forms and Pygame Zero are separate chunks (15 to 40 KB gzipped each) that load only when a program imports them. `npm run size` prints the numbers.
 - **Never freezes:** programs run in slices with an instruction budget, so an endless loop stops instead of blocking the page.
 - **Debugger built in:** breakpoints, step into/over/out, variables and call stack.
 - **Friendly errors:** English and German messages with hints, in the style of CPython 3.12.

@@ -5,5 +5,8 @@
   "private": true,
   "type": "module",
   "main": "src/index.js",
-  "exports": { ".": "./src/index.js" }
+  "exports": {
+    ".": "./src/index.js",
+    "./browser": "./src/browser.js"
+  }
 }

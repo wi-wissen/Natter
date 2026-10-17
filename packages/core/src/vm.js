@@ -19,7 +19,7 @@ import {
 import { BUILTINS, CLASS_GLOBALS, METHODS, MODULES, moduleAttr } from './builtins.js';
 import { EXCEPTION_CLASSES, exceptionClassFor, isExceptionClass } from './exceptions.js';
 import { pyMessage } from './pymessages.js';
-import { PYMODULES } from './stdlib/py/index.js';
+import { PYMODULES } from './pymodules.js';
 import { compile as compileRaw } from './compiler.js';
 
 export { Suspend };
