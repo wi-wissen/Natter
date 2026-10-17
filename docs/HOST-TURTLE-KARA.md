@@ -41,3 +41,7 @@ Ereignisse (Tasten, Klicks, Zeitgeber): `mainloop()`/`done()`/`exitonclick()` wa
 | `crash` | `'tree'`, `'edge'`, `'mushroom'`, `'berryThere'`, `'noBerry'` (kurz vor dem Fehler) |
 
 Der Zustand liegt in `vm.kara`; `worldText(vm.kara)` (aus `stdlib/kara.js`) liefert das aktuelle Bild. Die Befehle gibt es als Modul (`import kara`) und als vorbelegte Namen: `karaGlobals()` an `runToEnd` oder die VM (`globals`) übergeben, dann laufen Programme wie im Buch ohne Import. Fehler heißen `err.script.kara.<was>` (Deutsch und Englisch in `messages.js`).
+
+## requests: `task.wait.kind === 'http'`
+
+`requests.get(...)` und Verwandte halten das Programm mit `task.wait = { kind: 'http', method, url, headers, body, timeout }` an. Der Host führt die Anfrage mit `fetch` aus und setzt mit `vm.resume(task, httpResult(r))` fort (`httpResult` kommt aus dem Kern). `r` ist `{ status, reason, headers, text, url }` oder bei einem Fehler `{ error: 'cors' | 'network' | 'timeout' | 'blocked', message }`. Ein `fetch`, das mit `TypeError` scheitert, ist im Browser meist ein CORS-Fehler (Server erlaubt keinen Zugriff von Webseiten): dann `error: 'cors'`, und die Fehlermeldung erklärt das.
