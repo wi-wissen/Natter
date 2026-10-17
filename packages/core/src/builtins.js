@@ -10,7 +10,7 @@ import {
   PyFloat, PyList, PyTuple, PyDict, PyRange, PyBuiltin, PyIterator, PyView, PyFunction, PyPartial, PyBoundMethod,
   PyModule, PyHost, checkInt, isInt, isNum, num, typeName, truthy, eq, lt, iterItems, makeIter, iterNext, DONE, length,
   roundFloat, formatValue, binary, TYPE_NAMES, toIndex, keyOf, normBig, pow10, pushAll,
-  keyError, Suspend, PyGenerator, PyUserIter, PySet, setOf, PyClass, PyInstance, PyMethod, PySuper, PyProperty, PyStaticMethod, PyClassMethod, OBJECT, NOT_IMPLEMENTED, NO_METHOD,
+  keyError, getItem, Suspend, PyGenerator, PyUserIter, PySet, setOf, PyClass, PyInstance, PyMethod, PySuper, PyProperty, PyStaticMethod, PyClassMethod, OBJECT, NOT_IMPLEMENTED, NO_METHOD,
   callDunder, lookupClass, defaultRepr, setOp,
 } from './values.js';
 
@@ -149,6 +149,14 @@ function isSubclassOf(a, b) {
 
 const isTypeLike = (x) => x instanceof PyClass || (x instanceof PyBuiltin && (TYPE_NAMES.has(x.name) || x.name.startsWith('class:')));
 
+/** Objects of classes with a keys() method count as mappings (dict(x), d.update(x)). */
+const hasKeys = (v) => v instanceof PyInstance && lookupClass(v.cls, 'keys') !== undefined;
+const ctx0 = (c) => c;
+function mappingItems(ctx, src) {
+  const keys = iterItems(ctx.vm.callSync(ctx.vm.getattr(ctx.task, src, 'keys'), [], null, ctx.task));
+  return keys.map((k) => [k, getItem(src, k)]);
+}
+
 /** Iterator over a finished list (enumerate, zip, map, reversed). */
 const listIter = (items, label) => new PyIterator(new PyList(items), 0, label);
 
@@ -198,6 +206,7 @@ export const BUILTINS = {
     if (args.length) {
       const src = args[0];
       if (src instanceof PyDict) for (const [k, v] of src.entries()) d.set(k, v);
+      else if (hasKeys(src)) for (const [k, v] of mappingItems(ctx, src)) d.set(k, v);
       else {
         for (const pair of iterItems(src)) {
           const kv = iterItems(pair);
@@ -781,6 +790,7 @@ export const METHODS = {
       if (a.length) {
         const src = a[0];
         if (src instanceof PyDict) for (const [k, v] of src.entries()) d.set(k, v);
+        else if (hasKeys(src)) for (const [k, v] of mappingItems(ctx0(c), src)) d.set(k, v);
         else for (const p of iterItems(src)) { const kv = iterItems(p); d.set(kv[0], kv[1]); }
       }
       for (const k of Object.keys(kw)) d.set(k, kw[k]);

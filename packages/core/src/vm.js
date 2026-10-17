@@ -19,7 +19,7 @@ import {
 import { BUILTINS, CLASS_GLOBALS, METHODS, MODULES, moduleAttr } from './builtins.js';
 import { EXCEPTION_CLASSES, exceptionClassFor, isExceptionClass } from './exceptions.js';
 import { pyMessage } from './pymessages.js';
-import { PYMODULES } from './stdlibPy.js';
+import { PYMODULES } from './stdlib/index.js';
 import { compile as compileRaw } from './compiler.js';
 
 export { Suspend };
@@ -1052,7 +1052,7 @@ export class VM {
       obj.dict.set(name, v);
       return;
     }
-    if (obj instanceof PyClass) { obj.dict.set(name, v); return; }
+    if (obj instanceof PyClass) { if (name === '__name__' && typeof v === 'string') obj.name = v; else obj.dict.set(name, v); return; }
     if (obj instanceof PyModule && obj.ns) { obj.ns.set(name, v); return; }
     if (obj instanceof PyHost && this.host.setattr?.({ vm: this, task }, obj, name, v)) return;
     throw new ScriptError('attr', { type: typeName(obj), name, readonly: true });
