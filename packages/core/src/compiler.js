@@ -21,6 +21,7 @@ export const OP = {
   FORMAT: 49, BUILD_STRING: 50, IMPORT: 51, IMPORT_FROM: 52, IMPORT_STAR: 53, ASSERT_FAIL: 54,
   BUILD_CLASS: 55, LOAD_NAME: 56, STORE_NAME: 57, DELETE_NAME: 58, SUPER: 59, DELETE_ATTR: 60,
   SETUP_TRY: 61, POP_BLOCK: 62, EXC_MATCH: 63, ENTER_HANDLER: 64, EXIT_HANDLER: 65, LOAD_EXC: 66, RAISE: 67, RERAISE: 68,
+  BUILD_SET: 69, SET_ADD: 70,
 };
 export const OP_NAMES = Object.fromEntries(Object.entries(OP).map(([k, v]) => [v, k]));
 
@@ -275,7 +276,7 @@ class Compiler {
       case 'Subscript': this.collectExpr(e.value, scope, renames); this.collectExpr(e.index, scope, renames); break;
       case 'Slice': this.collectExpr(e.lower, scope, renames); this.collectExpr(e.upper, scope, renames); this.collectExpr(e.step, scope, renames); break;
       case 'Starred': this.collectExpr(e.value, scope, renames); break;
-      case 'List': case 'Tuple': for (const x of e.elts) this.collectExpr(x, scope, renames); break;
+      case 'List': case 'Tuple': case 'Set': for (const x of e.elts) this.collectExpr(x, scope, renames); break;
       case 'Dict': e.keys.forEach((k, i) => { this.collectExpr(k, scope, renames); this.collectExpr(e.values[i], scope, renames); }); break;
       case 'IfExp': this.collectExpr(e.test, scope, renames); this.collectExpr(e.body, scope, renames); this.collectExpr(e.orelse, scope, renames); break;
       case 'Lambda':
@@ -289,7 +290,7 @@ class Compiler {
           if (p.spec && typeof p.spec !== 'string') this.collectExpr(p.spec, scope, renames);
         }
         break;
-      case 'ListComp': case 'DictComp': {
+      case 'ListComp': case 'DictComp': case 'SetComp': {
         // The first source is evaluated outside, the loop variables get hidden names
         const frame = new Map();
         const inner = [...renames, frame];
@@ -862,7 +863,11 @@ class Compiler {
         if (n !== 1 || typeof e.parts[0] !== 'string') this.emit(OP.BUILD_STRING, n, e);
         break;
       }
-      case 'ListComp': case 'DictComp': this.comprehension(e); break;
+      case 'ListComp': case 'DictComp': case 'SetComp': this.comprehension(e); break;
+      case 'Set':
+        for (const x of e.elts) this.expr(x);
+        this.emit(OP.BUILD_SET, e.elts.length, e);
+        break;
       case 'Starred': throw this.err('badAssign', { what: 'starred' }, e);
       default: throw this.err('notSupported', { feature: e.type }, e);
     }
@@ -897,7 +902,7 @@ class Compiler {
   }
 
   comprehension(e) {
-    this.emit(e.type === 'DictComp' ? OP.BUILD_DICT : OP.BUILD_LIST, 0, e);
+    this.emit(e.type === 'DictComp' ? OP.BUILD_DICT : e.type === 'SetComp' ? OP.BUILD_SET : OP.BUILD_LIST, 0, e);
     const k = e.generators.length;
     const exits = [];
     const tops = [];
@@ -919,7 +924,7 @@ class Compiler {
       this.emit(OP.DICT_SET, k, e);
     } else {
       this.expr(e.elt);
-      this.emit(OP.LIST_APPEND, k, e);
+      this.emit(e.type === 'SetComp' ? OP.SET_ADD : OP.LIST_APPEND, k, e);
     }
     for (let i = k - 1; i >= 0; i--) {
       this.emit(OP.JUMP, tops[i], e);

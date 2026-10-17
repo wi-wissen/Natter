@@ -711,7 +711,21 @@ class Parser {
     this.next();
     if (this.accept('op', '}')) return { type: 'Dict', keys: [], values: [], ...p };
     const k = this.test();
-    if (!this.atOp(':')) throw this.error('notSupported', { feature: 'set' });
+    if (!this.atOp(':')) {
+      // set literal or set comprehension
+      if (this.atKw('for')) {
+        const c = this.comprehension('SetComp', k, p);
+        this.expect('op', '}');
+        return c;
+      }
+      const elts = [k];
+      while (this.accept('op', ',')) {
+        if (this.atOp('}')) break;
+        elts.push(this.test());
+      }
+      this.expect('op', '}');
+      return { type: 'Set', elts, ...p };
+    }
     this.next();
     const v = this.test();
     if (this.atKw('for')) {

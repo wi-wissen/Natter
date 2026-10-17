@@ -10,8 +10,8 @@ import {
   PyFloat, PyList, PyTuple, PyDict, PyRange, PyBuiltin, PyIterator, PyView, PyFunction, PyPartial, PyBoundMethod,
   PyModule, PyHost, checkInt, isInt, isNum, num, typeName, truthy, eq, lt, iterItems, makeIter, iterNext, DONE, length,
   roundFloat, formatValue, binary, TYPE_NAMES, toIndex, keyOf, normBig, pow10, pushAll,
-  keyError, PyClass, PyInstance, PyMethod, PySuper, PyProperty, PyStaticMethod, PyClassMethod, OBJECT, NOT_IMPLEMENTED, NO_METHOD,
-  callDunder, lookupClass, defaultRepr,
+  keyError, PySet, setOf, PyClass, PyInstance, PyMethod, PySuper, PyProperty, PyStaticMethod, PyClassMethod, OBJECT, NOT_IMPLEMENTED, NO_METHOD,
+  callDunder, lookupClass, defaultRepr, setOp,
 } from './values.js';
 
 const err = (code, params) => new ScriptError(code, params);
@@ -404,7 +404,8 @@ export const BUILTINS = {
     return v;
   },
   input() { throw err('notSupported', { feature: 'input' }); },
-  set() { throw err('notSupported', { feature: 'set' }); },
+  set(ctx, args, kw) { const [x] = params('set', args, kw, ['?iterable']); return setOf(x === undefined ? [] : iterItems(x)); },
+  frozenset(ctx, args, kw) { const [x] = params('frozenset', args, kw, ['?iterable']); return setOf(x === undefined ? [] : iterItems(x), true); },
 
   // ---------- math ----------
   'math.sqrt'(ctx, args, kw) {
@@ -606,6 +607,20 @@ function splitStr(s, sep, maxsplit) {
 
 const listOf = (self) => self.items;
 
+const asSet = (v) => (v instanceof PySet ? v : setOf(iterItems(v)));
+/** Error raised by set.pop() on an empty set (a KeyError with a text, not a key). */
+function keyErrorText(text) { const e = err('key', { key: text }); e.arg = text; return e; }
+
+const SET_COMMON = {
+  union: (c, st, a) => a.reduce((acc, o) => setOp('|', acc, asSet(o), st.frozen), setOf(st.items(), st.frozen)),
+  intersection: (c, st, a) => a.reduce((acc, o) => setOp('&', acc, asSet(o), st.frozen), setOf(st.items(), st.frozen)),
+  difference: (c, st, a) => a.reduce((acc, o) => setOp('-', acc, asSet(o), st.frozen), setOf(st.items(), st.frozen)),
+  symmetric_difference: (c, st, a, kw) => { const [o] = params('symmetric_difference', a, kw, ['other']); return setOp('^', st, asSet(o), st.frozen); },
+  issubset: (c, st, a, kw) => { const [o] = params('issubset', a, kw, ['other']); const t = asSet(o); return st.items().every((x) => t.has(x)); },
+  issuperset: (c, st, a, kw) => { const [o] = params('issuperset', a, kw, ['other']); return iterItems(o).every((x) => st.has(x)); },
+  isdisjoint: (c, st, a, kw) => { const [o] = params('isdisjoint', a, kw, ['other']); return iterItems(o).every((x) => !st.has(x)); },
+};
+
 export const METHODS = {
   str: {
     upper: (c, s) => s.toUpperCase(),
@@ -715,6 +730,20 @@ export const METHODS = {
     },
     count: (c, t, a, kw) => { const [x] = params('count', a, kw, ['value']); return t.items.filter((y) => eq(y, x)).length; },
   },
+  set: {
+    add: (c, st, a, kw) => { const [x] = params('add', a, kw, ['elem']); st.add(x); return null; },
+    discard: (c, st, a, kw) => { const [x] = params('discard', a, kw, ['elem']); st.delete(x); return null; },
+    remove: (c, st, a, kw) => { const [x] = params('remove', a, kw, ['elem']); if (!st.delete(x)) throw keyError(x); return null; },
+    pop: (c, st) => { const it = st.items(); if (!it.length) throw keyErrorText('pop from an empty set'); st.delete(it[0]); return it[0]; },
+    clear: (c, st) => { st.d = new PyDict(); return null; },
+    copy: (c, st) => setOf(st.items()),
+    update: (c, st, a) => { for (const o of a) for (const x of iterItems(o)) st.add(x); return null; },
+    intersection_update: (c, st, a) => { const r = a.reduce((acc, o) => setOp('&', acc, asSet(o), false), st); st.d = r.d; return null; },
+    difference_update: (c, st, a) => { for (const o of a) for (const x of iterItems(o)) st.delete(x); return null; },
+    symmetric_difference_update: (c, st, a, kw) => { const [o] = params('symmetric_difference_update', a, kw, ['other']); st.d = setOp('^', st, asSet(o), false).d; return null; },
+    ...SET_COMMON,
+  },
+  frozenset: { copy: (c, st) => st, ...SET_COMMON },
   dict: {
     keys: (c, d) => new PyView(d, 'keys'),
     values: (c, d) => new PyView(d, 'values'),

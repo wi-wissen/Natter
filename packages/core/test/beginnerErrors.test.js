@@ -34,9 +34,8 @@ describe('beginner error messages', () => {
     expect(textOf('def f():\n    pass\nf().step()')).toMatch(/^None hat kein „step“/);
   });
 
-  it('true/false/none and set() get a hint', () => {
+  it('true/false/none get a hint', () => {
     expect(errOf('x = true')).toMatchObject({ code: 'err.script.nameUnbound', params: { suggestion: 'True' } });
     expect(errOf('x = none')).toMatchObject({ params: { suggestion: 'None' } });
-    expect(errOf('s = set()')).toMatchObject({ code: 'err.script.notSupported', params: { feature: 'set' } });
   });
 });

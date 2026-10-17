@@ -76,6 +76,22 @@ export class PyDict {
   entries() { return [...this.map.values()]; }
 }
 
+/** set and frozenset: a dictionary of keys. */
+export class PySet {
+  constructor(frozen = false) { this.d = new PyDict(); this.frozen = frozen; }
+  get size() { return this.d.size; }
+  add(x) { this.d.set(x, true); }
+  has(x) { return this.d.has(x); }
+  delete(x) { return this.d.delete(x); }
+  items() { return this.d.keys(); }
+}
+/** New set (or frozenset) from values. */
+export function setOf(items, frozen = false) {
+  const r = new PySet(frozen);
+  for (const x of items) r.add(x);
+  return r;
+}
+
 // ---------- Objects: classes and instances ----------
 
 /** Hooks the running VM installs so that operators on instances can call Python methods. */
@@ -211,6 +227,7 @@ export function typeName(v) {
   if (v instanceof PyList) return 'list';
   if (v instanceof PyTuple) return 'tuple';
   if (v instanceof PyDict) return 'dict';
+  if (v instanceof PySet) return v.frozen ? 'frozenset' : 'set';
   if (v instanceof PyRange) return 'range';
   if (v instanceof PyFunction) return 'function';
   if (v instanceof PyBuiltin) return TYPE_NAMES.has(v.name) || v.name.startsWith('class:') ? 'type' : 'builtin_function_or_method';
@@ -234,7 +251,7 @@ export function typeName(v) {
 }
 
 /** Names that are both a type and a conversion function (int(…), isinstance(x, int)). */
-export const TYPE_NAMES = new Set(['int', 'float', 'str', 'bool', 'list', 'tuple', 'dict', 'range', 'type']);
+export const TYPE_NAMES = new Set(['int', 'float', 'str', 'bool', 'list', 'tuple', 'dict', 'set', 'frozenset', 'range', 'type']);
 
 /** Key for dictionaries (Python: 1 == 1.0 == True are the same key). */
 /**
@@ -268,6 +285,7 @@ export function keyOf(v) {
   }
   if (v instanceof PyFloat) return Number.isInteger(v.v) ? `i${Number.isSafeInteger(v.v) ? v.v : BigInt(v.v)}` : `f${v.v}`;
   if (v instanceof PyTuple) return nested(() => `t(${v.items.map(keyOf).join(',')})`);
+  if (v instanceof PySet && v.frozen) return nested(() => `F(${v.items().map(keyOf).sort().join(',')})`);
   if (v instanceof PyHost) return `h${v.cls}:${v.id}`;
   if (v instanceof PyBuiltin) return `b${v.name}`;
   if (v instanceof PyInstance) {
@@ -298,7 +316,7 @@ export function truthy(v) {
   }
   if (v instanceof PyFloat) return v.v !== 0;
   if (v instanceof PyList || v instanceof PyTuple) return v.items.length > 0;
-  if (v instanceof PyDict) return v.size > 0;
+  if (v instanceof PyDict || v instanceof PySet) return v.size > 0;
   if (v instanceof PyRange) return rangeLen(v) > 0;
   if (v instanceof PyView) return v.dict.size > 0;
   if (v instanceof PyInstance) {
@@ -339,6 +357,7 @@ export function eq(a, b) {
       return true;
     });
   }
+  if (a instanceof PySet && b instanceof PySet) return a.size === b.size && a.items().every((x) => b.has(x));
   if (a instanceof PyRange && b instanceof PyRange) return seqEq(rangeItems(a), rangeItems(b));
   if (a instanceof PyHost && b instanceof PyHost) return a.cls === b.cls && a.id === b.id;
   if (a instanceof PyBuiltin && b instanceof PyBuiltin) return a.name === b.name;
@@ -372,6 +391,7 @@ function richCompare(op, a, b) {
 export function lt(a, b, op = '<') {
   if (isNum(a) && isNum(b)) return num(a) < num(b);
   if (a instanceof PyInstance || b instanceof PyInstance) return richCompare('<', a, b);
+  if (a instanceof PySet && b instanceof PySet) return a.size < b.size && a.items().every((x) => b.has(x));
   if (typeof a === 'string' && typeof b === 'string') return a < b;
   if ((a instanceof PyList && b instanceof PyList) || (a instanceof PyTuple && b instanceof PyTuple)) {
     const x = a.items, y = b.items;
@@ -408,6 +428,7 @@ export function contains(c, x) {
   }
   if (c instanceof PyList || c instanceof PyTuple) return c.items.some((v) => eq(v, x));
   if (c instanceof PyDict) return c.has(x);
+  if (c instanceof PySet) return c.has(x);
   if (c instanceof PyView) {
     if (c.kind === 'keys') return c.dict.has(x);
     return iterItems(c).some((v) => eq(v, x));
@@ -456,6 +477,7 @@ export function iterItems(v) {
   if (typeof v === 'string') return [...v];
   if (v instanceof PyRange) return rangeItems(v);
   if (v instanceof PyDict) return v.keys();
+  if (v instanceof PySet) return v.items();
   if (v instanceof PyView) {
     if (v.kind === 'keys') return v.dict.keys();
     if (v.kind === 'values') return v.dict.values();
@@ -488,7 +510,7 @@ export function makeIter(v) {
     return makeIter(r);
   }
   if (v instanceof PyList || v instanceof PyTuple || typeof v === 'string' || v instanceof PyRange) return new PyIterator(v, 0);
-  if (v instanceof PyDict || v instanceof PyView) return new PyIterator(new PyList(iterItems(v)), 0);
+  if (v instanceof PyDict || v instanceof PyView || v instanceof PySet) return new PyIterator(new PyList(iterItems(v)), 0);
   throw err('notIterable', { type: typeName(v) });
 }
 
@@ -516,7 +538,7 @@ export function iterNext(it) {
 export function length(v) {
   if (typeof v === 'string') return v.length;
   if (v instanceof PyList || v instanceof PyTuple) return v.items.length;
-  if (v instanceof PyDict) return v.size;
+  if (v instanceof PyDict || v instanceof PySet) return v.size;
   if (v instanceof PyRange) return rangeLen(v);
   if (v instanceof PyView) return v.dict.size;
   if (v instanceof PyInstance) {
@@ -638,6 +660,27 @@ export function delItem(obj, idx) {
 }
 
 // ---------- Arithmetic ----------
+
+/** a | b, a & b, a - b, a ^ b for sets (a new set; frozen if the left operand is). */
+export function setOp(op, a, b, frozen = a.frozen) {
+  const r = new PySet(frozen);
+  const ai = a.items();
+  switch (op) {
+    case '|': for (const x of ai) r.add(x); for (const x of b.items()) r.add(x); break;
+    case '&': for (const x of ai) if (b.has(x)) r.add(x); break;
+    case '-': for (const x of ai) if (!b.has(x)) r.add(x); break;
+    default: for (const x of ai) if (!b.has(x)) r.add(x); for (const x of b.items()) if (!a.has(x)) r.add(x); break;
+  }
+  return r;
+}
+
+/** a |= b and friends: change a set in place (a frozenset gets a new value, as in Python). */
+export function setInplace(op, a, b) {
+  if (a.frozen) return setOp(op, a, b);
+  const r = setOp(op, a, b, false);
+  a.d = r.d;
+  return a;
+}
 
 const BIN_DUNDER = { '+': 'add', '-': 'sub', '*': 'mul', '/': 'truediv', '//': 'floordiv', '%': 'mod', '**': 'pow', '&': 'and', '|': 'or', '^': 'xor', '<<': 'lshift', '>>': 'rshift' };
 
@@ -787,6 +830,7 @@ export function binary(op, a, b) {
     const r = binaryDunder(op, a, b);
     if (r !== NO_METHOD) return r;
   }
+  if (a instanceof PySet && b instanceof PySet && '|&-^'.includes(op) && op.length === 1) return setOp(op, a, b, a.frozen);
   switch (op) {
     case '+':
       if (typeof a === 'string' && typeof b === 'string') { if (a.length + b.length > MAX_STR) throw err('overflow', {}); return a + b; }
@@ -981,6 +1025,17 @@ export function toStr(v, asRepr = false, hostRepr = null, seen = new Set()) {
     } finally {
       seen.delete(v);
     }
+  }
+  if (v instanceof PySet) {
+    if (seen.has(v)) return v.frozen ? 'frozenset({...})' : '{...}';
+    seen.add(v);
+    try {
+      return nested(() => {
+        const inner = v.items().map((x) => toStr(x, true, hostRepr, seen)).join(', ');
+        if (v.frozen) return v.size ? `frozenset({${inner}})` : 'frozenset()';
+        return v.size ? `{${inner}}` : 'set()';
+      });
+    } finally { seen.delete(v); }
   }
   if (v instanceof PyRange) return v.step === 1 ? `range(${v.start}, ${v.stop})` : `range(${v.start}, ${v.stop}, ${v.step})`;
   if (v instanceof PyFunction) return `<function ${v.name}>`;

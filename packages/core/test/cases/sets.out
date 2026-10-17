@@ -1,0 +1,28 @@
+[1, 2, 3] 3 True False True
+set() 0 False True
+True [1, 2, 3]
+[1, 2, 3, 4, 5] [3, 4] [1, 2] [1, 2, 5]
+[1, 2, 3, 4, 5] [3, 4] [1, 2] [1, 2, 5]
+True False True False True True True
+[1, 10]
+KeyError 99
+[1, 7, 8, 9, 10]
+[4, 6]
+[0, 1, 4, 9, 16]
+[0, 2, 4, 6, 8]
+['a', 'b', 'c'] 3
+['a', 'b']
+frozenset({1, 2, 3}) [1, 2, 3] True True 3
+[1, 2, 3, 9] frozenset
+frozen
+set frozenset True True
+True ['e', 'h', 'l', 'o']
+True
+6 9 2 [3, 2, 1] [4, 5]
+True
+1
+{1, 2, 3} {'a'} {1.5} {None} {True}
+True False
+TypeError unhashable type: 'list'
+True True 1
+[0, 1, 2]

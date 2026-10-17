@@ -12,7 +12,7 @@ import { OP, BIN_OPS, UNARY_OPS, CMP_OPS } from './compiler.js';
 import { ScriptError, suggest } from './errors.js';
 import {
   PyFloat, PyList, PyTuple, PyDict, PySlice, PyFunction, PyBuiltin, PyPartial, PyBoundMethod, PyHost, PyModule,
-  PyClass, PyInstance, PyMethod, PySuper, PyProperty, PyStaticMethod, PyClassMethod, OBJECT, NO_METHOD, hooks,
+  PySet, setInplace, PyClass, PyInstance, PyMethod, PySuper, PyProperty, PyStaticMethod, PyClassMethod, OBJECT, NO_METHOD, hooks,
   Cell, binary, binaryDunder, unary, compare, truthy, makeIter, iterNext, DONE, iterItems, getItem, setItem, delItem, toStr,
   formatValue, typeName, keyOf, pushAll, lookupClass, TYPE_NAMES,
 } from './values.js';
@@ -491,6 +491,7 @@ export class VM {
             const b = stack.pop(), a = stack.pop();
             // list += extends the same list (as in Python)
             if (a instanceof PyList && BIN_OPS[arg] === '+') { pushAll(a.items, iterItems(b)); stack.push(a); }
+            else if (a instanceof PySet && b instanceof PySet && '|&-^'.includes(BIN_OPS[arg]) && BIN_OPS[arg].length === 1) stack.push(setInplace(BIN_OPS[arg], a, b));
             else if (a instanceof PyInstance) {
               const r = binaryDunder(BIN_OPS[arg], a, b, 'i');
               stack.push(r !== NO_METHOD ? r : binary(BIN_OPS[arg], a, b));
@@ -519,6 +520,13 @@ export class VM {
             stack.push(d);
             break;
           }
+          case OP.BUILD_SET: {
+            const r = new PySet();
+            for (const x of arg ? stack.splice(stack.length - arg) : []) r.add(x);
+            stack.push(r);
+            break;
+          }
+          case OP.SET_ADD: { const v = stack.pop(); stack[stack.length - 1 - arg].add(v); break; }
           case OP.BUILD_SLICE: { const st = stack.pop(), hi = stack.pop(), lo = stack.pop(); stack.push(new PySlice(lo, hi, st)); break; }
           case OP.UNPACK: {
             const items = iterItems(stack.pop());
