@@ -8,7 +8,7 @@ A small Python interpreter written in JavaScript, made for teaching in the brows
 - **Friendly errors:** English and German messages with hints, in the style of CPython 3.12.
 - **Reproducible:** optional random seed and platform-independent math.
 
-> **Status: early development.** The language core (classes, exceptions, sets, generators, `with`, `input()`) and a good part of the standard library are done and compared with CPython in the tests. Turtle, kara, projects with files, Pygame Zero, forms and plots are still to come; see the roadmap.
+> **Status: early development.** The language, the standard library, `turtle`, `kara`, files, `requests`, Pygame Zero, `guizero`, numpy and plots run in the interpreter and are compared with CPython and the real libraries in the tests. The browser host (`packages/web`) draws turtle and kara so far; games, forms and plots are being added. See the roadmap.
 
 ## Used by
 
