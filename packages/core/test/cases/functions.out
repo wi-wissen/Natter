@@ -1,0 +1,21 @@
+Hallo, Anna! Moin, Ben! Servus, Cem!
+3
+12
+2
+[0, 10, 20, 30]
+3628800 2432902008176640000
+9
+2 9 5.0
+10
+None ok
+1 2 Fizz 4 Buzz Fizz 7 8 Fizz Buzz 11 Fizz 13 14 FizzBuzz
+[2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47]
+0 0
+0 1
+2 0
+2 1
+fertig
+while fertig 3
+[1, 2, 5, 5, 6, 9]
+True False True False
+{'der': 3, 'die': 2, 'das': 1}

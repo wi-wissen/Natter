@@ -1,0 +1,16 @@
+{
+  "name": "natter-workspace",
+  "private": true,
+  "type": "module",
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "size": "node scripts/size.mjs"
+  },
+  "devDependencies": {
+    "vitest": "^2.1.9"
+  }
+}

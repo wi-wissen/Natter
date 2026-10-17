@@ -1,0 +1,9 @@
+{
+  "name": "@natter/core",
+  "version": "0.0.0",
+  "description": "Python interpreter core for teaching: lexer, parser, compiler and a bytecode VM with budget, suspend and debugger hooks",
+  "private": true,
+  "type": "module",
+  "main": "src/index.js",
+  "exports": { ".": "./src/index.js" }
+}
