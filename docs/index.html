@@ -6,49 +6,15 @@
 <title>Natter</title>
 <meta name="description" content="Natter is a small Python interpreter written in JavaScript for teaching: fast to load, built-in debugger, never freezes the page.">
 <meta name="color-scheme" content="light dark">
+<link rel="icon" href="natter.svg" type="image/svg+xml">
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
 <a class="skip" href="#main">Skip to content</a>
 
-<!-- Mascot, drawn once and reused. Colors come from CSS variables (--snake*). -->
-<svg width="0" height="0" class="defs" aria-hidden="true" focusable="false">
-  <symbol id="natter" viewBox="0 0 240 180">
-    <g class="n-body">
-      <!-- body outline, tapered tail, body, belly shine, spots -->
-      <path class="n-outline" d="M208 139 C200 138 186 138 176 138 C160 138 156 112 138 112 C120 112 118 138 100 138 L80 138 C54 138 40 118 46 98 C50 84 60 76 74 72" stroke-width="31"/>
-      <path class="n-tail" d="M204 125.5 C226 126 238 146 225 177 C223 180 220 179 220 176 C221 162 216 152.5 204 152.5 Z"/>
-      <path class="n-fill" d="M208 139 C200 138 186 138 176 138 C160 138 156 112 138 112 C120 112 118 138 100 138 L80 138 C54 138 40 118 46 98 C50 84 60 76 74 72" stroke-width="26"/>
-      <path class="n-shine" d="M200 133 C190 133 184 133 176 133 C162 133 158 107 138 107 C118 107 116 133 100 133 L82 133 C62 133 50 118 52 101" stroke-width="5"/>
-      <path class="n-spots" d="M206 142 C196 142 186 143 176 143 C158 143 154 118 138 118 C122 118 118 143 100 143 L80 143 C56 143 44 124 47 106" stroke-width="5"/>
-      <!-- head -->
-      <g class="n-head">
-        <ellipse class="n-collar-dark" cx="57" cy="83" rx="13" ry="9" transform="rotate(-28 57 83)"/>
-        <ellipse class="n-collar-dark" cx="127" cy="83" rx="13" ry="9" transform="rotate(28 127 83)"/>
-        <ellipse class="n-headshape" cx="92" cy="55" rx="41" ry="34"/>
-        <ellipse class="n-headshine" cx="84" cy="32" rx="20" ry="7"/>
-        <ellipse class="n-collar" cx="58" cy="82" rx="10" ry="6.5" transform="rotate(-28 58 82)"/>
-        <ellipse class="n-collar" cx="126" cy="82" rx="10" ry="6.5" transform="rotate(28 126 82)"/>
-        <ellipse class="n-cheek" cx="64" cy="70" rx="7" ry="4"/>
-        <ellipse class="n-cheek" cx="120" cy="70" rx="7" ry="4"/>
-        <g class="n-eyes">
-          <circle class="n-eyewhite" cx="74" cy="51" r="13.5"/>
-          <circle class="n-eyewhite" cx="110" cy="51" r="13.5"/>
-          <circle class="n-pupil" cx="76" cy="53" r="8.5"/>
-          <circle class="n-pupil" cx="112" cy="53" r="8.5"/>
-          <circle class="n-glint" cx="73" cy="49" r="3.2"/>
-          <circle class="n-glint" cx="109" cy="49" r="3.2"/>
-        </g>
-        <path class="n-smile" d="M84 72 Q92 79 100 72"/>
-        <path class="n-tongue" d="M92 78 L92 92 M92 92 L87 99 M92 92 L97 99"/>
-      </g>
-    </g>
-  </symbol>
-</svg>
-
 <header class="hero">
   <div class="wrap topbar">
-    <a class="brand" href="#top" aria-label="Natter, back to top"><svg class="brand-mark" viewBox="40 14 104 82" aria-hidden="true"><use href="#natter" width="240" height="180"/></svg>Natter</a>
+    <a class="brand" href="#top" aria-label="Natter, back to top"><img src="natter.svg" width="32" height="32" alt="">Natter</a>
     <a class="gh-small" href="https://github.com/wi-wissen/Natter">GitHub</a>
   </div>
   <div class="wrap hero-grid" id="top">
@@ -61,13 +27,23 @@
         <a class="btn" href="#language">What it can do</a>
       </div>
       <div class="notice" role="note">
-        <p><b>Status: early development.</b> The interpreter core is being moved into this repository and extended. Everything on this page is marked as
+        <p><b>Status: early development.</b> The language and most of the standard library work and are tested against CPython. Drawing in the browser (turtle, games, forms) comes next. Everything on this page is marked as
         <span class="tag t-have">in the base</span> <span class="tag t-plan">planned</span> or <span class="tag t-no">not planned</span>.</p>
       </div>
     </div>
 
     <figure class="hero-art">
-      <svg class="mascot" viewBox="0 0 240 180" role="img" aria-label="Natter, a cartoon grass snake with big eyes and yellow neck spots, resting on top of a code window"><use href="#natter"/></svg>
+      <!-- The mascot: a 32 x 32 sprite, same pixels as natter.svg, plus an eyelid and a tongue that can be animated. -->
+      <svg class="sprite" viewBox="0 0 32 32" shape-rendering="crispEdges" role="img" aria-label="Natter, a green pixel-art snake with a red forked tongue, resting on top of a code window">
+        <path fill="#0d2b17" d="M17 2h8v1h-8zM16 3h1v1h-1zM25 3h2v1h-2zM15 4h1v1h-1zM19 4h4v1h-4zM27 4h1v1h-1zM14 5h1v1h-1zM18 5h1v1h-1zM23 5h1v1h-1zM28 5h1v1h-1zM14 6h1v1h-1zM18 6h1v1h-1zM21 6h3v1h-3zM28 6h1v1h-1zM13 7h1v1h-1zM18 7h1v1h-1zM21 7h3v1h-3zM28 7h1v1h-1zM13 8h1v1h-1zM18 8h5v1h-5zM26 8h1v1h-1zM28 8h1v1h-1zM13 9h1v1h-1zM18 9h1v1h-1zM28 9h1v1h-1zM13 10h1v1h-1zM19 10h10v1h-10zM13 11h1v1h-1zM27 11h1v1h-1zM14 12h1v1h-1zM25 12h2v1h-2zM14 13h1v1h-1zM20 13h5v1h-5zM13 14h1v1h-1zM20 14h1v1h-1zM12 15h1v1h-1zM19 15h1v1h-1zM11 16h1v1h-1zM18 16h1v1h-1zM11 17h1v1h-1zM18 17h1v1h-1zM11 18h1v1h-1zM18 18h1v1h-1zM12 19h1v1h-1zM19 19h2v1h-2zM13 20h1v1h-1zM21 20h2v1h-2zM1 21h1v1h-1zM14 21h1v1h-1zM23 21h2v1h-2zM0 22h1v1h-1zM2 22h1v1h-1zM15 22h2v1h-2zM25 22h1v1h-1zM0 23h1v1h-1zM3 23h1v1h-1zM17 23h1v1h-1zM26 23h1v1h-1zM1 24h1v1h-1zM4 24h2v1h-2zM18 24h1v1h-1zM27 24h1v1h-1zM2 25h1v1h-1zM6 25h13v1h-13zM27 25h1v1h-1zM2 26h1v1h-1zM27 26h1v1h-1zM3 27h1v1h-1zM26 27h1v1h-1zM4 28h1v1h-1zM25 28h1v1h-1zM5 29h2v1h-2zM22 29h3v1h-3zM7 30h15v1h-15z"/>
+        <path fill="#3cb84e" d="M24 5h3v1h-3zM15 6h1v1h-1zM17 6h1v1h-1zM24 6h4v1h-4zM14 7h2v1h-2zM17 7h1v1h-1zM24 7h4v1h-4zM14 8h4v1h-4zM23 8h3v1h-3zM27 8h1v1h-1zM14 9h4v1h-4zM19 9h9v1h-9zM14 10h5v1h-5zM14 11h6v1h-6zM15 12h4v1h-4zM15 13h5v1h-5zM15 14h4v1h-4zM14 15h2v1h-2zM17 15h1v1h-1zM13 16h2v1h-2zM16 16h1v1h-1zM13 17h4v1h-4zM13 18h1v1h-1zM15 18h2v1h-2zM14 19h1v1h-1zM16 19h2v1h-2zM15 20h4v1h-4zM16 21h1v1h-1zM18 21h3v1h-3zM19 22h4v1h-4zM19 23h1v1h-1zM21 23h4v1h-4zM20 24h1v1h-1zM22 24h4v1h-4zM3 25h1v1h-1zM19 25h4v1h-4zM24 25h3v1h-3zM4 26h1v1h-1zM20 26h3v1h-3zM24 26h2v1h-2zM5 27h4v1h-4zM10 27h3v1h-3zM14 27h4v1h-4zM19 27h6v1h-6zM7 28h1v1h-1zM9 28h13v1h-13z"/>
+        <path fill="#22823a" d="M16 5h1v1h-1zM16 6h1v1h-1zM16 7h1v1h-1zM16 15h1v1h-1zM15 16h1v1h-1zM14 18h1v1h-1zM15 19h1v1h-1zM17 21h1v1h-1zM18 22h1v1h-1zM20 23h1v1h-1zM21 24h1v1h-1zM23 25h1v1h-1zM5 26h1v1h-1zM14 26h1v1h-1zM19 26h1v1h-1zM23 26h1v1h-1zM9 27h1v1h-1zM13 27h1v1h-1zM18 27h1v1h-1zM8 28h1v1h-1z"/>
+        <path fill="#86e264" d="M17 3h8v1h-8zM16 4h3v1h-3zM23 4h4v1h-4zM15 5h1v1h-1zM17 5h1v1h-1zM27 5h1v1h-1zM14 14h1v1h-1zM13 15h1v1h-1zM12 16h1v1h-1zM12 17h1v1h-1zM12 18h1v1h-1zM13 19h1v1h-1zM18 19h1v1h-1zM14 20h1v1h-1zM19 20h2v1h-2zM15 21h1v1h-1zM21 21h2v1h-2zM1 22h1v1h-1zM17 22h1v1h-1zM23 22h2v1h-2zM1 23h2v1h-2zM18 23h1v1h-1zM25 23h1v1h-1zM2 24h2v1h-2zM19 24h1v1h-1zM26 24h1v1h-1zM4 25h2v1h-2zM6 26h8v1h-8zM15 26h4v1h-4z"/>
+        <path fill="#cdf29a" d="M20 11h7v1h-7zM19 12h6v1h-6zM19 14h1v1h-1zM18 15h1v1h-1zM17 16h1v1h-1zM17 17h1v1h-1zM17 18h1v1h-1zM3 26h1v1h-1zM26 26h1v1h-1zM4 27h1v1h-1zM25 27h1v1h-1zM5 28h2v1h-2zM22 28h3v1h-3zM7 29h15v1h-15z"/>
+        <path fill="#ffffff" d="M19 5h4v1h-4zM19 6h2v1h-2zM19 7h2v1h-2z"/>
+        <path class="tongue" fill="#f0405e" d="M31 9h1v1h-1zM29 10h2v1h-2zM31 11h1v1h-1z"/>
+        <g class="lid"><path fill="#3cb84e" d="M19 5h5v2h-5z"/><path fill="#0d2b17" d="M19 7h5v1h-5z"/></g>
+      </svg>
       <div class="term">
         <div class="term-bar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="term-name">hello.py</span></div>
 <pre class="term-code" aria-label="Example Python code"><code><span class="ln">1</span>names = [<span class="s">"Ada"</span>, <span class="s">"Linus"</span>, <span class="s">"Grace"</span>]
@@ -80,7 +56,7 @@
 Hi Linus!
 Hi Grace!
 <span class="err">NameError</span>: name 'nmes' is not defined.
-<span class="hint">Did you mean: 'names'?</span></code></pre>
+<span class="hint">Did you mean: 'names'?</span><span class="cursor" aria-hidden="true"></span></code></pre>
       </div>
       <figcaption>Illustration only. Natter is in early development.</figcaption>
     </figure>
@@ -105,7 +81,7 @@ Hi Grace!
   <h2>Why another Python?</h2>
   <p class="intro">Browser Python normally means shipping a large runtime. Natter is a compact interpreter that implements the part of Python taught in school, and implements it so that the things teachers need are easy.</p>
   <ul class="features">
-    <li><code class="chip">~80 KB</code><h3>Small</h3><p>About 80&nbsp;KB gzipped today, standard library included, instead of megabytes. Small enough to embed many times on one page.</p></li>
+    <li><code class="chip">~65 KB</code><h3>Small start</h3><p>The core starts at about 65&nbsp;KB gzipped. Today every module is still bundled, which makes about 190&nbsp;KB; loading modules only when a program imports them is the next step.</p></li>
     <li><code class="chip">while True:</code><h3>Never freezes</h3><p>Programs run in slices with an instruction budget. An endless loop stops and shows the line it is on.</p></li>
     <li><code class="chip">step("over")</code><h3>Debugger included</h3><p>Breakpoints, step into, over and out, variables and call stack. No patched runtime needed.</p></li>
     <li><code class="chip">Did you mean&hellip;?</code><h3>Friendly errors</h3><p>Messages in English and German with hints such as &ldquo;Did you mean&hellip;?&rdquo;, in the style of CPython 3.12.</p></li>
@@ -164,8 +140,8 @@ Hi Grace!
     
     <tr><td>turtle</td><td>Draw with a turtle, several turtles, colors, fill, speed. The movement and commands are done and match CPython; the drawing surface comes with the browser host</td><td><span class="tag t-plan">planned</span></td></tr>
     <tr><td>kara</td><td>A small ladybug that learns to move, turn and sense. The rules and commands are done; the drawing surface comes with the browser host</td><td><span class="tag t-plan">planned</span></td></tr>
-    <tr><td>pgzero</td><td>The full <a href="https://pygame-zero.readthedocs.io/en/stable/">Pygame Zero</a> reference: <code>draw()</code>, <code>update()</code>, event hooks, <code>Actor</code>, <code>Rect</code>, <code>keyboard</code>, <code>screen</code>, images, sounds, music, <code>clock</code>, <code>animate</code>, <code>tone</code>, text formatting. Runs with or without <code>import pgzrun</code></td><td><span class="tag t-plan">planned</span></td></tr>
-    <tr><td>forms</td><td>Windows with buttons, text boxes and lists using the <a href="https://lawsie.github.io/guizero/">guizero</a> API (a subset), laid out on a grid that grows with its content</td><td><span class="tag t-plan">planned</span></td></tr>
+    <tr><td>pgzero</td><td>The full <a href="https://pygame-zero.readthedocs.io/en/stable/">Pygame Zero</a> reference: <code>draw()</code>, <code>update()</code>, event hooks, <code>Actor</code>, <code>Rect</code>, <code>keyboard</code>, <code>screen</code>, images, sounds, music, <code>clock</code>, <code>animate</code>, <code>tone</code>, text formatting. Runs with or without <code>import pgzrun</code>. The game logic is done and matches real Pygame Zero 1.2.1; drawing comes with the browser host.</td><td><span class="tag t-plan">planned</span></td></tr>
+    <tr><td>forms</td><td>Windows with buttons, text boxes and lists using the <a href="https://lawsie.github.io/guizero/">guizero</a> API (a subset), laid out on a grid that grows with its content. The widgets, layout and events are done and match real guizero; drawing comes with the browser host.</td><td><span class="tag t-plan">planned</span></td></tr>
     <tr><td>numpy, plots</td><td>A small subset of numpy arrays and matplotlib charts, drawn as SVG</td><td><span class="tag t-plan">planned</span></td></tr>
     <tr><td>requests</td><td><code>requests.get(url).json()</code> through the browser, for servers that allow it (CORS). The calls and the CORS explanation are done; the page does the actual fetch</td><td><span class="tag t-have">in the base</span></td></tr>
     <tr><td>Server code, scraping, ML</td><td><code>bottle</code>, <code>sqlite3</code>, <code>BeautifulSoup</code>, <code>keras</code></td><td><span class="tag t-no">not planned</span></td></tr>
@@ -221,7 +197,7 @@ for i in range(3):
 
 <footer>
   <div class="wrap foot">
-    <svg class="mascot-small" viewBox="0 0 240 180" aria-hidden="true" focusable="false"><use href="#natter"/></svg>
+    <img class="foot-mark" src="natter.svg" width="64" height="64" alt="">
     <p>Natter is open source. See the <a href="https://github.com/wi-wissen/Natter">repository</a> for the current state.</p>
   </div>
 </footer>
