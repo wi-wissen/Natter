@@ -31,7 +31,7 @@ export const NP_EXCEPTIONS = {
 
 /** Python exception `kind` with numpy's message; `what` selects a friendlier text in messages.js. */
 export function npErr(kind, message, what = null, extra = {}) {
-  const e = new ScriptError('raised', { message, ...(what ? { what } : {}), ...extra });
+  const e = new ScriptError('raised', { message, msg: message.trim(), ...(what ? { what } : {}), ...extra });
   e.kind = kind;
   const cls = NP_EXCEPTIONS[kind];
   if (cls) {
@@ -655,7 +655,10 @@ function newShape(nd, args) {
   if (prodOf(shape) !== nd.size || shape.some((s) => s < 0)) throw reshapeErr(nd, shape);
   return shape;
 }
-const reshapeErr = (nd, shape) => npErr('ValueError', `cannot reshape array of size ${nd.size} into shape ${shapeErr(shape)}`, 'npReshape', { size: nd.size, shape: shapeErr(shape) });
+const reshapeErr = (nd, shape) => {
+  const t = shapeErr(shape).replace(/-1/g, 'newaxis'); // numpy's wording for the unknown dimension
+  return npErr('ValueError', `cannot reshape array of size ${nd.size} into shape ${t}`, 'npReshape', { size: nd.size, shape: t });
+};
 
 export function reshape(nd, shape) {
   if (nd.contiguous()) return new Nd(nd.data, shape, nd.dtype, null, nd.offset);
@@ -1707,6 +1710,12 @@ const ND_METHODS = {
   tolist: (ctx, args) => tolist(self(args)),
   item: (ctx, args) => {
     const a = self(args);
+    if (args.length === 2 && isInt(args[1])) {
+      // one int: position in the flattened array
+      const f = flat(a), i = Number(num(args[1]));
+      if (i < -f.length || i >= f.length) throw npErr('IndexError', `index ${i} is out of bounds for size ${f.length}`, 'npBounds');
+      return toPy(f[i < 0 ? i + f.length : i], a.dtype);
+    }
     if (args.length > 1) return result(getIndex(a, args.length === 2 ? args[1] : T(args.slice(1))));
     if (a.size !== 1) throw npErr('ValueError', 'can only convert an array of size 1 to a Python scalar', 'npItem');
     return toPy(flat(a)[0], a.dtype);

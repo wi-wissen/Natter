@@ -763,7 +763,7 @@ class Screen:
             if kind == "key":
                 f = _state.key_handlers.get(ev[1]) or _state.key_handlers.get("")
                 if f is not None:
-                    f() if f.__code__.co_argcount == 0 else f(ev[1])
+                    f()
             elif kind == "keyrelease":
                 f = _state.keyrelease_handlers.get(ev[1])
                 if f is not None:

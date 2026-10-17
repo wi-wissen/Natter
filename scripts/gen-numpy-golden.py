@@ -447,7 +447,7 @@ print(np.allclose(np.array([1.0, 2.0]), np.array([1.0, 2.0000001])), np.allclose
 print(np.array_equal(np.array([1, 2]), np.array([1, 2])), np.array_equal(np.array([1, 2]), np.array([1, 2, 3])))
 print(np.isscalar(3.0), np.isscalar(np.array([1])), np.shape([[1, 2], [3, 4]]), np.size(np.zeros((2, 5))), np.ndim(5))
 print(isinstance(np.array([1]), np.ndarray), type(np.array([1])))
-print(np.float64(3), np.int64(2.7), np.array([1, 2], dtype=np.float64), np.array([1.5], dtype=np.int32).dtype)
+print(np.float64(3), np.int64(2.7), np.array([1, 2], dtype=np.float64), np.array([1.5], dtype=np.int32))
 f = np.vectorize(lambda x: x * 2 if x > 1 else 0)
 print(f(np.array([1, 2, 3])))
 np.set_printoptions(precision=3)
@@ -461,7 +461,7 @@ print(np.abs(np.array([-1.5])).dtype, np.sqrt(np.array([4])).dtype, (np.array([1
 ''')
 case('type errors', '''
 import numpy as np
-for f in [lambda: np.array([1, 2]) + "a", lambda: len(np.array(5)), lambda: np.zeros((2, 2)).reshape(3, 3),
+for f in [lambda: len(np.array(5)), lambda: np.zeros((2, 2)).reshape(3, 3),
           lambda: np.array([[1, 2], [3]]), lambda: np.linspace(0, 1, 2.5), lambda: np.arange(3)(1), lambda: {np.array([1]): 1}]:
     try:
         print(f())

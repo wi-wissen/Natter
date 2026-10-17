@@ -5,7 +5,7 @@
 // Bridge and events: docs/FORMS-BRIDGE.md.
 
 export default String.raw`
-import os
+import os as _os
 import _forms_host as _host
 
 __version__ = "1.6.0"
@@ -2020,7 +2020,8 @@ class TextBox(TextWidget):
         props["scrollbar"] = bool(self._scrollbar)
 
     def _host_change(self, value):
-        self._text = str(value)
+        if self.enabled:
+            self._text = str(value)
 
 
 class PushButton(TextWidget):
@@ -3322,7 +3323,7 @@ def question(title, question, initial_value=None, master=None):
 
 
 def select_file(title="Select file", folder=".", filetypes=[["All files", "*.*"]], save=False, master=None, filename=""):
-    if not os.path.isdir(folder):
+    if not _os.path.isdir(folder):
         _error_format("The folder '{}' specified for select_file does not exist.".format(folder))
         folder = "."
     answer = _dialog("save_file" if save else "open_file", title, folder, {"filetypes": filetypes, "filename": filename})
@@ -3330,7 +3331,7 @@ def select_file(title="Select file", folder=".", filetypes=[["All files", "*.*"]
 
 
 def select_folder(title="Select folder", folder=".", master=None):
-    if not os.path.isdir(folder):
+    if not _os.path.isdir(folder):
         _error_format("The folder '{}' specified for select_folder does not exist.".format(folder))
         folder = "."
     answer = _dialog("folder", title, folder)

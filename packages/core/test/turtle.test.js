@@ -49,3 +49,24 @@ describe('turtle', () => {
     expect(r.output).toBe('(50.00,-50.00) 270.0\nTrue\nFalse\n'.replace('270.0\nTrue', '270.0 True'));
   });
 });
+
+describe('turtle events', () => {
+  it('key handlers run when the host sends a key, and timers fire', async () => {
+    const { turtleEvent } = await import('../src/stdlib/turtle.js');
+    const src = 'import turtle\ndef up():\n    print("up")\nturtle.onkeypress(up, "Up")\nturtle.listen()\nturtle.ontimer(lambda: print("tick"), 100)\nturtle.mainloop()\nprint("end")\n';
+    const { compile } = await import('../src/index.js');
+    const { VM } = await import('../src/vm.js');
+    let out = '';
+    const vm = new VM(compile(src), { host: { print: (t) => { out += t; } } });
+    const task = vm.start();
+    vm.run(task, 1e6);
+    expect(task.wait.kind).toBe('turtle-event');
+    vm.resume(task, turtleEvent(vm, 'key', 'Up'));
+    vm.run(task, 1e6);
+    vm.resume(task, turtleEvent(vm, 'timer', task.wait.timers[0].id));
+    vm.run(task, 1e6);
+    vm.resume(task, null);
+    vm.run(task, 1e6);
+    expect(out).toBe('up\ntick\nend\n');
+  });
+});
