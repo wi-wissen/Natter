@@ -27,3 +27,10 @@ for expr in ("math.sqrt(-1)", "math.log(0)", "math.log(-1)", "math.exp(1000)", "
         print(expr, eval(expr) if False else None)
     except Exception:
         pass
+
+import math
+for x in (0.5, 1, 2, 3, 10, 1e-5, 123.456, 7.25, -20.5):
+    print(math.exp(x), math.log(abs(x)), math.log2(abs(x)), math.log10(abs(x)), math.sin(x), math.cos(x), math.tan(x))
+print(math.expm1(1), math.log1p(0.5), math.sinh(1.5), math.cosh(1.5), math.tanh(0.3), math.asinh(2), math.acosh(3), math.atanh(0.5))
+print(math.atan2(0.5, 2.5), math.cos(1.5), math.asin(0.3), math.acos(0.3), math.atan(7))
+print(2.5 ** 3.5, 0.75 ** -1, 10 ** -2, 2 ** 0.5, math.pow(7, 0.25), 1.1 ** 100)

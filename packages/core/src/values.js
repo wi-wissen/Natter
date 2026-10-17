@@ -8,7 +8,7 @@
 // Everything can be saved as JSON (serialize.js); host objects are only handles (class + ID).
 
 import { ScriptError } from './errors.js';
-import * as F from './fdlibm.js';
+import * as F from './libm.js';
 
 export class PyFloat { constructor(v) { this.v = v; } }
 export class PyList { constructor(items = []) { this.items = items; } }

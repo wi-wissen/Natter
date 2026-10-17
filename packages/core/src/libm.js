@@ -15,6 +15,15 @@
 //          log log1p log2 log10 sinh cosh tanh asinh acosh atanh pow
 //
 // Special values follow C99 Annex F (e.g. pow(1, NaN) = 1, pow(-1, +-Infinity) = 1).
+//
+// Two flavours:
+//  - exp log log2 sin cos tan asin acos atan atan2 pow are correctly rounded. glibc (CPython on
+//    Linux) computes these with algorithms that are correctly rounded in > 99.9 % of the cases.
+//  - expm1 log1p log10 sinh cosh tanh asinh acosh atanh: glibc still uses the *fdlibm* formulas
+//    here (up to 1 ULP off), merely calling its own accurate exp/log inside them. To print the
+//    same digits as CPython, the named exports reproduce these formulas (with our correctly
+//    rounded exp/log and the fdlibm.js expm1/log1p, which are the same code as in glibc). The
+//    strictly correctly rounded variants of all functions are available as `exact.<name>`.
 
 import * as F from './fdlibm.js';
 
@@ -255,7 +264,9 @@ function logParts(Fm, E2, c) {
   const fl = Number(f >> BigInt(p - 7)); // 128..255
   const j = (fl + 1) >> 1; // 64..128
   const cc = BigInt(j) << BigInt(p - 6);
-  const s = ((f - cc) << pb) / (f + cc);
+  let s = ((f - cc) << pb) / (f + cc);
+  const sneg = s < 0n;
+  if (sneg) s = -s;
   const s2 = (s * s) >> pb;
   let t = s;
   let sum = s;
@@ -264,7 +275,7 @@ function logParts(Fm, E2, c) {
     if (t === 0n) break;
     sum += t / k;
   }
-  return BigInt(e) * ln2Of(c) + logTab(c, j) + 2n * sum;
+  return BigInt(e) * ln2Of(c) + logTab(c, j) + 2n * (sneg ? -sum : sum);
 }
 
 /**
@@ -445,7 +456,7 @@ function expm1Core(c, x) {
 }
 
 /** e^x - 1. @param {number} x */
-export function expm1(x) {
+function expm1Exact(x) {
   if (x !== x) return x;
   if (x === Infinity) return x;
   if (x === -Infinity) return -1;
@@ -461,7 +472,7 @@ function logCore(c, x) {
   return [logParts(m, e, c), c.p, 24];
 }
 
-/** @param {number} x natural logarithm */
+/** Natural logarithm. @param {number} x */
 export function log(x) {
   if (x !== x) return x;
   if (x < 0) return NaN;
@@ -496,7 +507,7 @@ function log10Core(c, x) {
 }
 
 /** Base-10 logarithm. @param {number} x */
-export function log10(x) {
+function log10Exact(x) {
   if (x !== x) return x;
   if (x < 0) return NaN;
   if (x === 0) return -Infinity;
@@ -513,17 +524,15 @@ function log1pCore(c, x) {
   if (x > 0) {
     if (e >= 0) Fm = 1n + (m << BigInt(e));
     else { Fm = (1n << BigInt(-e)) + m; E2 = e; }
-  } else if (e >= 0) {
-    Fm = 1n - (m << BigInt(e)); // unreachable for -1 < x < 0 unless m is tiny; kept for safety
   } else {
-    Fm = (1n << BigInt(-e)) - m;
+    Fm = (1n << BigInt(-e)) - m; // -1 < x < 0, so e < 0
     E2 = e;
   }
   return [logParts(Fm, E2, c), c.p, 24];
 }
 
 /** ln(1 + x). @param {number} x */
-export function log1p(x) {
+function log1pExact(x) {
   if (x !== x) return x;
   if (x < -1) return NaN;
   if (x === -1) return -Infinity;
@@ -543,7 +552,7 @@ function sinhCore(c, x) {
 }
 
 /** Hyperbolic sine. @param {number} x */
-export function sinh(x) {
+function sinhExact(x) {
   if (x !== x || x === Infinity || x === -Infinity || x === 0) return x;
   const a = x < 0 ? -x : x;
   if (a < TINY30) return x;
@@ -560,7 +569,7 @@ function coshCore(c, x) {
 }
 
 /** Hyperbolic cosine. @param {number} x */
-export function cosh(x) {
+function coshExact(x) {
   if (x !== x) return x;
   const a = x < 0 ? -x : x;
   if (a === Infinity || a > 711) return Infinity;
@@ -576,7 +585,7 @@ function tanhCore(c, x) {
 }
 
 /** Hyperbolic tangent. @param {number} x */
-export function tanh(x) {
+function tanhExact(x) {
   if (x !== x || x === 0) return x;
   const a = x < 0 ? -x : x;
   if (a < TINY30) return x;
@@ -587,7 +596,7 @@ export function tanh(x) {
 
 /** @type {(c: Ctx, x: number) => Res} */
 function asinhCore(c, x) {
-  const { p, pb, ONE } = c;
+  const { p, ONE } = c;
   if (x >= BIG100) {
     const [m, e] = decomp(x);
     return [logParts(m, e, c) + ln2Of(c), p, 24];
@@ -598,7 +607,7 @@ function asinhCore(c, x) {
 }
 
 /** Inverse hyperbolic sine. @param {number} x */
-export function asinh(x) {
+function asinhExact(x) {
   if (x !== x || x === Infinity || x === -Infinity || x === 0) return x;
   const a = x < 0 ? -x : x;
   if (a < TINY30) return x;
@@ -619,7 +628,7 @@ function acoshCore(c, x) {
 }
 
 /** Inverse hyperbolic cosine. @param {number} x */
-export function acosh(x) {
+function acoshExact(x) {
   if (x !== x) return x;
   if (x < 1) return NaN;
   if (x === 1) return 0;
@@ -636,7 +645,7 @@ function atanhCore(c, x) {
 }
 
 /** Inverse hyperbolic tangent. @param {number} x */
-export function atanh(x) {
+function atanhExact(x) {
   if (x !== x || x === 0) return x;
   const a = x < 0 ? -x : x;
   if (a > 1) return NaN;
@@ -772,8 +781,8 @@ function atan2Core(c, y, x) {
   return [refineAngle(c, F.atan2(y, x), X, Y), p, 24];
 }
 
-/** Angle of the point (x, y). @param {number} y @param {number} x */
-export function atan2(y, x) {
+/** Angle of the point (x, y), correctly rounded. @param {number} y @param {number} x */
+function atan2Exact(y, x) {
   if (x !== x || y !== y) return NaN;
   const yneg = y < 0 || (y === 0 && 1 / y < 0);
   const xneg = x < 0 || (x === 0 && 1 / x < 0);
@@ -794,7 +803,22 @@ export function atan2(y, x) {
   }
   if (y === Infinity) return PI_2;
   if (y === -Infinity) return -PI_2;
-  return ziv(atan2Core, y, x);
+  const r = ziv(atan2Core, y, x);
+  return r === 0 ? (yneg ? -0 : 0) : r; // underflow keeps the sign of y
+}
+
+/**
+ * Angle of the point (x, y). Correctly rounded, except that for |y/x| < 1e-30 (x > 0) the
+ * quotient itself is returned as glibc does: it differs from the exactly rounded value only when
+ * y/x is an exact tie between two doubles (subnormal results, x a power of two).
+ * @param {number} y @param {number} x
+ */
+export function atan2(y, x) {
+  if (x > 0 && x !== Infinity && y === y) {
+    const q = y / x;
+    if (q < 1e-30 && q > -1e-30) return q;
+  }
+  return atan2Exact(y, x);
 }
 
 // ---------------------------------------------------------------------------------------------
@@ -856,3 +880,171 @@ export function pow(x, y) {
   }
   return neg ? -r : r;
 }
+
+// ---------------------------------------------------------------------------------------------
+// glibc-compatible flavour of the functions that glibc derives from fdlibm. The control flow and
+// the constants are those of glibc's sysdeps/ieee754/dbl-64 (e_sinh.c, e_cosh.c, s_tanh.c,
+// e_log10.c, s_asinh.c, e_acosh.c, e_atanh.c); exp and log are the correctly rounded ones above.
+
+/** High 32 bits of a double, as a signed integer. @param {number} x */
+function hiw(x) {
+  dv.setFloat64(0, x);
+  return dv.getInt32(0);
+}
+
+const LN2_D = 6.93147180559945286227e-1;
+const SINH_OVERFLOW = 710.4758600739439;
+const LOG_MAXD = 709.7822265625;
+
+/** e^x - 1 (fdlibm algorithm, as in glibc). @param {number} x */
+export function expm1(x) {
+  return F.expm1(x);
+}
+
+/** ln(1 + x) (fdlibm algorithm, as in glibc). @param {number} x */
+export function log1p(x) {
+  return F.log1p(x);
+}
+
+/** Inverse hyperbolic tangent (fdlibm algorithm on log1p, as in glibc). @param {number} x */
+export function atanh(x) {
+  return F.atanh(x);
+}
+
+/** Base-10 logarithm (glibc e_log10.c on top of a correctly rounded log). @param {number} x */
+export function log10(x) {
+  const ivln10 = 4.34294481903251816668e-1;
+  const log10_2hi = 3.01029995663611771306e-1;
+  const log10_2lo = 3.69423907715893078616e-13;
+  let hx = hiw(x);
+  let k = 0;
+  if (hx < 0x00100000) {
+    if (x === 0) return -Infinity;
+    if (x < 0) return NaN;
+    k -= 54;
+    x *= 18014398509481984;
+    hx = hiw(x);
+  }
+  if (x !== x || x === Infinity) return x + x;
+  k += (hx >> 20) - 1023;
+  const i = k >>> 31;
+  hx = (hx & 0x000fffff) | ((0x3ff - i) << 20);
+  const y = k + i;
+  dv.setFloat64(0, x);
+  dv.setInt32(0, hx);
+  const m = dv.getFloat64(0);
+  const z = y * log10_2lo + ivln10 * log(m);
+  return z + y * log10_2hi;
+}
+
+/** Hyperbolic sine (glibc e_sinh.c). @param {number} x */
+export function sinh(x) {
+  const ax = x < 0 ? -x : x;
+  if (x !== x || ax === Infinity) return x + x;
+  const h = x < 0 ? -0.5 : 0.5;
+  if (ax < 22) {
+    if (ax < 3.725290298461914e-9) return x;
+    const t = F.expm1(ax);
+    if (ax < 1) return h * (2.0 * t - (t * t) / (t + 1.0));
+    return h * (t + t / (t + 1.0));
+  }
+  if (ax < LOG_MAXD) return h * exp(ax);
+  if (ax <= SINH_OVERFLOW) {
+    const w = exp(0.5 * ax);
+    const t = h * w;
+    return t * w;
+  }
+  return x * 1.0e307;
+}
+
+/** Hyperbolic cosine (glibc e_cosh.c). @param {number} x */
+export function cosh(x) {
+  const ax = x < 0 ? -x : x;
+  if (x !== x) return x + x;
+  if (ax === Infinity) return x * x;
+  const ix = hiw(x) & 0x7fffffff;
+  if (ix < 0x40360000) {
+    if (ix < 0x3fd62e43) {
+      if (ix < 0x3c800000) return 1.0;
+      const t = F.expm1(ax);
+      const w = 1.0 + t;
+      return 1.0 + (t * t) / (w + w);
+    }
+    const t = exp(ax);
+    return 0.5 * t + 0.5 / t;
+  }
+  if (ix < 0x40862e42) return 0.5 * exp(ax);
+  if (ax <= SINH_OVERFLOW) {
+    const w = exp(0.5 * ax);
+    const t = 0.5 * w;
+    return t * w;
+  }
+  return Infinity;
+}
+
+/** Hyperbolic tangent (glibc s_tanh.c). @param {number} x */
+export function tanh(x) {
+  if (x !== x) return x + x;
+  if (x === Infinity) return 1;
+  if (x === -Infinity) return -1;
+  const ax = x < 0 ? -x : x;
+  const ix = hiw(x) & 0x7fffffff;
+  let z;
+  if (ix < 0x40360000) {
+    if (ix < 0x3c800000) return x * (1.0 + x);
+    if (ix >= 0x3ff00000) {
+      const t = F.expm1(2.0 * ax);
+      z = 1.0 - 2.0 / (t + 2.0);
+    } else {
+      const t = F.expm1(-2.0 * ax);
+      z = -t / (t + 2.0);
+    }
+  } else {
+    z = 1.0 - 1.0e-300;
+  }
+  return x >= 0 ? z : -z;
+}
+
+/** Inverse hyperbolic sine (glibc s_asinh.c). @param {number} x */
+export function asinh(x) {
+  if (x !== x || x === Infinity || x === -Infinity) return x + x;
+  const ix = hiw(x) & 0x7fffffff;
+  if (ix < 0x3e300000) return x;
+  const xa = x < 0 ? -x : x;
+  let w;
+  if (ix > 0x41b00000) {
+    w = log(xa) + LN2_D;
+  } else if (ix > 0x40000000) {
+    w = log(2.0 * xa + 1.0 / (Math.sqrt(xa * xa + 1.0) + xa));
+  } else {
+    const t = xa * xa;
+    w = F.log1p(xa + t / (1.0 + Math.sqrt(1.0 + t)));
+  }
+  return x < 0 ? -w : w;
+}
+
+/** Inverse hyperbolic cosine (glibc e_acosh.c). @param {number} x */
+export function acosh(x) {
+  if (x !== x) return x;
+  if (x < 1) return NaN;
+  if (x === Infinity) return x;
+  if (x >= 268435456) return log(x) + LN2_D;
+  if (x === 1) return 0;
+  if (x > 2) {
+    const t = x * x;
+    return log(2.0 * x - 1.0 / (x + Math.sqrt(t - 1.0)));
+  }
+  const t = x - 1.0;
+  return F.log1p(t + Math.sqrt(2.0 * t + t * t));
+}
+
+/**
+ * Strictly correctly rounded variants of every function (round to nearest, ties to even). For the
+ * functions listed in the header comment these differ from glibc (and hence CPython) in a few
+ * percent of the arguments, because glibc is not correctly rounded there.
+ */
+export const exact = {
+  sin, cos, tan, asin, acos, atan, atan2: atan2Exact, exp, log, log2, pow,
+  expm1: expm1Exact, log1p: log1pExact, log10: log10Exact, sinh: sinhExact, cosh: coshExact,
+  tanh: tanhExact, asinh: asinhExact, acosh: acoshExact, atanh: atanhExact,
+};

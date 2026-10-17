@@ -1,7 +1,11 @@
 // math: all functions of Python's math module that are used in school, deterministic on every engine.
 // The elementary functions come from fdlibm.js; hypot and dist are computed exactly (correctly rounded).
 
-import * as F from '../fdlibm.js';
+import * as FD from '../fdlibm.js';
+import * as L from '../libm.js';
+
+/** CPython's results (libm.js: correctly rounded where glibc is) and cbrt from fdlibm */
+const F = { ...FD, ...L };
 import { PyFloat, PyTuple, isInt, isNum, num, iterItems, normBig, binary } from '../values.js';
 import { err, params, noKw, needInt, needNum } from '../args.js';
 

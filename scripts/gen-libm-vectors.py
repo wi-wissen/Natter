@@ -5,12 +5,16 @@ Usage:
   python3 scripts/gen-libm-vectors.py                      # writes packages/core/test/data/libm-vectors.json
   python3 scripts/gen-libm-vectors.py --count 200000 --out /some/where.json --seed 7
 
-Format of the JSON file: {"meta": {...}, "fns": {"sin": {"arity": 1, "data": "<hex>"}, ...}}.
-`data` is a concatenation of fixed-width records of 16 hex digits per Float64 (big-endian bit
-pattern): the arguments, then the result of CPython. Arguments for which CPython raises an
-exception (domain or range error) are not included.
+Format of the JSON file: {"meta": {...}, "fns": {"sin": {"arity": 1, "count": n, "data": "<base64>",
+"exact": [[index, "<hex>"], ...]}, ...}}.
+`data` is the base64 of n records of big-endian Float64 values: the arguments, then the result of
+CPython (glibc). Arguments for which CPython raises an exception (domain or range error) are not
+included. If the optional package mpmath is installed, `exact` lists the entries (index, 16 hex
+digits of the Float64 bit pattern) where the correctly rounded result differs from glibc's; for all
+other entries glibc was correctly rounded. Without mpmath `exact` is omitted.
 """
 import argparse
+import base64
 import json
 import math
 import os
@@ -18,6 +22,13 @@ import platform
 import random
 import struct
 import sys
+
+try:  # optional: exact reference for the correctly rounded results
+    import mpmath
+    from mpmath import mp, mpf
+    mp.prec = 400
+except ImportError:  # pragma: no cover
+    mpmath = None
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 DEFAULT_OUT = os.path.join(HERE, '..', 'packages', 'core', 'test', 'data', 'libm-vectors.json')
@@ -178,8 +189,9 @@ def two_arg(name, g):
         if k < 0.58: return (g.logu(1, 1e3), r.randint(-60, 60) / 2.0)
         if k < 0.66: return (1.0 + S() * g.logu(1e-16, 1e-3), S() * g.logu(1, 1e15))
         if k < 0.74: return (float(r.randint(2, 100000)), float(r.randint(2, 70)))
-        if k < 0.80: return (float(r.randint(1, 2 ** 27)), float(r.randint(2, 3)))  # exact results, ties
-        if k < 0.86: return (g.logu(1e-3, 1e3), S() * g.logu(1e-300, 1e-3))
+        if k < 0.77: return (float(r.randint(1, 2 ** 27)), float(r.randint(2, 3)))  # exact results, ties
+        if k < 0.84: return (g.logu(1e-3, 1e3), S() * g.logu(1e-300, 1e-3))
+        if k < 0.86: return (g.logu(1e-3, 1e3), r.randint(-40, 40) / 4.0)
         if k < 0.92: return (g.expo(-1074, 1023), g.u(-1, 1))
         if k < 0.96: return (g.logu(0.5, 2), g.u(-1500, 1500))
         return (S() * g.logu(1e-3, 1e3), float(r.randint(-5, 5)) / 2)
@@ -191,19 +203,66 @@ UNARY = ['exp', 'expm1', 'log', 'log2', 'log10', 'log1p', 'sin', 'cos', 'tan', '
 BINARY = ['atan2', 'pow']
 
 
+def round_mpf(v):
+    """Correctly rounds an mpf to the nearest Float64 (ties to even), including subnormals."""
+    if v == 0:
+        return 0.0
+    if v < 0:
+        return -round_mpf(-v)
+    man, exp = int(v.man), int(v.exp)
+    e = man.bit_length() + exp  # 2^(e-1) <= v < 2^e
+    lsb = max(e - 53, -1074)
+    s = lsb - exp
+    if s <= 0:
+        q = man << -s
+    else:
+        q = man >> s
+        rem = man & ((1 << s) - 1)
+        half = 1 << (s - 1)
+        if rem > half or (rem == half and q & 1):
+            q += 1
+    return math.ldexp(q, lsb)
+
+
+def exact_fn(name):
+    m = mpmath
+    table = {
+        'exp': m.exp, 'expm1': m.expm1, 'log': m.log, 'log2': lambda x: m.log(x) / m.log(2), 'log10': m.log10,
+        'log1p': m.log1p, 'sin': m.sin, 'cos': m.cos, 'tan': m.tan, 'asin': m.asin, 'acos': m.acos,
+        'atan': m.atan, 'sinh': m.sinh, 'cosh': m.cosh, 'tanh': m.tanh, 'asinh': m.asinh,
+        'acosh': m.acosh, 'atanh': m.atanh, 'atan2': m.atan2, 'pow': m.power,
+    }
+    return table[name]
+
+
+def exact_value(name, args):
+    """Correctly rounded result, or None if not computed (zeros, infinities, NaN or errors)."""
+    if any((not math.isfinite(a)) or a == 0 for a in args):
+        return None
+    try:
+        with mpmath.workdps(160):
+            v = exact_fn(name)(*[mpf(a) for a in args])
+        if isinstance(v, mpmath.mpc):
+            return None
+        return round_mpf(v)
+    except Exception:
+        return None
+
+
 def build(name, arity, count, seed):
     g = Gen(seed * 1000 + sum(map(ord, name)))
     f = getattr(math, name)
-    out = []
-    seen = set()
     cases = []
-    for s in SPECIAL:
-        cases.append((s,) if arity == 1 else None)
-    if arity == 2:
+    if arity == 1:
+        cases = [(s,) for s in SPECIAL]
+    else:
         cases = [(a, b) for a in SPECIAL[:12] for b in SPECIAL[:12]]
-    n_special = len(cases)
     while len(cases) < count:
         cases.append((one_arg(name, g),) if arity == 1 else two_arg(name, g))
+    seen = set()
+    blob = bytearray()
+    exact = []
+    n = 0
     for args in cases:
         key = tuple(hexd(a) for a in args)
         if key in seen:
@@ -213,24 +272,31 @@ def build(name, arity, count, seed):
             res = f(*args)
         except (ValueError, OverflowError, ZeroDivisionError):
             continue
-        out.append(''.join(key) + hexd(res))
-    return ''.join(out), len(out)
+        for a in args:
+            blob += struct.pack('>d', a)
+        blob += struct.pack('>d', res)
+        if mpmath is not None:
+            ex = exact_value(name, args)
+            if ex is not None and hexd(ex) != hexd(res):
+                exact.append([n, hexd(ex)])
+        n += 1
+    return base64.b64encode(bytes(blob)).decode('ascii'), n, exact
 
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument('--count', type=int, default=2000, help='random arguments per function')
+    ap.add_argument('--count', type=int, default=3500, help='random arguments per function')
     ap.add_argument('--out', default=DEFAULT_OUT)
     ap.add_argument('--seed', type=int, default=20240601)
     a = ap.parse_args()
     fns = {}
-    for name in UNARY:
-        data, n = build(name, 1, a.count, a.seed)
-        fns[name] = {'arity': 1, 'count': n, 'data': data}
-    for name in BINARY:
-        data, n = build(name, 2, a.count, a.seed)
-        fns[name] = {'arity': 2, 'count': n, 'data': data}
-    meta = {'python': sys.version.split()[0], 'platform': platform.platform(), 'libc': ' '.join(platform.libc_ver()),
+    for arity, names in ((1, UNARY), (2, BINARY)):
+        for name in names:
+            data, n, exact = build(name, arity, a.count, a.seed)
+            fns[name] = {'arity': arity, 'count': n, 'data': data}
+            if mpmath is not None:
+                fns[name]['exact'] = exact
+    meta = {'python': sys.version.split()[0], 'mpmath': getattr(mpmath, '__version__', None), 'platform': platform.platform(), 'libc': ' '.join(platform.libc_ver()),
             'seed': a.seed, 'note': 'generated by scripts/gen-libm-vectors.py'}
     os.makedirs(os.path.dirname(os.path.abspath(a.out)), exist_ok=True)
     with open(a.out, 'w') as fh:
