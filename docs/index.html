@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Natter</title>
+<meta name="description" content="Natter is a small Python interpreter written in JavaScript for teaching: fast to load, built-in debugger, never freezes the page.">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="wrap">
+<header>
+  <div class="eyebrow">Python interpreter for the browser</div>
+  <h1>Natter, a <span>small Python</span> for the classroom</h1>
+  <p class="lead">A Python interpreter written in JavaScript. It loads fast, has a debugger built in, and an endless loop never freezes the page. Made for teaching.</p>
+  <div class="links">
+    <a class="primary" href="https://github.com/wi-wissen/Natter">View on GitHub</a>
+    <a href="#language">What it can do</a>
+  </div>
+  <div class="notice"><p><b>Status: early development.</b> The interpreter core is being moved into this repository and extended. Everything on this page is marked as <em>available in the base</em>, <em>planned</em> or <em>not planned</em>.</p></div>
+</header>
+
+<nav aria-label="Sections">
+  <a href="#why">Why</a>
+  <a href="#how">How it works</a>
+  <a href="#language">Language</a>
+  <a href="#modules">Modules</a>
+  <a href="#determinism">Determinism</a>
+  <a href="#embedding">Embedding</a>
+  <a href="#roadmap">Roadmap</a>
+</nav>
+
+<section id="why">
+  <h2>Why another Python?</h2>
+  <p>Browser Python normally means shipping a large runtime. Natter is a compact interpreter that implements the part of Python taught in school, and implements it so that the things teachers need are easy.</p>
+  <div class="grid">
+    <div class="card"><h3>Small</h3><p>About 50&nbsp;KB gzipped for the core today, instead of megabytes. Small enough to embed many times on one page.</p></div>
+    <div class="card"><h3>Never freezes</h3><p>Programs run in slices with an instruction budget. An endless loop stops and shows the line it is on.</p></div>
+    <div class="card"><h3>Debugger included</h3><p>Breakpoints, step into, over and out, variables and call stack. No patched runtime needed.</p></div>
+    <div class="card"><h3>Friendly errors</h3><p>Messages in English and German with hints such as "Did you mean&hellip;?", in the style of CPython 3.12.</p></div>
+    <div class="card"><h3>Reproducible</h3><p>Optional fixed random seed and platform-independent math, so every student sees the same output.</p></div>
+    <div class="card"><h3>Real Python</h3><p>Code is valid Python. What runs here should run in CPython, and the test suite compares both.</p></div>
+  </div>
+</section>
+
+<section id="how">
+  <h2>How it works</h2>
+  <div class="steps" aria-label="Pipeline">
+    <span>Source</span><i>&rarr;</i><span>Lexer</span><i>&rarr;</i><span>Parser</span><i>&rarr;</i><span>Compiler</span><i>&rarr;</i><span class="vm">Bytecode VM</span>
+  </div>
+  <ul>
+    <li><b>A stack machine with its own frame stack.</b> It does not use JavaScript recursion, so it can stop and resume after any instruction.</li>
+    <li><b>Budgeted execution.</b> <code>run(task, n)</code> executes at most <code>n</code> instructions, then hands control back to the page.</li>
+    <li><b>Suspend and resume.</b> A native function such as <code>input()</code> or an animated <code>forward(100)</code> can park the program and continue it later. Blocking calls look like normal Python.</li>
+    <li><b>Tasks.</b> The main program, every event handler and every frame of a game loop are separate tasks with their own budget.</li>
+    <li><b>Host bridge.</b> Modules (turtle, games, forms, plots) talk to the VM through host objects. The core knows nothing about the DOM.</li>
+    <li><b>Debugger.</b> The compiler marks statement starts. The VM checks breakpoints and step mode there and can report variables and the call stack at any pause.</li>
+  </ul>
+</section>
+
+<section id="language">
+  <h2>The language</h2>
+  <p>A subset of Python 3 that behaves like Python and prints the same output. The aim is the part used in schools, documented exactly.</p>
+  <div class="scroll"><table>
+    <tr><th>Area</th><th>Contents</th><th>Status</th></tr>
+    <tr><td>Basics</td><td>Integers of any size, floats, strings with f-strings and <code>format</code>, lists, tuples, dicts, slices, <code>if</code>/<code>elif</code>/<code>else</code>, <code>while</code>, <code>for</code> with <code>else</code>, <code>break</code>, <code>continue</code>, <code>pass</code>, tuple swap <code>a, b = b, a</code></td><td><span class="tag t-have">in the base</span></td></tr>
+    <tr><td>Functions</td><td><code>def</code> with defaults, <code>*args</code>, <code>**kwargs</code>, closures, <code>global</code>, <code>nonlocal</code>, <code>lambda</code>, decorators, unpacking, <code>del</code>, <code>assert</code></td><td><span class="tag t-have">in the base</span></td></tr>
+    <tr><td>Comprehensions</td><td>List and dict comprehensions</td><td><span class="tag t-have">in the base</span></td></tr>
+    <tr><td>Classes</td><td><code>class</code>, <code>__init__</code>, inheritance, <code>super()</code>, <code>__str__</code>, <code>__repr__</code>, <code>@property</code>, operator methods such as <code>__add__</code></td><td><span class="tag t-plan">planned</span></td></tr>
+    <tr><td>Exceptions</td><td><code>try</code>/<code>except</code>/<code>else</code>/<code>finally</code>, <code>raise</code>, custom exception classes</td><td><span class="tag t-plan">planned</span></td></tr>
+    <tr><td>Sets, generators</td><td><code>set</code>, <code>frozenset</code>, <code>yield</code>, lazy generator expressions</td><td><span class="tag t-plan">planned</span></td></tr>
+    <tr><td>Input and files</td><td><code>input()</code>, <code>open()</code> on project files, <code>with</code>, <code>import</code> of your own files</td><td><span class="tag t-plan">planned</span></td></tr>
+    <tr><td>Type hints</td><td>Parsed and ignored, so code from books runs</td><td><span class="tag t-plan">planned</span></td></tr>
+    <tr><td>Threads, async, <code>eval</code>, <code>exec</code></td><td>Not useful in a classroom and hard to make safe</td><td><span class="tag t-no">not planned</span></td></tr>
+  </table></div>
+  <p>Errors carry the line, a call stack and a hint. Numbers behave like CPython: integers become big integers above 2<sup>53</sup>, <code>round()</code> uses banker's rounding, <code>//</code> and <code>%</code> follow CPython.</p>
+</section>
+
+<section id="modules">
+  <h2>Modules</h2>
+  <p>Each module is a separate package that talks to the core through the host bridge, so embeds only load what they use.</p>
+  <div class="scroll"><table>
+    <tr><th>Module</th><th>What it offers</th><th>Status</th></tr>
+    <tr><td>math, random</td><td><code>sqrt</code>, <code>floor</code>, <code>gcd</code>, <code>pi</code>, <code>randint</code>, <code>choice</code>, <code>shuffle</code>, <code>seed</code> &hellip;</td><td><span class="tag t-have">in the base</span></td></tr>
+    <tr><td>stdlib extras</td><td><code>time</code>, <code>statistics</code>, <code>collections</code>, <code>json</code>, <code>re</code>, <code>pprint</code>, small <code>datetime</code>, <code>sin</code>/<code>cos</code>/<code>exp</code>/<code>log</code></td><td><span class="tag t-plan">planned</span></td></tr>
+    <tr><td>turtle</td><td>Draw with a turtle, several turtles, colors, fill, speed</td><td><span class="tag t-plan">planned</span></td></tr>
+    <tr><td>kara</td><td>A small robot beetle that learns to move, turn and sense</td><td><span class="tag t-plan">planned</span></td></tr>
+    <tr><td>pgzero</td><td>The full <a href="https://pygame-zero.readthedocs.io/en/stable/">Pygame Zero</a> reference: <code>draw()</code>, <code>update()</code>, event hooks, <code>Actor</code>, <code>Rect</code>, <code>keyboard</code>, <code>screen</code>, images, sounds, music, <code>clock</code>, <code>animate</code>, <code>tone</code>, text formatting. Runs with or without <code>import pgzrun</code></td><td><span class="tag t-plan">planned</span></td></tr>
+    <tr><td>forms</td><td>Windows with buttons, text boxes and lists using the <a href="https://lawsie.github.io/guizero/">guizero</a> API (a subset), laid out on a grid that grows with its content</td><td><span class="tag t-plan">planned</span></td></tr>
+    <tr><td>numpy, plots</td><td>A small subset of numpy arrays and matplotlib charts, drawn as SVG</td><td><span class="tag t-plan">planned</span></td></tr>
+    <tr><td>requests</td><td><code>requests.get(url).json()</code> through the browser, for servers that allow it (CORS)</td><td><span class="tag t-plan">planned</span></td></tr>
+    <tr><td>Server code, scraping, ML</td><td><code>bottle</code>, <code>sqlite3</code>, <code>BeautifulSoup</code>, <code>keras</code></td><td><span class="tag t-no">not planned</span></td></tr>
+  </table></div>
+  <p>Every function is described once, in English and German, in a single manifest. Hover help, autocompletion, the reference and the example gallery are generated from it.</p>
+</section>
+
+<section id="determinism">
+  <h2>Determinism</h2>
+  <ul>
+    <li><b>Same math everywhere.</b> Addition, multiplication and <code>sqrt</code> are exact IEEE&nbsp;754. Functions that browsers round differently, like <code>sin</code> and <code>exp</code>, are implemented inside Natter so results are identical on every device.</li>
+    <li><b>Random seed.</b> The seed is an optional parameter. Without it, the seed comes from the browser's secure randomness and every run differs, as in normal Python. With it, every run is the same. The seed that was used can be shown to reproduce a run.</li>
+    <li><b>Limits.</b> Recursion depth 1000 like CPython, fixed limits for list and string size, independent of the browser's JavaScript stack.</li>
+  </ul>
+</section>
+
+<section id="embedding">
+  <h2>Embedding</h2>
+  <p>A sketch of the planned API. Names may still change.</p>
+<pre><code>import { Natter } from "natter";
+
+const py = new Natter({ seed: 42, budget: 20000 });
+py.onOutput((text) =&gt; console.log(text));
+
+const task = py.run(`
+for i in range(3):
+    print("Hello", i)
+`);
+// task.pause(), task.step("over"), task.variables(), task.stop()</code></pre>
+</section>
+
+<section id="roadmap">
+  <h2>Roadmap</h2>
+  <ul>
+    <li><b>0</b> Set up the repository and move the interpreter core in, with its tests.</li>
+    <li><b>1</b> Language core for teaching: classes, exceptions, sets, generators, <code>input()</code>.</li>
+    <li><b>2</b> Standard library and deterministic math.</li>
+    <li><b>3</b> Turtle and Kara.</li>
+    <li><b>4</b> Projects with several files, <code>import</code>, assets.</li>
+    <li><b>5&ndash;7</b> Games, forms, numpy and plots.</li>
+  </ul>
+</section>
+
+<footer>
+  <p>Natter is open source. See the <a href="https://github.com/wi-wissen/Natter">repository</a> for the current state.</p>
+</footer>
+</div>
+</body>
+</html>
