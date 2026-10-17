@@ -5,64 +5,138 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Natter</title>
 <meta name="description" content="Natter is a small Python interpreter written in JavaScript for teaching: fast to load, built-in debugger, never freezes the page.">
+<meta name="color-scheme" content="light dark">
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
-<div class="wrap">
-<header>
-  <div class="eyebrow">Python interpreter for the browser</div>
-  <h1>Natter, a <span>small Python</span> for the classroom</h1>
-  <p class="lead">A Python interpreter written in JavaScript. It loads fast, has a debugger built in, and an endless loop never freezes the page. Made for teaching.</p>
-  <div class="links">
-    <a class="primary" href="https://github.com/wi-wissen/Natter">View on GitHub</a>
-    <a href="#language">What it can do</a>
+<a class="skip" href="#main">Skip to content</a>
+
+<!-- Mascot, drawn once and reused. Colors come from CSS variables (--snake*). -->
+<svg width="0" height="0" class="defs" aria-hidden="true" focusable="false">
+  <symbol id="natter" viewBox="0 0 240 180">
+    <g class="n-body">
+      <!-- body outline, tapered tail, body, belly shine, spots -->
+      <path class="n-outline" d="M208 139 C200 138 186 138 176 138 C160 138 156 112 138 112 C120 112 118 138 100 138 L80 138 C54 138 40 118 46 98 C50 84 60 76 74 72" stroke-width="31"/>
+      <path class="n-tail" d="M204 125.5 C226 126 238 146 225 177 C223 180 220 179 220 176 C221 162 216 152.5 204 152.5 Z"/>
+      <path class="n-fill" d="M208 139 C200 138 186 138 176 138 C160 138 156 112 138 112 C120 112 118 138 100 138 L80 138 C54 138 40 118 46 98 C50 84 60 76 74 72" stroke-width="26"/>
+      <path class="n-shine" d="M200 133 C190 133 184 133 176 133 C162 133 158 107 138 107 C118 107 116 133 100 133 L82 133 C62 133 50 118 52 101" stroke-width="5"/>
+      <path class="n-spots" d="M206 142 C196 142 186 143 176 143 C158 143 154 118 138 118 C122 118 118 143 100 143 L80 143 C56 143 44 124 47 106" stroke-width="5"/>
+      <!-- head -->
+      <g class="n-head">
+        <ellipse class="n-collar-dark" cx="57" cy="83" rx="13" ry="9" transform="rotate(-28 57 83)"/>
+        <ellipse class="n-collar-dark" cx="127" cy="83" rx="13" ry="9" transform="rotate(28 127 83)"/>
+        <ellipse class="n-headshape" cx="92" cy="55" rx="41" ry="34"/>
+        <ellipse class="n-headshine" cx="84" cy="32" rx="20" ry="7"/>
+        <ellipse class="n-collar" cx="58" cy="82" rx="10" ry="6.5" transform="rotate(-28 58 82)"/>
+        <ellipse class="n-collar" cx="126" cy="82" rx="10" ry="6.5" transform="rotate(28 126 82)"/>
+        <ellipse class="n-cheek" cx="64" cy="70" rx="7" ry="4"/>
+        <ellipse class="n-cheek" cx="120" cy="70" rx="7" ry="4"/>
+        <g class="n-eyes">
+          <circle class="n-eyewhite" cx="74" cy="51" r="13.5"/>
+          <circle class="n-eyewhite" cx="110" cy="51" r="13.5"/>
+          <circle class="n-pupil" cx="76" cy="53" r="8.5"/>
+          <circle class="n-pupil" cx="112" cy="53" r="8.5"/>
+          <circle class="n-glint" cx="73" cy="49" r="3.2"/>
+          <circle class="n-glint" cx="109" cy="49" r="3.2"/>
+        </g>
+        <path class="n-smile" d="M84 72 Q92 79 100 72"/>
+        <path class="n-tongue" d="M92 78 L92 92 M92 92 L87 99 M92 92 L97 99"/>
+      </g>
+    </g>
+  </symbol>
+</svg>
+
+<header class="hero">
+  <div class="wrap topbar">
+    <a class="brand" href="#top" aria-label="Natter, back to top"><svg class="brand-mark" viewBox="40 14 104 82" aria-hidden="true"><use href="#natter" width="240" height="180"/></svg>Natter</a>
+    <a class="gh-small" href="https://github.com/wi-wissen/Natter">GitHub</a>
   </div>
-  <div class="notice"><p><b>Status: early development.</b> The interpreter core is being moved into this repository and extended. Everything on this page is marked as <em>available in the base</em>, <em>planned</em> or <em>not planned</em>.</p></div>
+  <div class="wrap hero-grid" id="top">
+    <div class="hero-text">
+      <p class="eyebrow">Python interpreter for the browser</p>
+      <h1>Natter, a <span class="hl">small Python</span> for the classroom</h1>
+      <p class="lead">A Python interpreter written in JavaScript. It loads fast, has a debugger built in, and an endless loop never freezes the page. Made for teaching.</p>
+      <div class="links">
+        <a class="btn primary" href="https://github.com/wi-wissen/Natter">View on GitHub</a>
+        <a class="btn" href="#language">What it can do</a>
+      </div>
+      <div class="notice" role="note">
+        <p><b>Status: early development.</b> The interpreter core is being moved into this repository and extended. Everything on this page is marked as
+        <span class="tag t-have">in the base</span> <span class="tag t-plan">planned</span> or <span class="tag t-no">not planned</span>.</p>
+      </div>
+    </div>
+
+    <figure class="hero-art">
+      <svg class="mascot" viewBox="0 0 240 180" role="img" aria-label="Natter, a cartoon grass snake with big eyes and yellow neck spots, resting on top of a code window"><use href="#natter"/></svg>
+      <div class="term">
+        <div class="term-bar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="term-name">hello.py</span></div>
+<pre class="term-code" aria-label="Example Python code"><code><span class="ln">1</span>names = [<span class="s">"Ada"</span>, <span class="s">"Linus"</span>, <span class="s">"Grace"</span>]
+<span class="ln">2</span><span class="k">for</span> name <span class="k">in</span> names:
+<span class="ln">3</span>    <span class="b">print</span>(<span class="s">f"Hi </span>{name}<span class="s">!"</span>)
+<span class="ln">4</span>
+<span class="ln">5</span><span class="b">print</span>(<span class="b">len</span>(nmes))</code></pre>
+        <div class="term-out-label">Output</div>
+<pre class="term-out" aria-label="Output"><code>Hi Ada!
+Hi Linus!
+Hi Grace!
+<span class="err">NameError</span>: name 'nmes' is not defined.
+<span class="hint">Did you mean: 'names'?</span></code></pre>
+      </div>
+      <figcaption>Illustration only. Natter is in early development.</figcaption>
+    </figure>
+  </div>
 </header>
 
 <nav aria-label="Sections">
-  <a href="#why">Why</a>
-  <a href="#how">How it works</a>
-  <a href="#language">Language</a>
-  <a href="#modules">Modules</a>
-  <a href="#determinism">Determinism</a>
-  <a href="#embedding">Embedding</a>
-  <a href="#roadmap">Roadmap</a>
+  <div class="wrap nav-inner">
+    <a href="#why">Why</a>
+    <a href="#how">How it works</a>
+    <a href="#language">Language</a>
+    <a href="#modules">Modules</a>
+    <a href="#determinism">Determinism</a>
+    <a href="#embedding">Embedding</a>
+    <a href="#roadmap">Roadmap</a>
+  </div>
 </nav>
 
-<section id="why">
+<main id="main">
+<section id="why" class="wrap">
+  <p class="kicker">01 &middot; Why</p>
   <h2>Why another Python?</h2>
-  <p>Browser Python normally means shipping a large runtime. Natter is a compact interpreter that implements the part of Python taught in school, and implements it so that the things teachers need are easy.</p>
-  <div class="grid">
-    <div class="card"><h3>Small</h3><p>About 50&nbsp;KB gzipped for the core today, instead of megabytes. Small enough to embed many times on one page.</p></div>
-    <div class="card"><h3>Never freezes</h3><p>Programs run in slices with an instruction budget. An endless loop stops and shows the line it is on.</p></div>
-    <div class="card"><h3>Debugger included</h3><p>Breakpoints, step into, over and out, variables and call stack. No patched runtime needed.</p></div>
-    <div class="card"><h3>Friendly errors</h3><p>Messages in English and German with hints such as "Did you mean&hellip;?", in the style of CPython 3.12.</p></div>
-    <div class="card"><h3>Reproducible</h3><p>Optional fixed random seed and platform-independent math, so every student sees the same output.</p></div>
-    <div class="card"><h3>Real Python</h3><p>Code is valid Python. What runs here should run in CPython, and the test suite compares both.</p></div>
-  </div>
-</section>
-
-<section id="how">
-  <h2>How it works</h2>
-  <div class="steps" aria-label="Pipeline">
-    <span>Source</span><i>&rarr;</i><span>Lexer</span><i>&rarr;</i><span>Parser</span><i>&rarr;</i><span>Compiler</span><i>&rarr;</i><span class="vm">Bytecode VM</span>
-  </div>
-  <ul>
-    <li><b>A stack machine with its own frame stack.</b> It does not use JavaScript recursion, so it can stop and resume after any instruction.</li>
-    <li><b>Budgeted execution.</b> <code>run(task, n)</code> executes at most <code>n</code> instructions, then hands control back to the page.</li>
-    <li><b>Suspend and resume.</b> A native function such as <code>input()</code> or an animated <code>forward(100)</code> can park the program and continue it later. Blocking calls look like normal Python.</li>
-    <li><b>Tasks.</b> The main program, every event handler and every frame of a game loop are separate tasks with their own budget.</li>
-    <li><b>Host bridge.</b> Modules (turtle, games, forms, plots) talk to the VM through host objects. The core knows nothing about the DOM.</li>
-    <li><b>Debugger.</b> The compiler marks statement starts. The VM checks breakpoints and step mode there and can report variables and the call stack at any pause.</li>
+  <p class="intro">Browser Python normally means shipping a large runtime. Natter is a compact interpreter that implements the part of Python taught in school, and implements it so that the things teachers need are easy.</p>
+  <ul class="features">
+    <li><code class="chip">~40 KB</code><h3>Small</h3><p>About 40&nbsp;KB gzipped for the core today, instead of megabytes. Small enough to embed many times on one page.</p></li>
+    <li><code class="chip">while True:</code><h3>Never freezes</h3><p>Programs run in slices with an instruction budget. An endless loop stops and shows the line it is on.</p></li>
+    <li><code class="chip">step("over")</code><h3>Debugger included</h3><p>Breakpoints, step into, over and out, variables and call stack. No patched runtime needed.</p></li>
+    <li><code class="chip">Did you mean&hellip;?</code><h3>Friendly errors</h3><p>Messages in English and German with hints such as &ldquo;Did you mean&hellip;?&rdquo;, in the style of CPython 3.12.</p></li>
+    <li><code class="chip">seed: 42</code><h3>Reproducible</h3><p>Optional fixed random seed and platform-independent math, so every student sees the same output.</p></li>
+    <li><code class="chip">== CPython</code><h3>Real Python</h3><p>Code is valid Python. What runs here should run in CPython, and the test suite compares both.</p></li>
   </ul>
 </section>
 
-<section id="language">
+<section id="how" class="wrap">
+  <p class="kicker">02 &middot; Inside</p>
+  <h2>How it works</h2>
+  <ol class="pipeline" aria-label="Pipeline">
+    <li>Source</li><li>Lexer</li><li>Parser</li><li>Compiler</li><li class="vm">Bytecode VM</li>
+  </ol>
+  <dl class="facts">
+    <div><dt>A stack machine with its own frame stack</dt><dd>It does not use JavaScript recursion, so it can stop and resume after any instruction.</dd></div>
+    <div><dt>Budgeted execution</dt><dd><code>run(task, n)</code> executes at most <code>n</code> instructions, then hands control back to the page.</dd></div>
+    <div><dt>Suspend and resume</dt><dd>A native function such as <code>input()</code> or an animated <code>forward(100)</code> can park the program and continue it later. Blocking calls look like normal Python.</dd></div>
+    <div><dt>Tasks</dt><dd>The main program, every event handler and every frame of a game loop are separate tasks with their own budget.</dd></div>
+    <div><dt>Host bridge</dt><dd>Modules (turtle, games, forms, plots) talk to the VM through host objects. The core knows nothing about the DOM.</dd></div>
+    <div><dt>Debugger</dt><dd>The compiler marks statement starts. The VM checks breakpoints and step mode there and can report variables and the call stack at any pause.</dd></div>
+  </dl>
+</section>
+
+<section id="language" class="wrap">
+  <p class="kicker">03 &middot; Language</p>
   <h2>The language</h2>
-  <p>A subset of Python 3 that behaves like Python and prints the same output. The aim is the part used in schools, documented exactly.</p>
-  <div class="scroll"><table>
-    <tr><th>Area</th><th>Contents</th><th>Status</th></tr>
+  <p class="intro">A subset of Python 3 that behaves like Python and prints the same output. The aim is the part used in schools, documented exactly.</p>
+  <div class="scroll" role="region" aria-label="Language features" tabindex="0"><table>
+    <thead><tr><th scope="col">Area</th><th scope="col">Contents</th><th scope="col">Status</th></tr></thead>
+    <tbody>
     <tr><td>Basics</td><td>Integers of any size, floats, strings with f-strings and <code>format</code>, lists, tuples, dicts, slices, <code>if</code>/<code>elif</code>/<code>else</code>, <code>while</code>, <code>for</code> with <code>else</code>, <code>break</code>, <code>continue</code>, <code>pass</code>, tuple swap <code>a, b = b, a</code></td><td><span class="tag t-have">in the base</span></td></tr>
     <tr><td>Functions</td><td><code>def</code> with defaults, <code>*args</code>, <code>**kwargs</code>, closures, <code>global</code>, <code>nonlocal</code>, <code>lambda</code>, decorators, unpacking, <code>del</code>, <code>assert</code></td><td><span class="tag t-have">in the base</span></td></tr>
     <tr><td>Comprehensions</td><td>List and dict comprehensions</td><td><span class="tag t-have">in the base</span></td></tr>
@@ -72,15 +146,18 @@
     <tr><td>Input and files</td><td><code>input()</code>, <code>open()</code> on project files, <code>with</code>, <code>import</code> of your own files</td><td><span class="tag t-plan">planned</span></td></tr>
     <tr><td>Type hints</td><td>Parsed and ignored, so code from books runs</td><td><span class="tag t-plan">planned</span></td></tr>
     <tr><td>Threads, async, <code>eval</code>, <code>exec</code></td><td>Not useful in a classroom and hard to make safe</td><td><span class="tag t-no">not planned</span></td></tr>
+    </tbody>
   </table></div>
-  <p>Errors carry the line, a call stack and a hint. Numbers behave like CPython: integers become big integers above 2<sup>53</sup>, <code>round()</code> uses banker's rounding, <code>//</code> and <code>%</code> follow CPython.</p>
+  <p class="aside-note">Errors carry the line, a call stack and a hint. Numbers behave like CPython: integers become big integers above 2<sup>53</sup>, <code>round()</code> uses banker's rounding, <code>//</code> and <code>%</code> follow CPython.</p>
 </section>
 
-<section id="modules">
+<section id="modules" class="wrap">
+  <p class="kicker">04 &middot; Modules</p>
   <h2>Modules</h2>
-  <p>Each module is a separate package that talks to the core through the host bridge, so embeds only load what they use.</p>
-  <div class="scroll"><table>
-    <tr><th>Module</th><th>What it offers</th><th>Status</th></tr>
+  <p class="intro">Each module is a separate package that talks to the core through the host bridge, so embeds only load what they use.</p>
+  <div class="scroll" role="region" aria-label="Modules" tabindex="0"><table>
+    <thead><tr><th scope="col">Module</th><th scope="col">What it offers</th><th scope="col">Status</th></tr></thead>
+    <tbody>
     <tr><td>math, random</td><td><code>sqrt</code>, <code>floor</code>, <code>gcd</code>, <code>pi</code>, <code>randint</code>, <code>choice</code>, <code>shuffle</code>, <code>seed</code> &hellip;</td><td><span class="tag t-have">in the base</span></td></tr>
     <tr><td>stdlib extras</td><td><code>time</code>, <code>statistics</code>, <code>collections</code>, <code>json</code>, <code>re</code>, <code>pprint</code>, small <code>datetime</code>, <code>sin</code>/<code>cos</code>/<code>exp</code>/<code>log</code></td><td><span class="tag t-plan">planned</span></td></tr>
     <tr><td>turtle</td><td>Draw with a turtle, several turtles, colors, fill, speed</td><td><span class="tag t-plan">planned</span></td></tr>
@@ -90,49 +167,61 @@
     <tr><td>numpy, plots</td><td>A small subset of numpy arrays and matplotlib charts, drawn as SVG</td><td><span class="tag t-plan">planned</span></td></tr>
     <tr><td>requests</td><td><code>requests.get(url).json()</code> through the browser, for servers that allow it (CORS)</td><td><span class="tag t-plan">planned</span></td></tr>
     <tr><td>Server code, scraping, ML</td><td><code>bottle</code>, <code>sqlite3</code>, <code>BeautifulSoup</code>, <code>keras</code></td><td><span class="tag t-no">not planned</span></td></tr>
+    </tbody>
   </table></div>
-  <p>Every function is described once, in English and German, in a single manifest. Hover help, autocompletion, the reference and the example gallery are generated from it.</p>
+  <p class="aside-note">Every function is described once, in English and German, in a single manifest. Hover help, autocompletion, the reference and the example gallery are generated from it.</p>
 </section>
 
-<section id="determinism">
-  <h2>Determinism</h2>
-  <ul>
-    <li><b>Same math everywhere.</b> Addition, multiplication and <code>sqrt</code> are exact IEEE&nbsp;754. Functions that browsers round differently, like <code>sin</code> and <code>exp</code>, are implemented inside Natter so results are identical on every device.</li>
-    <li><b>Random seed.</b> The seed is an optional parameter. Without it, the seed comes from the browser's secure randomness and every run differs, as in normal Python. With it, every run is the same. The seed that was used can be shown to reproduce a run.</li>
-    <li><b>Limits.</b> Recursion depth 1000 like CPython, fixed limits for list and string size, independent of the browser's JavaScript stack.</li>
-  </ul>
+<section id="determinism" class="band">
+  <div class="wrap">
+    <p class="kicker">05 &middot; Determinism</p>
+    <h2>Same program, same output</h2>
+    <div class="trio">
+      <div><p class="trio-sym" aria-hidden="true">IEEE 754</p><h3>Same math everywhere</h3><p>Addition, multiplication and <code>sqrt</code> are exact IEEE&nbsp;754. Functions that browsers round differently, like <code>sin</code> and <code>exp</code>, are implemented inside Natter so results are identical on every device.</p></div>
+      <div><p class="trio-sym" aria-hidden="true">seed</p><h3>Random seed</h3><p>The seed is an optional parameter. Without it, the seed comes from the browser's secure randomness and every run differs, as in normal Python. With it, every run is the same. The seed that was used can be shown to reproduce a run.</p></div>
+      <div><p class="trio-sym" aria-hidden="true">1000</p><h3>Limits</h3><p>Recursion depth 1000 like CPython, fixed limits for list and string size, independent of the browser's JavaScript stack.</p></div>
+    </div>
+  </div>
 </section>
 
-<section id="embedding">
-  <h2>Embedding</h2>
-  <p>A sketch of the planned API. Names may still change.</p>
-<pre><code>import { Natter } from "natter";
+<section id="embedding" class="wrap embed">
+  <div>
+    <p class="kicker">06 &middot; Embedding</p>
+    <h2>Embedding</h2>
+    <p>A sketch of the planned API. Names may still change.</p>
+    <p class="tag t-plan">planned</p>
+  </div>
+<pre class="codeblock" tabindex="0" aria-label="Planned embedding API"><code><span class="k">import</span> { Natter } <span class="k">from</span> <span class="s">"natter"</span>;
 
-const py = new Natter({ seed: 42, budget: 20000 });
+<span class="k">const</span> py = <span class="k">new</span> Natter({ seed: 42, budget: 20000 });
 py.onOutput((text) =&gt; console.log(text));
 
-const task = py.run(`
+<span class="k">const</span> task = py.run(<span class="s">`
 for i in range(3):
     print("Hello", i)
-`);
-// task.pause(), task.step("over"), task.variables(), task.stop()</code></pre>
+`</span>);
+<span class="c">// task.pause(), task.step("over"), task.variables(), task.stop()</span></code></pre>
 </section>
 
-<section id="roadmap">
+<section id="roadmap" class="wrap">
+  <p class="kicker">07 &middot; Roadmap</p>
   <h2>Roadmap</h2>
-  <ul>
-    <li><b>0</b> Set up the repository and move the interpreter core in, with its tests.</li>
-    <li><b>1</b> Language core for teaching: classes, exceptions, sets, generators, <code>input()</code>.</li>
-    <li><b>2</b> Standard library and deterministic math.</li>
-    <li><b>3</b> Turtle and Kara.</li>
-    <li><b>4</b> Projects with several files, <code>import</code>, assets.</li>
-    <li><b>5&ndash;7</b> Games, forms, numpy and plots.</li>
-  </ul>
+  <ol class="roadmap">
+    <li><span class="phase">0</span><p>Set up the repository and move the interpreter core in, with its tests.</p></li>
+    <li><span class="phase">1</span><p>Language core for teaching: classes, exceptions, sets, generators, <code>input()</code>.</p></li>
+    <li><span class="phase">2</span><p>Standard library and deterministic math.</p></li>
+    <li><span class="phase">3</span><p>Turtle and Kara.</p></li>
+    <li><span class="phase">4</span><p>Projects with several files, <code>import</code>, assets.</p></li>
+    <li><span class="phase">5&ndash;7</span><p>Games, forms, numpy and plots.</p></li>
+  </ol>
 </section>
+</main>
 
 <footer>
-  <p>Natter is open source. See the <a href="https://github.com/wi-wissen/Natter">repository</a> for the current state.</p>
+  <div class="wrap foot">
+    <svg class="mascot-small" viewBox="0 0 240 180" aria-hidden="true" focusable="false"><use href="#natter"/></svg>
+    <p>Natter is open source. See the <a href="https://github.com/wi-wissen/Natter">repository</a> for the current state.</p>
+  </div>
 </footer>
-</div>
 </body>
 </html>
