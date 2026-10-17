@@ -8,7 +8,7 @@ npm run web:e2e     # bauen, dann Browsertests gegen demo/index.html (Chromium, 
 npx vitest run packages/web   # reine Logik (Koordinaten, Kara-Welt, http, Runner in Node)
 ```
 
-Demo: nach dem Bauen `packages/web/demo/index.html` über einen beliebigen statischen Server öffnen (Codefeld, Start/Stopp, Konsole, Turtle oder Kara je nach Programm, Beispiele). Browsertests: `node packages/web/e2e/run.mjs [Filter]`, Formulare und Plots: `node packages/web/e2e/forms.mjs [Filter]`; Playwright kommt aus dem Projekt oder aus `PLAYWRIGHT_DIR` (Standard `/opt/node-tools/node_modules`), Chromium aus `PW_CHROMIUM`. Screenshots (Desktop 1440×900, Handy 412×915) landen in `e2e/out/`.
+Demo: nach dem Bauen `packages/web/demo/index.html` über einen beliebigen statischen Server öffnen (Codefeld, Start/Stopp, Konsole, Turtle oder Kara je nach Programm, Beispiele). Browsertests: `node packages/web/e2e/run.mjs [Filter]`, Formulare und Plots: `node packages/web/e2e/forms.mjs [Filter]`, Pygame Zero: `node packages/web/e2e/pgzero.mjs [Filter]`; Playwright kommt aus dem Projekt oder aus `PLAYWRIGHT_DIR` (Standard `/opt/node-tools/node_modules`), Chromium aus `PW_CHROMIUM`. Screenshots (Desktop 1440×900, Handy 412×915) landen in `e2e/out/`.
 
 ## Einbinden
 
@@ -66,6 +66,28 @@ Setzt `host.turtle(kind, args)` aus `docs/HOST-TURTLE-KARA.md` um: Ursprung in d
 ## Kara: `createKara(container, { stepSeconds, fit, maxScale })`
 
 Wiese von 3×3 bis 30×20 (Zellen passen sich an), Bäume, Beeren, Pilze (grün, wenn alle auf Beeren liegen), Marienkäfer mit Blickrichtung. `move`, `push`, `turn`, `put`, `remove` sind animiert (`stepSeconds`, Standard 0,3; auch später über `kara.stepSeconds` änderbar), `crash` zeigt den Zusammenstoß, der Fehler kommt wie jeder andere.
+
+## Pygame Zero: `createPgzero(container, options)`
+
+Setzt `host.pgz` aus `docs/PGZERO-BRIDGE.md` um (Plugin wie Turtle und Kara, Datei `src/pgzero.js`).
+
+```js
+const pgz = createPgzero(document.querySelector('#spiel'), {
+  lang: 'de', controls: 'auto',
+  assets: { baseUrl: '/assets/', packs: ['turtle', 'sounds'] },   // packages/assets auf dem Server
+});
+runner.use(pgz);
+await pgz.run(runner, source, { files: projekt });   // = prepare() + runner.run()
+// oder selbst: const p = await pgz.prepare(source, { files }); runner.run(p.source, { files, globals: p.globals });
+```
+
+- **Start:** `prepare()` lädt alle Bilder und Klänge vorab (die Brücke fragt synchron) und erkennt die Art (`pgzMode`): mit `import pgzrun` läuft das Programm unverändert, ohne (wie `pgzrun spiel.py`) bekommt es die Pygame-Zero-Namen vordefiniert und am Ende eine Zeile, die das Spiel startet (Zeilennummern bleiben). `detectModules` meldet `'pgzero'`.
+- **Takt:** `requestAnimationFrame`, fester Schritt `dt = 1/60` mit Akkumulator (höchstens `maxCatchUp` = 4 Frames nachholen, kein Rasen nach einer Pause). Jeder Frame läuft in Scheiben von etwa 8 ms; braucht er mehr als `frameBudget` Befehle (20 Mio.), endet das Spiel mit dem Fehler „Das dauert zu lange“ und der Zeile der Schleife. Fehler in `update`/`draw`/Hooks kommen mit Traceback über den Runner, `exit()` beendet das Programm, `pgz.quit()` schließt das Fenster (Code nach `pgzrun.go()` läuft). Verdeckter Tab: Pause. `pause()`, `resume()`, `step(n)` für Einzelschritte.
+- **Zeichnen:** Fenster aus `WIDTH`/`HEIGHT`, `TITLE` in der Titelleiste (`titleBar: false` blendet sie aus, `onTitle`), skaliert mit festem Seitenverhältnis (`upscale`, `maxScale` = 2), scharf bei hoher Pixeldichte. Befehle wie pygame (Pixelmitten, Kreis mit Durchmesser 2r), Actor mit Drehung, `scale`, `flip_x/y`, `opacity`; ungedrehte Bilder liegen auf ganzen Gerätepixeln (Kacheln ohne Fugen). Text wie ptext: Standardschrift fett, Größe × 0,6875 wie pygame, Umbruch, `align`, Umriss, Schatten, Verlauf, `alpha`, `angle`, `textbox`. Nach einer Größenänderung werden die Befehle seit dem letzten `fill` neu gezeichnet. `smooth: false` schaltet die Bildglättung ab (Pixelgrafik).
+- **Eingaben:** Tasten mit pygame-2-Codes (Buchstaben nach Tastaturbelegung, keine Tastenwiederholung, Modifikatoren links/rechts), nur wenn kein Eingabefeld den Fokus hat; Pfeile und Leertaste scrollen die Seite dann nicht. Maus: Position (ganzzahlig), Tasten 1–3, Rad als 4/5, Bewegung mit `rel` und `buttons`. Ein Finger wirkt wie die linke Maustaste. `controls: true | 'auto' | false` (Standard `false`): Knopfleiste unter dem Spiel (◀ ▶ ▲ ▼ und Sprung = Leertaste), `'auto'` zeigt sie auf Touchscreens; auch später über `pgz.controls`.
+- **Bilder, Klänge, Musik, Schriften** werden in dieser Reihenfolge gesucht: 1. Projektdateien `images/`, `sounds/`, `music/`, `fonts/` (Unterordner als `ordner/name`; Inhalt als `data:`-URL, SVG-Text, `Blob`, `ArrayBuffer`/`Uint8Array` oder `{ url }`), 2. Pakete aus `assets` (`{ baseUrl, packs }` oder eine Liste davon; je Paket `<baseUrl><pack>/pack.json`, sonst `<pack>/<pack>.json` wie `sounds/sounds.json`; Einträge `assets`/`images` → Bilder, `sounds`, `music`), 3. Bilder und Klänge der Seite (`addImage(name, canvas|img|SVG-Text|URL, [w, h])`, `addSound(name, AudioBuffer|URL)`), z. B. Platzhalter. Aus den Paketen wird nur geladen, was im Programm (auch in Zeichenketten) vorkommt; ein Wort mit `_` am Ende oder ab fünf Zeichen lädt alle Namen, die so beginnen (`"heroine_run_" + str(i)`). `preload: 'all'` lädt alles. Fehlt etwas, steht vor dem `KeyError` eine Meldung mit Dateiname, durchsuchten Orten und „Meintest du …?“.
+- **Ton:** Web Audio. Erst nach der ersten Berührung, dem ersten Klick oder Tastendruck (Vorgabe der Browser); bis dahin zeigt die Bühne „Ton an: tippen oder klicken“, Musik startet dann. Sounds mit `loops`, `maxtime`, `fade_ms`, Lautstärke je Klang; Musik mit Schleife, Warteschlange, Pause, Spulen, Ausblenden, `music_end`; `tone` als Sinus mit der Hüllkurve von pgzero. `volume`, `muted`, Ton-Knopf in der Titelleiste (`soundButton: false` blendet ihn aus).
+- Für Tests: `info` (Größe, Titel, Frames, Ton), `pixel(x, y)`, `toClient(x, y)`.
 
 ## Formulare (guizero): `createForms(container, { lang, windows, image, images, onTitle })`
 
