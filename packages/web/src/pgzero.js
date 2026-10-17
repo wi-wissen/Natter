@@ -438,7 +438,11 @@ export function createPgzero(container, opts = {}) {
     for (const b of pad.querySelectorAll('button.on')) b.classList.remove('on');
   }
   const onBlur = () => releaseKeys(true);
-  const onGesture = () => { if (live) audio.unlock(); };
+  let touchSeen = false;
+  const onGesture = (e) => {
+    if (e.pointerType === 'touch' && !touchSeen) { touchSeen = true; updatePad(); }
+    if (live) audio.unlock();
+  };
 
   function posOf(e) {
     const [lx, ly] = stage.pointer(e);
@@ -520,10 +524,12 @@ export function createPgzero(container, opts = {}) {
     b.addEventListener('contextmenu', (e) => e.preventDefault());
   }
   function updatePad() {
-    const auto = showControls === 'auto' && typeof matchMedia !== 'undefined' && matchMedia('(pointer: coarse)').matches;
+    // 'auto': a touch screen is the main pointer, or the page has been touched
+    const auto = showControls === 'auto' && (touchSeen || (typeof matchMedia !== 'undefined' && matchMedia('(pointer: coarse)').matches));
     pad.hidden = !(live && (showControls === true || auto));
   }
 
+  if (typeof document !== 'undefined') document.addEventListener('pointerdown', (e) => { if (e.pointerType === 'touch' && !touchSeen) { touchSeen = true; updatePad(); } }, true);
   ready = true;
   clearScreen();
   showMute();

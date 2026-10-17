@@ -368,7 +368,7 @@ pgzrun.go()
       const runs = await p.evaluate(() => window.demo.pgz.info.runs);
       await p.click('#run');
       await p.waitForFunction((r) => window.demo.pgz.info.runs > r && window.demo.pgz.info.frames > 20, runs, { timeout: 20000 });
-      assert(await p.evaluate(() => window.demo.pgz.info.controls), `buttons shown for ${id}`);
+      assert(await p.evaluate(() => window.demo.pgz.info.controls), `buttons shown for ${id}: ${JSON.stringify(await p.evaluate(() => [window.demo.pgz.info, window.demo.pgz.controls, matchMedia('(pointer: coarse)').matches]))}`);
       await p.screenshot({ path: join(OUT, `pgz-phone-${id.slice(4)}.png`), fullPage: true });
       await p.click('#stop');
     }
