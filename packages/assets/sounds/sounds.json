@@ -1,0 +1,135 @@
+{
+  "pack": "sounds",
+  "title": {
+    "de": "Klänge",
+    "en": "Sounds"
+  },
+  "sounds": [
+    {
+      "name": "platsch",
+      "file": "platsch.wav",
+      "tags": [
+        "water"
+      ],
+      "de": "Wasserplatscher",
+      "en": "Water splash"
+    },
+    {
+      "name": "coin",
+      "file": "coin.wav",
+      "tags": [
+        "pickup"
+      ],
+      "de": "Münze einsammeln",
+      "en": "Collect a coin"
+    },
+    {
+      "name": "jump",
+      "file": "jump.wav",
+      "tags": [
+        "move"
+      ],
+      "de": "Sprung",
+      "en": "Jump"
+    },
+    {
+      "name": "hit",
+      "file": "hit.wav",
+      "tags": [
+        "damage"
+      ],
+      "de": "Treffer",
+      "en": "Hit"
+    },
+    {
+      "name": "explosion",
+      "file": "explosion.wav",
+      "tags": [
+        "damage"
+      ],
+      "de": "Explosion",
+      "en": "Explosion"
+    },
+    {
+      "name": "laser",
+      "file": "laser.wav",
+      "tags": [
+        "shoot"
+      ],
+      "de": "Laserschuss",
+      "en": "Laser shot"
+    },
+    {
+      "name": "powerup",
+      "file": "powerup.wav",
+      "tags": [
+        "pickup"
+      ],
+      "de": "Verstärkung",
+      "en": "Power up"
+    },
+    {
+      "name": "click",
+      "file": "click.wav",
+      "tags": [
+        "ui"
+      ],
+      "de": "Klick",
+      "en": "Click"
+    },
+    {
+      "name": "blip",
+      "file": "blip.wav",
+      "tags": [
+        "ui"
+      ],
+      "de": "Piepton",
+      "en": "Blip"
+    },
+    {
+      "name": "win",
+      "file": "win.wav",
+      "tags": [
+        "jingle"
+      ],
+      "de": "Gewonnen",
+      "en": "You win"
+    },
+    {
+      "name": "lose",
+      "file": "lose.wav",
+      "tags": [
+        "jingle"
+      ],
+      "de": "Verloren",
+      "en": "You lose"
+    },
+    {
+      "name": "bounce",
+      "file": "bounce.wav",
+      "tags": [
+        "move"
+      ],
+      "de": "Federn",
+      "en": "Bounce"
+    },
+    {
+      "name": "step",
+      "file": "step.wav",
+      "tags": [
+        "move"
+      ],
+      "de": "Schritt",
+      "en": "Footstep"
+    },
+    {
+      "name": "quack",
+      "file": "quack.wav",
+      "tags": [
+        "animal"
+      ],
+      "de": "Quak",
+      "en": "Quack"
+    }
+  ]
+}

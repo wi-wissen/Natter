@@ -79,3 +79,25 @@ describe('book assets', () => {
     expect(svgSize(readFileSync(join(ROOT, 'book', a.file), 'utf8'))[0]).toBe(120);
   });
 });
+
+describe('sounds', () => {
+  const dir = join(ROOT, 'sounds');
+  const list = JSON.parse(readFileSync(join(dir, 'sounds.json'), 'utf8'));
+  it('every wav is listed and every entry exists', () => {
+    expect(list.sounds.map((s) => s.file).sort()).toEqual(readdirSync(dir).filter((f) => f.endsWith('.wav')).sort());
+  });
+  it('the book sound exists', () => expect(list.sounds.some((s) => s.name === 'platsch')).toBe(true));
+  for (const s of list.sounds) {
+    it(`${s.name}: mono 16 bit wav, short, described`, () => {
+      expect(s.name).toMatch(NAME_RE);
+      expect(s.de && s.en).toBeTruthy();
+      const b = readFileSync(join(dir, s.file));
+      expect(b.toString('latin1', 0, 4)).toBe('RIFF');
+      expect(b.toString('latin1', 8, 12)).toBe('WAVE');
+      expect(b.readUInt16LE(22)).toBe(1); // channels
+      expect(b.readUInt16LE(34)).toBe(16); // bits
+      expect(b.length).toBeLessThan(64 * 1024);
+      expect(b.length).toBeGreaterThan(1000);
+    });
+  }
+});
