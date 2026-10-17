@@ -9,8 +9,8 @@ export const PACKS = {
   guizero: ['guizero'],
   pgzero: ['pgzero_rect', 'pgzero_color', 'pgzero_clock', 'pgzero_animation', 'pgzero_keys', 'pgzero_screen', 'pgzero_audio', 'pgzero_spellcheck', 'pgzero_actor', 'pgzero_builtins', 'pgzero_main', 'pgzrun'],
 };
-/** Packs a pack needs besides itself. */
-const NEEDS = { pyplot: ['numpy'], pgzero: [] };
+/** Packs a pack needs besides itself (checked against the real imports of the modules by a test; the loader also follows the imports of what it loads). */
+const NEEDS = { pyplot: ['numpy'], pgzero: [], guizero: ['stdlib'] };
 const LOADERS = {
   stdlib: () => import('./packs/stdlib.js'),
   numpy: () => import('./packs/numpy.js'),
@@ -19,6 +19,14 @@ const LOADERS = {
   pgzero: () => import('./packs/pgzero.js'),
 };
 const loaded = new Map();
+import { PYMODULES } from '../pymodules.js';
+
+/** Packs that the Python source of a loaded pack imports (so loading guizero also brings the modules it uses). */
+function importsOf(pack) {
+  const found = new Set();
+  for (const name of PACKS[pack]) for (const p of packsFor(PYMODULES[name] ?? '')) if (p !== pack) found.add(p);
+  return [...found];
+}
 
 /** Pack that contains a module (dotted names count by their first part: numpy.random → numpy), or undefined. */
 export function packOf(name) {
@@ -46,13 +54,18 @@ export function packsFor(source, opts = {}) {
 
 /** Load packs by name; resolves when all are registered. */
 export async function loadPacks(names) {
-  const all = new Set(names);
-  for (const n of [...all]) for (const d of NEEDS[n] ?? []) all.add(d);
-  await Promise.all([...all].map((n) => {
+  const todo = [...names];
+  const seen = new Set();
+  while (todo.length) {
+    const n = todo.pop();
+    if (seen.has(n)) continue;
+    seen.add(n);
     if (!LOADERS[n]) throw new Error(`unknown pack ${n}`);
     if (!loaded.has(n)) loaded.set(n, LOADERS[n]());
-    return loaded.get(n);
-  }));
+    await loaded.get(n);
+    // what the loaded modules import themselves
+    todo.push(...(NEEDS[n] ?? []), ...importsOf(n));
+  }
 }
 
 /** Load what a program needs (see packsFor). Call before creating the VM. */

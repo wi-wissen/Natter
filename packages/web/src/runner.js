@@ -119,6 +119,7 @@ export function createRunner(options = {}) {
       inputQueue.push(...(opts.inputs ?? []));
       const done = new Promise((res) => { finishRun = res; });
       // the browser build of the core loads the standard modules a program imports only now (a no-op in the full build)
+      setState('running'); // from the click on (modules may still be loading)
       const pgzero = /^\s*def\s+(draw|update|on_\w+)\s*\(|\bActor\s*\(|pgzrun/m.test(src);
       const begin = () => {
         const globals = { ...(options.globals ?? {}), ...(opts.globals ?? {}) };
