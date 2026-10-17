@@ -45,6 +45,8 @@ export function pyMessage(e) {
         case 'emptySeparator': return 'empty separator';
         case 'lenNegative': return '__len__() should return >= 0';
         case 'floatToInt': return 'cannot convert float NaN to integer';
+        case 'factorialNegative': return 'factorial() not defined for negative values';
+        case 'combNegative': return 'n must be a non-negative integer';
         default: break;
       }
       break;
@@ -73,6 +75,7 @@ export function pyMessage(e) {
     case 'recursion': return 'maximum recursion depth exceeded';
     case 'importUnknown': return `No module named '${p.name}'`;
     case 'mathDomain': return 'math domain error';
+    case 'mathRange': return 'math range error';
     case 'overflow': return 'integer too large';
     case 'stopIteration': return '';
     case 'eof': return 'EOF when reading a line';
@@ -86,6 +89,7 @@ export function pyMessage(e) {
         case 'convert': return p.to === 'int'
           ? `int() argument must be a string, a bytes-like object or a real number, not '${p.type}'`
           : `float() argument must be a string or a real number, not '${p.type}'`;
+        case 'numberNeeded': return `must be real number, not ${p.type}`;
         case 'intNeeded': return `'${p.type}' object cannot be interpreted as an integer`;
         case 'inStr': return `'in <string>' requires string as left operand, not ${p.type}`;
         case 'joinStr': return `sequence item ${p.i}: expected str instance, ${p.type} found`;

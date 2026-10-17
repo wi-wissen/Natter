@@ -5,71 +5,21 @@
 // not identical on all machines.
 
 import { ScriptError } from './errors.js';
+import { err, params, noKw, needInt, anyInt, needNum, needStr } from './args.js';
+import { MATH_NATIVES, MATH_NAMES, MATH_CONSTS } from './stdlib/math.js';
 import { EXCEPTION_CLASSES } from './exceptions.js';
 import {
   PyFloat, PyList, PyTuple, PyDict, PyRange, PyBuiltin, PyIterator, PyView, PyFunction, PyPartial, PyBoundMethod,
   PyModule, PyHost, checkInt, isInt, isNum, num, typeName, truthy, eq, lt, iterItems, makeIter, iterNext, DONE, length,
   roundFloat, formatValue, binary, TYPE_NAMES, toIndex, keyOf, normBig, pow10, pushAll,
-  keyError, getItem, Suspend, PyGenerator, PyUserIter, PySet, setOf, PyClass, PyInstance, PyMethod, PySuper, PyProperty, PyStaticMethod, PyClassMethod, OBJECT, NOT_IMPLEMENTED, NO_METHOD,
+  keyError, getItem, Suspend, PyGenerator, PySlice, PyUserIter, PySet, setOf, PyClass, PyInstance, PyMethod, PySuper, PyProperty, PyStaticMethod, PyClassMethod, OBJECT, NOT_IMPLEMENTED, NO_METHOD,
   callDunder, lookupClass, defaultRepr, setOp,
 } from './values.js';
-
-const err = (code, params) => new ScriptError(code, params);
-
-/**
- * Resolve arguments by name.
- * @param {string} fname @param {any[]} args @param {any} kw
- * @param {string[]} names parameters; '?' prefix = optional
- * @returns {any[]} values (missing optional ones: undefined)
- */
-function params(fname, args, kw, names) {
-  const plain = names.map((n) => n.replace(/^\?/, ''));
-  if (args.length > names.length) throw err('argCount', { name: fname, max: names.length, given: args.length });
-  const out = names.map((_, i) => args[i]);
-  for (const k of Object.keys(kw)) {
-    const i = plain.indexOf(k);
-    if (i < 0) throw err('argUnexpected', { name: fname, arg: k });
-    if (out[i] !== undefined) throw err('argDuplicate', { name: fname, arg: k });
-    out[i] = kw[k];
-  }
-  names.forEach((n, i) => { if (out[i] === undefined && !n.startsWith('?')) throw err('argMissing', { name: fname, arg: plain[i] }); });
-  return out;
-}
-
-function noKw(fname, kw) {
-  const k = Object.keys(kw)[0];
-  if (k !== undefined) throw err('argUnexpected', { name: fname, arg: k });
-}
-
-/** Integer as JS number (large numbers are too large here). */
-function needInt(v, what) {
-  if (!isInt(v)) throw err('type', { what: 'intNeeded', name: what, type: typeName(v) });
-  const n = num(v);
-  if (typeof n === 'bigint') throw err('overflow', {});
-  return n;
-}
-
-/** Integer, also large (BigInt). */
-function anyInt(v, what) {
-  if (!isInt(v)) throw err('type', { what: 'intNeeded', name: what, type: typeName(v) });
-  return num(v);
-}
-
-/** Number as JS number (float arithmetic). */
-function needNum(v, what) {
-  if (!isNum(v)) throw err('type', { what: 'numberNeeded', name: what, type: typeName(v) });
-  return Number(num(v));
-}
 
 const radix = (v, base, prefix) => {
   const n = BigInt(anyInt(v, prefix));
   return (n < 0n ? '-' : '') + prefix + (n < 0n ? -n : n).toString(base);
 };
-
-function needStr(v, what) {
-  if (typeof v !== 'string') throw err('type', { what: 'strNeeded', name: what, type: typeName(v) });
-  return v;
-}
 
 /** Call a Python function or built-in function. */
 const call = (ctx, fn, args) => ctx.vm.callSync(fn, args, null, ctx.task);
@@ -229,9 +179,7 @@ export const BUILTINS = {
   sum(ctx, args, kw) {
     const [it, start = 0] = params('sum', args, kw, ['iterable', '?start']);
     if (typeof start === 'string') throw err('type', { what: 'sumStr' });
-    let acc = start;
-    for (const x of iterItems(it)) acc = binary('+', acc, x);
-    return acc;
+    return sumValues(iterItems(it), start);
   },
   sorted(ctx, args, kw) {
     const [it, key = null, reverse = false] = params('sorted', args, kw, ['iterable', '?key', '?reverse']);
@@ -279,6 +227,11 @@ export const BUILTINS = {
     return new PyBuiltin(TYPE_NAMES.has(t) ? t : `class:${t}`);
   },
   isinstance(ctx, args, kw) { const [x, t] = params('isinstance', args, kw, ['obj', 'class']); return isInstance(x, t); },
+  slice(ctx, args, kw) {
+    noKw('slice', kw);
+    if (!args.length || args.length > 3) throw err('argCount', { name: 'slice', max: 3, given: args.length });
+    return args.length === 1 ? new PySlice(null, args[0], null) : new PySlice(args[0], args[1], args[2] ?? null);
+  },
   issubclass(ctx, args, kw) {
     const [a, b] = params('issubclass', args, kw, ['class', 'classinfo']);
     if (!isTypeLike(a)) throw err('type', { what: 'issubclassArg', type: typeName(a) });
@@ -424,42 +377,7 @@ export const BUILTINS = {
   set(ctx, args, kw) { const [x] = params('set', args, kw, ['?iterable']); return setOf(x === undefined ? [] : iterItems(x)); },
   frozenset(ctx, args, kw) { const [x] = params('frozenset', args, kw, ['?iterable']); return setOf(x === undefined ? [] : iterItems(x), true); },
 
-  // ---------- math ----------
-  'math.sqrt'(ctx, args, kw) {
-    const [x] = params('sqrt', args, kw, ['x']);
-    const v = needNum(x, 'sqrt');
-    if (v < 0) throw err('mathDomain', {});
-    return new PyFloat(Math.sqrt(v));
-  },
-  'math.floor'(ctx, args, kw) { const [x] = params('floor', args, kw, ['x']); return checkInt(Math.floor(needNum(x, 'floor'))); },
-  'math.ceil'(ctx, args, kw) { const [x] = params('ceil', args, kw, ['x']); return checkInt(Math.ceil(needNum(x, 'ceil'))); },
-  'math.trunc'(ctx, args, kw) { const [x] = params('trunc', args, kw, ['x']); return checkInt(Math.trunc(needNum(x, 'trunc'))); },
-  'math.fabs'(ctx, args, kw) { const [x] = params('fabs', args, kw, ['x']); return new PyFloat(Math.abs(needNum(x, 'fabs'))); },
-  'math.hypot'(ctx, args, kw) {
-    noKw('hypot', kw);
-    return new PyFloat(Math.sqrt(args.reduce((s, a) => { const v = needNum(a, 'hypot'); return s + v * v; }, 0)));
-  },
-  'math.isqrt'(ctx, args, kw) {
-    const [x] = params('isqrt', args, kw, ['n']);
-    const n = needInt(x, 'isqrt');
-    if (n < 0) throw err('mathDomain', {});
-    let r = Math.floor(Math.sqrt(n));
-    while (r * r > n) r--;
-    while ((r + 1) * (r + 1) <= n) r++;
-    return r;
-  },
-  'math.gcd'(ctx, args, kw) {
-    noKw('gcd', kw);
-    let g = 0;
-    for (const a of args) { let x = Math.abs(needInt(a, 'gcd')); while (x) [g, x] = [x, g % x]; }
-    return g;
-  },
-  'math.dist'(ctx, args, kw) {
-    const [p, q] = params('dist', args, kw, ['p', 'q']);
-    const a = iterItems(p), b = iterItems(q);
-    if (a.length !== b.length) throw err('value', { what: 'distLength' });
-    return new PyFloat(Math.sqrt(a.reduce((s, x, i) => { const v = needNum(x, 'dist') - needNum(b[i], 'dist'); return s + v * v; }, 0)));
-  },
+  ...MATH_NATIVES,
 
   // ---------- random (the VM's own randomness, saved along) ----------
   'random.random'(ctx, args, kw) { params('random', args, kw, []); return new PyFloat(random53(ctx.vm)); },
@@ -506,6 +424,32 @@ export const BUILTINS = {
   },
 };
 
+/**
+ * sum() like CPython 3.12+: integers exactly, floats with compensated (Neumaier) summation so that
+ * sum([0.1] * 10) is 1.0.
+ */
+function sumValues(items, start) {
+  let acc = start, i = 0;
+  const n = items.length;
+  while (i < n && isInt(acc) && isInt(items[i])) acc = binary('+', acc, items[i++]);
+  if (i < n && (isInt(acc) || acc instanceof PyFloat) && items[i] instanceof PyFloat) {
+    let f = Number(num(acc)), c = 0;
+    for (; i < n; i++) {
+      const x = items[i];
+      let v;
+      if (x instanceof PyFloat) v = x.v;
+      else if (isInt(x) && typeof num(x) !== 'bigint') v = Number(num(x));
+      else break;
+      const t = f + v;
+      if (Number.isFinite(t)) c += Math.abs(f) >= Math.abs(v) ? (f - t) + v : (v - t) + f;
+      f = t;
+    }
+    acc = new PyFloat(Number.isFinite(c) ? f + c : f);
+  }
+  for (; i < n; i++) acc = binary('+', acc, items[i]);
+  return acc;
+}
+
 /** FNV-1a of a text as a non-negative 31-bit number (hash(), id()). */
 function fnv(text) {
   let h = 0x811c9dc5;
@@ -545,16 +489,18 @@ OBJECT.dict.set('__eq__', new PyBuiltin('object.__eq__'));
 OBJECT.dict.set('__ne__', new PyBuiltin('object.__ne__'));
 
 export const MODULES = {
-  math: ['sqrt', 'floor', 'ceil', 'trunc', 'fabs', 'hypot', 'isqrt', 'gcd', 'dist', 'pi', 'e', 'inf', 'nan', 'tau'],
+  math: MATH_NAMES,
   random: ['random', 'randint', 'randrange', 'choice', 'shuffle', 'uniform', 'seed'],
 };
 
-const MATH_CONST = { pi: Math.PI, e: Math.E, inf: Infinity, nan: NaN, tau: 2 * Math.PI };
+/** Values of module attributes that are not functions (constants, classes). */
+const MODULE_CONSTS = { math: MATH_CONSTS };
 
 /** Attribute of a built-in module or undefined. */
 export function moduleAttr(mod, name) {
   if (!MODULES[mod] || !MODULES[mod].includes(name)) return undefined;
-  if (mod === 'math' && name in MATH_CONST) return new PyFloat(MATH_CONST[name]);
+  const c = MODULE_CONSTS[mod]?.[name];
+  if (c !== undefined) return c;
   return new PyBuiltin(`${mod}.${name}`);
 }
 

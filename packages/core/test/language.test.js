@@ -203,8 +203,8 @@ describe('Determinism and helpers', () => {
     expect(a).not.toBe(c);
   });
 
-  it('no sin/log in the math module (not the same everywhere)', () => {
-    expect(errOf('import math\nmath.sin(1)')).toMatchObject({ kind: 'AttributeError' });
+  it('math functions are deterministic (own implementation, not the engine\'s)', () => {
+    expect(runToEnd('import math\nprint(math.sin(1), math.cos(1), math.exp(1), math.log(10))').output).toBe('0.8414709848078965 0.5403023058681398 2.718281828459045 2.302585092994046\n');
   });
 
   it('highlighting recognises keywords, strings, numbers, comments', () => {

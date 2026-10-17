@@ -170,7 +170,7 @@ class Compiler {
         break;
       case 'FunctionDef': {
         for (const d of st.decorators) this.collectExpr(d, scope, renames);
-        for (const p of st.params) if (p.default) this.collectExpr(p.default, scope, renames);
+        for (const p of [...st.params, ...st.kwonly]) if (p.default) this.collectExpr(p.default, scope, renames);
         scope.assigned.add(st.name);
         const nameNode = { type: 'Name', id: st.name, line: st.line, col: st.col };
         st.nameNode = nameNode;
@@ -258,6 +258,7 @@ class Compiler {
     fs.params = node.params.map((p) => p.name);
     if (node.vararg) fs.params.push(node.vararg);
     if (node.kwarg) fs.params.push(node.kwarg);
+    for (const p of node.kwonly ?? []) fs.params.push(p.name);
     // Parameters shadow loop variables of the same name from outer comprehensions
     const shadow = new Map(fs.params.map((p) => [p, p]));
     const inner = [...renames, shadow];
@@ -287,7 +288,7 @@ class Compiler {
       case 'Dict': e.keys.forEach((k, i) => { this.collectExpr(k, scope, renames); this.collectExpr(e.values[i], scope, renames); }); break;
       case 'IfExp': this.collectExpr(e.test, scope, renames); this.collectExpr(e.body, scope, renames); this.collectExpr(e.orelse, scope, renames); break;
       case 'Lambda':
-        for (const p of e.params) if (p.default) this.collectExpr(p.default, scope, renames);
+        for (const p of [...e.params, ...e.kwonly]) if (p.default) this.collectExpr(p.default, scope, renames);
         this.collectFunction(e, scope, renames, e.body);
         break;
       case 'JoinedStr':
@@ -397,6 +398,7 @@ class Compiler {
     /** @type {Code} */
     const code = {
       name, params: params.map((p) => p.name), ndefaults: params.filter((p) => p.default).length,
+      kwonly: (node.kwonly ?? []).map((p) => p.name), kwMask: (node.kwonly ?? []).map((p) => !!p.default),
       vararg: node.vararg ?? null, kwarg: node.kwarg ?? null,
       varnames: [], cellvars: [], freevars: [], cellParams: [],
       ops: [], args: [], lines: [], stmt: [], consts: [], names: [], module: isModule, line: node.line ?? 1,
@@ -404,11 +406,11 @@ class Compiler {
     };
     this.codes.push(code);
     if (!isModule) {
-      code.varnames = [...code.params, ...(code.vararg ? [code.vararg] : []), ...(code.kwarg ? [code.kwarg] : [])];
+      code.varnames = [...code.params, ...(code.vararg ? [code.vararg] : []), ...(code.kwarg ? [code.kwarg] : []), ...code.kwonly];
       for (const l of scope.locals) if (!code.varnames.includes(l)) code.varnames.push(l);
       code.cellvars = [...scope.cells];
       code.freevars = [...scope.frees];
-      code.cellParams = code.cellvars.map((c) => { const i = code.varnames.indexOf(c); return i >= 0 && i < code.params.length + (code.vararg ? 1 : 0) + (code.kwarg ? 1 : 0) ? i : -1; });
+      code.cellParams = code.cellvars.map((c) => { const i = code.varnames.indexOf(c); return i >= 0 && i < code.params.length + (code.vararg ? 1 : 0) + (code.kwarg ? 1 : 0) + code.kwonly.length ? i : -1; });
     }
     const saved = { code: this.code, scope: this.scope, ctx: this.ctx, pendingStmt: this.pendingStmt };
     this.code = code; this.scope = scope; this.ctx = []; this.pendingStmt = 0;
@@ -747,6 +749,7 @@ class Compiler {
   /** Generate a function: default values, cells, MAKE_FUNCTION. */
   makeFunction(node, name, params, body) {
     for (const p of params) if (p.default) this.expr(p.default);
+    for (const p of node.kwonly ?? []) if (p.default) this.expr(p.default);
     const idx = this.compileCode(node, node.scope, name, params);
     const inner = this.codes[idx - this.codeBase];
     for (const f of inner.freevars) this.emit(OP.LOAD_CLOSURE, this.cellIndex(f), node);

@@ -139,7 +139,7 @@ export const de = {
   "err.script.notSubscriptable.function": "„{name}“ ist eine Funktion – erst aufrufen, dann [ ]: {name}()[0]",
   "err.script.unhashable": "„{type}“ kann kein Schlüssel sein.",
   "err.script.notIndex": "Ein Index muss eine Ganzzahl sein, nicht „{type}“.",
-  "err.script.powFraction": "Hoch eine Kommazahl geht nicht (außer ** 0.5) – nimm math.sqrt().",
+  "err.script.powFraction": "Eine negative Zahl hoch eine Kommazahl wäre in Python eine komplexe Zahl, die es hier nicht gibt.",
   "err.script.mathDomain": "Das ist mathematisch nicht definiert (z. B. Wurzel aus einer negativen Zahl).",
   "err.script.stopIteration": "Der Iterator ist schon zu Ende.",
   "err.script.internal": "Interner Fehler: {message}",
@@ -178,6 +178,10 @@ export const de = {
   "err.script.outsideFunction.yield": "„yield“ gehört in eine Funktion (def).",
   "err.script.type.noContext": "„{type}“ lässt sich nicht mit „with“ benutzen (es braucht __enter__ und __exit__).",
   "err.script.nameUnbound.import": "„{name}“ ist ein Modul. Fehlt oben „import {name}“?",
+  "err.script.mathRange": "Das Ergebnis ist zu groß (math range error).",
+  "err.script.value.factorialNegative": "factorial() gibt es nur für Zahlen ab 0.",
+  "err.script.value.combNegative": "Hier sind nur Zahlen ab 0 erlaubt.",
+  "err.script.value.isclose": "Die Toleranzen von isclose() dürfen nicht negativ sein.",
 };
 
 export const en = {
@@ -317,7 +321,7 @@ export const en = {
   "err.script.notSubscriptable.function": "“{name}” is a function – call it first, then use [ ]: {name}()[0]",
   "err.script.unhashable": "“{type}” cannot be a key.",
   "err.script.notIndex": "An index must be an integer, not “{type}”.",
-  "err.script.powFraction": "Raising to a fractional power is not possible (except ** 0.5) – use math.sqrt().",
+  "err.script.powFraction": "A negative number to a fractional power would be a complex number in Python, which does not exist here.",
   "err.script.mathDomain": "This is mathematically undefined (e.g. square root of a negative number).",
   "err.script.stopIteration": "The iterator is already exhausted.",
   "err.script.internal": "Internal error: {message}",
@@ -356,4 +360,8 @@ export const en = {
   "err.script.outsideFunction.yield": "“yield” belongs inside a function (def).",
   "err.script.type.noContext": "“{type}” cannot be used with “with” (it needs __enter__ and __exit__).",
   "err.script.nameUnbound.import": "“{name}” is a module. Is “import {name}” missing at the top?",
+  "err.script.mathRange": "The result is too large (math range error).",
+  "err.script.value.factorialNegative": "factorial() is only defined for numbers from 0.",
+  "err.script.value.combNegative": "Only numbers from 0 are allowed here.",
+  "err.script.value.isclose": "The tolerances of isclose() must not be negative.",
 };

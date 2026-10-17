@@ -396,7 +396,7 @@ class Parser {
     this.expect('op', ')');
     if (this.accept('op', '->')) this.test();
     const body = this.block();
-    return { type: 'FunctionDef', name, params, vararg: params.vararg, kwarg: params.kwarg, body, decorators, ...p };
+    return { type: 'FunctionDef', name, params, vararg: params.vararg, kwarg: params.kwarg, kwonly: params.kwonly ?? [], body, decorators, ...p };
   }
 
   /**
@@ -405,28 +405,43 @@ class Parser {
    */
   params(close) {
     const params = [];
-    let seenDefault = false;
-    const seen = (n) => params.some((q) => q.name === n) || params.vararg === n || params.kwarg === n;
+    params.kwonly = [];
+    let seenDefault = false, afterStar = false;
+    const seen = (n) => params.some((q) => q.name === n) || params.kwonly.some((q) => q.name === n) || params.vararg === n || params.kwarg === n;
     while (!this.atOp(close)) {
       if (this.atOp('*') || this.atOp('**')) {
-        const star = this.next().value;
+        const starTok = this.next();
+        const star = starTok.value;
         if (params.kwarg) throw this.error('badParams', {});
         const t = this.at('name') ? this.next() : null;
-        if (!t) throw this.error('notSupported', { feature: 'kwOnly' });
+        if (!t) {
+          // a bare * only separates the keyword-only parameters
+          if (star === '**' || !this.atOp(',') || afterStar) throw this.error('badParams', {}, starTok);
+          afterStar = true;
+          this.next();
+          if (this.atOp(close) || this.atOp('**')) throw this.error('badParams', { what: 'bareStar' }, starTok);
+          continue;
+        }
         if (seen(t.value)) throw this.error('duplicateArg', { name: t.value }, t);
         if (close === ')' && this.accept('op', ':')) this.test();
-        if (star === '*') { if (params.vararg) throw this.error('badParams', {}, t); params.vararg = t.value; }
+        if (star === '*') { if (afterStar) throw this.error('badParams', {}, t); params.vararg = t.value; afterStar = true; }
         else params.kwarg = t.value;
         if (!this.accept('op', ',')) break;
         continue;
       }
-      if (params.vararg || params.kwarg) throw this.error('notSupported', { feature: 'kwOnly' });
+      if (params.kwarg) throw this.error('badParams', {});
       const t = this.expect('name', undefined, 'name');
       if (seen(t.value)) throw this.error('duplicateArg', { name: t.value }, t);
       if (close === ')' && this.accept('op', ':')) this.test();
       let def = null;
-      if (this.accept('op', '=')) { def = this.test(); seenDefault = true; } else if (seenDefault) throw this.error('badParams', {}, t);
-      params.push({ name: t.value, default: def, line: t.line, col: t.col });
+      if (afterStar) {
+        // keyword-only: with or without a default, in any order
+        if (this.accept('op', '=')) def = this.test();
+        params.kwonly.push({ name: t.value, default: def, line: t.line, col: t.col });
+      } else {
+        if (this.accept('op', '=')) { def = this.test(); seenDefault = true; } else if (seenDefault) throw this.error('badParams', {}, t);
+        params.push({ name: t.value, default: def, line: t.line, col: t.col });
+      }
       if (!this.accept('op', ',')) break;
     }
     return params;
@@ -495,7 +510,7 @@ class Parser {
     const params = this.params(':');
     this.expect('op', ':');
     const body = noCond ? this.testNoCond() : this.test();
-    return { type: 'Lambda', params, vararg: params.vararg, kwarg: params.kwarg, body, ...p };
+    return { type: 'Lambda', params, vararg: params.vararg, kwarg: params.kwarg, kwonly: params.kwonly ?? [], body, ...p };
   }
 
   orTest() {

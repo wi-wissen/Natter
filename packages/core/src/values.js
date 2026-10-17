@@ -8,6 +8,7 @@
 // Everything can be saved as JSON (serialize.js); host objects are only handles (class + ID).
 
 import { ScriptError } from './errors.js';
+import * as F from './fdlibm.js';
 
 export class PyFloat { constructor(v) { this.v = v; } }
 export class PyList { constructor(items = []) { this.items = items; } }
@@ -264,7 +265,7 @@ export function typeName(v) {
 }
 
 /** Names that are both a type and a conversion function (int(…), isinstance(x, int)). */
-export const TYPE_NAMES = new Set(['int', 'float', 'str', 'bool', 'list', 'tuple', 'dict', 'set', 'frozenset', 'range', 'type']);
+export const TYPE_NAMES = new Set(['int', 'float', 'str', 'bool', 'list', 'tuple', 'dict', 'set', 'frozenset', 'range', 'slice', 'type']);
 
 /** Key for dictionaries (Python: 1 == 1.0 == True are the same key). */
 /**
@@ -840,7 +841,7 @@ export function binary(op, a, b) {
       case '//': { if (y === 0) throw err('zeroDivision', { op: 'floordiv' }); const r = imod(x, y); return checkInt((x - r) / y); }
       case '%': if (y === 0) throw err('zeroDivision', { op: 'mod' }); return checkInt(imod(x, y));
       case '**':
-        if (y < 0) { if (x === 0) throw err('zeroDivision', { op: 'pow' }); return new PyFloat(1 / Number(ipow(x, -y))); }
+        if (y < 0) { if (x === 0) throw err('zeroDivision', { op: 'pow' }); return new PyFloat(F.pow(x, y)); }
         return ipow(x, y);
       default: return bigBits(op, a, b);
     }
@@ -887,13 +888,14 @@ function floatOp(op, x, y, a, b) {
     case '/': if (y === 0) throw err('zeroDivision', { op: 'div', float: true }); return new PyFloat(x / y);
     case '//': if (y === 0) throw err('zeroDivision', { op: 'floordiv', float: true }); return new PyFloat(fdivmod(x, y)[0]);
     case '%': if (y === 0) throw err('zeroDivision', { op: 'mod', float: true }); return new PyFloat(fdivmod(x, y)[1]);
-    case '**':
-      if (Number.isInteger(y) && Math.abs(y) <= 1e6) {
-        if (x === 0 && y < 0) throw err('zeroDivision', { op: 'pow' });
-        return new PyFloat(fpow(x, y));
-      }
-      if (y === 0.5 && x >= 0) return new PyFloat(Math.sqrt(x));
-      throw err('powFraction', {});
+    case '**': {
+      if (x === 0 && y < 0) throw err('zeroDivision', { op: 'pow' });
+      // A negative base with a fractional exponent would be a complex number in Python
+      if (x < 0 && Number.isFinite(y) && !Number.isInteger(y)) throw err('powFraction', {});
+      const r = F.pow(x, y);
+      if (!Number.isFinite(r) && Number.isFinite(x) && Number.isFinite(y)) throw err('overflow', { what: 'float' });
+      return new PyFloat(r);
+    }
     default: throw opErr(op, a, b);
   }
 }

@@ -195,12 +195,19 @@ export class VM {
     if (c.vararg) locals[n] = new PyTuple(args.slice(n));
     const extra = c.kwarg ? new PyDict() : null;
     if (c.kwarg) locals[n + (c.vararg ? 1 : 0)] = extra;
+    const kwBase = n + (c.vararg ? 1 : 0) + (c.kwarg ? 1 : 0);
     if (kw) {
       for (const [k, v] of kw) {
         const i = c.params.indexOf(k);
         if (i < 0) {
+          const j = c.kwonly.indexOf(k);
+          if (j >= 0) {
+            if (locals[kwBase + j] !== undefined) throw new ScriptError('argDuplicate', { name: fn.name, arg: k });
+            locals[kwBase + j] = v;
+            continue;
+          }
           if (extra) { extra.set(k, v); continue; }
-          throw new ScriptError('argUnexpected', { name: fn.name, arg: k, suggestion: suggest(k, c.params) });
+          throw new ScriptError('argUnexpected', { name: fn.name, arg: k, suggestion: suggest(k, [...c.params, ...c.kwonly]) });
         }
         if (locals[i] !== undefined) throw new ScriptError('argDuplicate', { name: fn.name, arg: k });
         locals[i] = v;
@@ -211,6 +218,12 @@ export class VM {
       if (locals[i] !== undefined) continue;
       if (i >= firstDefault) locals[i] = fn.defaults[i - firstDefault];
       else throw new ScriptError('argMissing', { name: fn.name, arg: c.params[i] });
+    }
+    for (let j = 0; j < c.kwonly.length; j++) {
+      if (locals[kwBase + j] !== undefined) continue;
+      const d = fn.kwdefaults?.[j];
+      if (d === undefined) throw new ScriptError('argMissing', { name: fn.name, arg: c.kwonly[j], what: 'keyword' });
+      locals[kwBase + j] = d;
     }
     const cells = c.cellvars.map((_, j) => new Cell(c.cellParams[j] >= 0 ? locals[c.cellParams[j]] : undefined)).concat(fn.cells);
     return { code: fn.code, pc: 0, locals, stack: [], cells, fn, g: fn.g ?? this.globals };
@@ -624,8 +637,11 @@ export class VM {
           case OP.MAKE_FUNCTION: {
             const c = this.codes[arg];
             const cells = c.freevars.length ? stack.splice(stack.length - c.freevars.length) : [];
+            const nkw = c.kwMask.filter(Boolean).length;
+            const kwdef = nkw ? stack.splice(stack.length - nkw) : [];
             const defaults = c.ndefaults ? stack.splice(stack.length - c.ndefaults) : [];
             const made = new PyFunction(arg, c.name, defaults, cells);
+            if (nkw) { let k = 0; made.kwdefaults = c.kwMask.map((has) => (has ? kwdef[k++] : undefined)); }
             made.g = frame.g;
             stack.push(made);
             break;
@@ -927,6 +943,7 @@ export class VM {
       if (name === '__self__') return obj.self;
       if (name === '__func__') return obj.fn;
     }
+    if (obj instanceof PySlice && (name === 'start' || name === 'stop' || name === 'step')) return obj[name];
     if (obj instanceof PyProperty && (name === 'setter' || name === 'getter' || name === 'deleter')) return new PyPartial(new PyBuiltin(`property.${name}`), [obj]);
     if (obj instanceof PyModule) {
       if (obj.ns) {
