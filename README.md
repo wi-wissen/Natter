@@ -8,7 +8,7 @@ A small Python interpreter written in JavaScript, made for teaching in the brows
 - **Friendly errors:** English and German messages with hints, in the style of CPython 3.12.
 - **Reproducible:** optional random seed and platform-independent math.
 
-> **Status: early development.** The interpreter core (phase 0) is in `packages/core` and its tests pass. Classes, exceptions and the modules below are still to come. This README describes the goal; see the roadmap for what exists.
+> **Status: early development.** The language core (classes, exceptions, sets, generators, `with`, `input()`) and a good part of the standard library are done and compared with CPython in the tests. Turtle, kara, projects with files, Pygame Zero, forms and plots are still to come; see the roadmap.
 
 ## Used by
 
@@ -28,8 +28,8 @@ The VM is a stack machine with its own frame stack (no JavaScript recursion). It
 ## Roadmap
 
 0. Repository setup, interpreter core with its tests. **Done.**
-1. Language core: classes, exceptions, sets, generators, `input()`.
-2. Standard library and deterministic math.
+1. Language core: classes, exceptions, sets, generators, `with`, `input()`. **Done.**
+2. Standard library and deterministic math. **Mostly done:** `math`, `random`, `time`, `datetime`, `json`, `statistics`, `collections`, `itertools`, `functools`, `string`, `copy`, `sys`. Still to do: `re`, `pprint`, `textwrap`, correctly rounded `math`.
 3. `turtle` and `kara`.
 4. Projects with several files, `import`, assets.
 5. Games with the full Pygame Zero reference.
