@@ -17,7 +17,7 @@ export const KINDS = {
   unpack: 'ValueError', attr: 'AttributeError', recursion: 'RecursionError', overflow: 'OverflowError',
   assertion: 'AssertionError', powFraction: 'ValueError', mathDomain: 'ValueError',
   importUnknown: 'ModuleNotFoundError', stopIteration: 'StopIteration', internal: 'RuntimeError', host: 'RuntimeError',
-  raised: 'RuntimeError', badExcept: 'SyntaxError',
+  raised: 'RuntimeError', badExcept: 'SyntaxError', eof: 'EOFError',
 };
 
 export class ScriptError extends Error {

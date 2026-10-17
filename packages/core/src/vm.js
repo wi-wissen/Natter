@@ -14,17 +14,13 @@ import {
   PyFloat, PyList, PyTuple, PyDict, PySlice, PyFunction, PyBuiltin, PyPartial, PyBoundMethod, PyHost, PyModule,
   PySet, setInplace, PyGenerator, PyClass, PyInstance, PyMethod, PySuper, PyProperty, PyStaticMethod, PyClassMethod, OBJECT, NO_METHOD, hooks,
   Cell, binary, binaryDunder, unary, compare, truthy, makeIter, iterNext, DONE, iterItems, getItem, setItem, delItem, toStr,
-  formatValue, typeName, keyOf, pushAll, lookupClass, TYPE_NAMES,
+  formatValue, typeName, keyOf, pushAll, lookupClass, TYPE_NAMES, Suspend,
 } from './values.js';
 import { BUILTINS, CLASS_GLOBALS, METHODS, MODULES, moduleAttr } from './builtins.js';
 import { EXCEPTION_CLASSES, exceptionClassFor, isExceptionClass } from './exceptions.js';
 import { pyMessage } from './pymessages.js';
 
-/** Return value of a native: the task parks until the host resumes it. */
-export class Suspend {
-  /** @param {any} wait pure JSON, saved along (e.g. { kind: 'ticks', until: 1234 }) */
-  constructor(wait) { this.wait = wait; }
-}
+export { Suspend };
 
 /** Calls nested inside each other, as in CPython (flood fill on a 31×31 field still fits). */
 const MAX_DEPTH = 1000;
@@ -361,6 +357,26 @@ export class VM {
     return [...runs.slice(0, TRACE_HEAD), { name: '…', line: 0, skipped: runs.length - TRACE_HEAD - TRACE_TAIL }, ...runs.slice(-TRACE_TAIL)];
   }
 
+  /**
+   * An error was thrown while running `frame`: hand it to a `try` of the task, or end the task with it.
+   * @returns {boolean} a handler took it (the task goes on)
+   */
+  handleThrown(task, e0, frame) {
+    const e = this.toScriptError(e0);
+    this.annotate(task, e, frame);
+    if (!e.uncatchable && task.frames.some((f) => f.blocks?.length) && this.unwind(task, e)) return true;
+    this.finish(task, e);
+    return false;
+  }
+
+  /** Throw an error into a task that is waiting (for example EOFError for input() when there is no more input). */
+  resumeWithError(task, e) {
+    if (task.state !== 'waiting') return;
+    task.state = 'ready';
+    task.wait = null;
+    task.pendingError = e;
+  }
+
   /** Make sure a thrown value is a ScriptError (anything else is a bug of the interpreter itself). */
   toScriptError(e) {
     if (e instanceof ScriptError) return e;
@@ -480,6 +496,14 @@ export class VM {
     let stack = frame.stack;
     let used = 0;
     const debug = !sync && task.debug;
+    if (task.pendingError) {
+      const e = task.pendingError;
+      task.pendingError = null;
+      if (!this.handleThrown(task, e, frame)) return 0;
+      frame = task.frames[task.frames.length - 1];
+      code = this.codes[frame.code];
+      stack = frame.stack;
+    }
     loop: for (;;) {
       if (used >= budget) {
         if (sync) { this.fail(task, new ScriptError('tooLong', {}), frame); }
@@ -739,16 +763,10 @@ export class VM {
           default: throw new Error(`Unknown instruction ${op}`);
         }
       } catch (e0) {
-        const e = this.toScriptError(e0);
-        this.annotate(task, e, frame);
-        if (!e.uncatchable && task.frames.some((f) => f.blocks?.length) && this.unwind(task, e)) {
-          frame = task.frames[task.frames.length - 1];
-          code = this.codes[frame.code];
-          stack = frame.stack;
-          continue;
-        }
-        this.finish(task, e);
-        break;
+        if (!this.handleThrown(task, e0, frame)) break;
+        frame = task.frames[task.frames.length - 1];
+        code = this.codes[frame.code];
+        stack = frame.stack;
       }
     }
     this.steps += used;

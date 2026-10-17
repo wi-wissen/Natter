@@ -46,6 +46,7 @@ export function sourceHash(src) {
  */
 export function runToEnd(source, opts = {}) {
   let output = '';
+  const inputs = [...(opts.inputs ?? [])];
   let prog;
   try { prog = compile(source); } catch (e) {
     if (e instanceof ScriptError) return { output, error: e.toJSON(), vm: null };
@@ -53,6 +54,14 @@ export function runToEnd(source, opts = {}) {
   }
   const vm = new VM(prog, { host: { print: (t) => { output += t; } }, seed: opts.seed ?? 1 });
   const task = vm.start();
-  vm.run(task, opts.budget ?? 50_000_000);
+  let budget = opts.budget ?? 50_000_000;
+  for (;;) {
+    const r = vm.run(task, budget);
+    budget -= r.used;
+    if (r.status !== 'waiting' || task.wait?.kind !== 'input') break;
+    // input(): the next prepared line, or EOFError when there is none
+    if (inputs.length) vm.resume(task, inputs.shift());
+    else vm.resumeWithError(task, new ScriptError('eof', {}));
+  }
   return { output, error: task.state === 'error' ? task.error : task.state === 'ready' ? { code: 'err.script.tooLong', kind: 'RuntimeError', params: {}, line: vm.lineOf(task) } : null, vm };
 }

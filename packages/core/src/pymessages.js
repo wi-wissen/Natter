@@ -75,6 +75,7 @@ export function pyMessage(e) {
     case 'mathDomain': return 'math domain error';
     case 'overflow': return 'integer too large';
     case 'stopIteration': return '';
+    case 'eof': return 'EOF when reading a line';
     case 'internal': return p.message ?? 'internal error';
     case 'raised': return p.message ?? '';
     case 'type':

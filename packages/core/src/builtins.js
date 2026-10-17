@@ -10,7 +10,7 @@ import {
   PyFloat, PyList, PyTuple, PyDict, PyRange, PyBuiltin, PyIterator, PyView, PyFunction, PyPartial, PyBoundMethod,
   PyModule, PyHost, checkInt, isInt, isNum, num, typeName, truthy, eq, lt, iterItems, makeIter, iterNext, DONE, length,
   roundFloat, formatValue, binary, TYPE_NAMES, toIndex, keyOf, normBig, pow10, pushAll,
-  keyError, PyGenerator, PyUserIter, PySet, setOf, PyClass, PyInstance, PyMethod, PySuper, PyProperty, PyStaticMethod, PyClassMethod, OBJECT, NOT_IMPLEMENTED, NO_METHOD,
+  keyError, Suspend, PyGenerator, PyUserIter, PySet, setOf, PyClass, PyInstance, PyMethod, PySuper, PyProperty, PyStaticMethod, PyClassMethod, OBJECT, NOT_IMPLEMENTED, NO_METHOD,
   callDunder, lookupClass, defaultRepr, setOp,
 } from './values.js';
 
@@ -406,7 +406,12 @@ export const BUILTINS = {
     if (v === DONE) { if (args.length > 1) return def; throw err('stopIteration', {}); }
     return v;
   },
-  input() { throw err('notSupported', { feature: 'input' }); },
+  input(ctx, args, kw) {
+    const [prompt = ''] = params('input', args, kw, ['?prompt']);
+    const text = ctx.vm.str(prompt);
+    if (text) ctx.vm.print(text, ctx.task);
+    return new Suspend({ kind: 'input', prompt: text });
+  },
   set(ctx, args, kw) { const [x] = params('set', args, kw, ['?iterable']); return setOf(x === undefined ? [] : iterItems(x)); },
   frozenset(ctx, args, kw) { const [x] = params('frozenset', args, kw, ['?iterable']); return setOf(x === undefined ? [] : iterItems(x), true); },
 

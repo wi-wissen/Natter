@@ -1,0 +1,7 @@
+Name? Hello, Ada
+Age: 42
+4 ['the', 'quick', 'brown', 'fox']
+number (empty to stop): number (empty to stop): not a number: x
+number (empty to stop): number (empty to stop): total 15
+more? 
+EOF: EOF when reading a line

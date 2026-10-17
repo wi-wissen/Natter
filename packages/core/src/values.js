@@ -102,6 +102,12 @@ export function setOf(items, frozen = false) {
 /** Hooks the running VM installs so that operators on instances can call Python methods. */
 export const hooks = { vm: null, call: (fn, args) => hooks.vm.callSync(fn, args, null, hooks.vm.curTask) };
 
+/** Return value of a native: the task parks until the host resumes it with the result (see vm.js). */
+export class Suspend {
+  /** @param {any} wait plain data describing what is awaited (e.g. { kind: 'input', prompt: '> ' }) */
+  constructor(wait) { this.wait = wait; }
+}
+
 /** Marker result of a dunder method that declines the operation (NotImplemented). */
 export class PyNotImplemented {}
 export const NOT_IMPLEMENTED = new PyNotImplemented();
