@@ -86,3 +86,5 @@ export { KARA_NAMES };
 export function karaGlobals() {
   return Object.fromEntries(KARA_NAMES.map((n) => [n, new PyBuiltin(`kara.${n}`)]));
 }
+
+export { formatTraceback } from './traceback.js';
