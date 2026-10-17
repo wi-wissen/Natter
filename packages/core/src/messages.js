@@ -173,6 +173,9 @@ export const de = {
   "err.script.badExcept": "Hier stimmt etwas mit „except“ nicht.",
   "err.script.badExcept.order": "Ein „except:“ ohne Fehlerart muss der letzte Block sein.",
   "err.script.expected.exceptOrFinally": "Nach „try:“ fehlt „except“ oder „finally“ (gefunden: {got}).",
+  "err.script.value.genRunning": "Der Generator läuft schon und kann nicht noch einmal gestartet werden.",
+  "err.script.type.genSendFirst": "An einen Generator, der noch nicht gestartet ist, lässt sich nur None senden (erst next(…) aufrufen).",
+  "err.script.outsideFunction.yield": "„yield“ gehört in eine Funktion (def).",
 };
 
 export const en = {
@@ -346,4 +349,7 @@ export const en = {
   "err.script.badExcept": "Something is wrong with this “except”.",
   "err.script.badExcept.order": "An “except:” without an error type must be the last block.",
   "err.script.expected.exceptOrFinally": "After “try:” there must be “except” or “finally” (found: {got}).",
+  "err.script.value.genRunning": "The generator is already running and cannot be started again.",
+  "err.script.type.genSendFirst": "Only None can be sent to a generator that has not started yet (call next(…) first).",
+  "err.script.outsideFunction.yield": "“yield” belongs inside a function (def).",
 };

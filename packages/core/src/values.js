@@ -76,6 +76,11 @@ export class PyDict {
   entries() { return [...this.map.values()]; }
 }
 
+/** Generator: a function frame that can be resumed (see vm.js, genResume). */
+export class PyGenerator {
+  constructor(frame, fn) { this.frame = frame; this.fn = fn; this.state = 'new'; this.returned = null; }
+}
+
 /** set and frozenset: a dictionary of keys. */
 export class PySet {
   constructor(frozen = false) { this.d = new PyDict(); this.frozen = frozen; }
@@ -229,6 +234,7 @@ export function typeName(v) {
   if (v instanceof PyDict) return 'dict';
   if (v instanceof PySet) return v.frozen ? 'frozenset' : 'set';
   if (v instanceof PyRange) return 'range';
+  if (v instanceof PyGenerator) return 'generator';
   if (v instanceof PyFunction) return 'function';
   if (v instanceof PyBuiltin) return TYPE_NAMES.has(v.name) || v.name.startsWith('class:') ? 'type' : 'builtin_function_or_method';
   if (v instanceof PyPartial) return 'builtin_function_or_method';
@@ -439,6 +445,11 @@ export function contains(c, x) {
     if (step > 0 ? v < start || v >= stop : v > start || v <= stop) return false;
     return (v - start) % step === 0;
   }
+  if (c instanceof PyGenerator || c instanceof PyIterator || c instanceof PyUserIter) {
+    // looks through the values until it finds the element (the iterator is used up as far as that)
+    for (let v = iterNext(c); v !== DONE; v = iterNext(c)) if (eq(v, x)) return true;
+    return false;
+  }
   if (c instanceof PyInstance) {
     const r = callDunder(c, '__contains__', [x]);
     if (r !== NO_METHOD) return truthy(r);
@@ -483,7 +494,7 @@ export function iterItems(v) {
     if (v.kind === 'values') return v.dict.values();
     return v.dict.entries().map(([k, x]) => new PyTuple([k, x]));
   }
-  if (v instanceof PyIterator || v instanceof PyUserIter || v instanceof PyInstance) {
+  if (v instanceof PyIterator || v instanceof PyUserIter || v instanceof PyGenerator || v instanceof PyInstance) {
     const it = makeIter(v);
     const out = [];
     for (let x = iterNext(it); x !== DONE; x = iterNext(it)) { if (out.length >= MAX_ITEMS) throw err('overflow', {}); out.push(x); }
@@ -496,7 +507,7 @@ export const DONE = Symbol('done');
 
 /** Iterator for a value (for loops). */
 export function makeIter(v) {
-  if (v instanceof PyIterator || v instanceof PyUserIter) return v;
+  if (v instanceof PyIterator || v instanceof PyUserIter || v instanceof PyGenerator) return v;
   if (v instanceof PyInstance) {
     const r = callDunder(v, '__iter__');
     if (r === NO_METHOD) {
@@ -516,6 +527,7 @@ export function makeIter(v) {
 
 /** Next element or DONE. */
 export function iterNext(it) {
+  if (it instanceof PyGenerator) return hooks.vm.genResume(it, null);
   if (it instanceof PyUserIter) {
     const o = it.obj;
     if (o instanceof PyInstance) {
@@ -1008,6 +1020,7 @@ export function toStr(v, asRepr = false, hostRepr = null, seen = new Set()) {
   if (v instanceof PyClass) return v.native ? `<class '${v.name}'>` : `<class '__main__.${v.name}'>`;
   if (v instanceof PyMethod) return `<bound method ${v.fn.name} of ${toStr(v.self, true, hostRepr, seen)}>`;
   if (v instanceof PyNotImplemented) return 'NotImplemented';
+  if (v instanceof PyGenerator) return `<generator object ${v.fn.name}>`;
   if (v instanceof PySuper) return `<super: <class '${v.cls.name}'>, <${typeName(v.obj)} object>>`;
   if (v instanceof PyProperty) return '<property object>';
   if (v instanceof PyStaticMethod) return '<staticmethod object>';

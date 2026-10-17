@@ -21,7 +21,7 @@ export const OP = {
   FORMAT: 49, BUILD_STRING: 50, IMPORT: 51, IMPORT_FROM: 52, IMPORT_STAR: 53, ASSERT_FAIL: 54,
   BUILD_CLASS: 55, LOAD_NAME: 56, STORE_NAME: 57, DELETE_NAME: 58, SUPER: 59, DELETE_ATTR: 60,
   SETUP_TRY: 61, POP_BLOCK: 62, EXC_MATCH: 63, ENTER_HANDLER: 64, EXIT_HANDLER: 65, LOAD_EXC: 66, RAISE: 67, RERAISE: 68,
-  BUILD_SET: 69, SET_ADD: 70,
+  BUILD_SET: 69, SET_ADD: 70, YIELD: 71,
 };
 export const OP_NAMES = Object.fromEntries(Object.entries(OP).map(([k, v]) => [v, k]));
 
@@ -290,6 +290,15 @@ class Compiler {
           if (p.spec && typeof p.spec !== 'string') this.collectExpr(p.spec, scope, renames);
         }
         break;
+      case 'Yield': case 'YieldFrom':
+        if (scope.kind !== 'function') throw this.err('outsideFunction', { what: 'yield' }, e);
+        scope.isGenerator = true;
+        this.collectExpr(e.value, scope, renames);
+        break;
+      case 'GenExp':
+        this.collectExpr(e.firstIter, scope, renames);
+        this.collectFunction(e, scope, renames, e.body);
+        break;
       case 'ListComp': case 'DictComp': case 'SetComp': {
         // The first source is evaluated outside, the loop variables get hidden names
         const frame = new Map();
@@ -384,6 +393,7 @@ class Compiler {
       vararg: node.vararg ?? null, kwarg: node.kwarg ?? null,
       varnames: [], cellvars: [], freevars: [], cellParams: [],
       ops: [], args: [], lines: [], stmt: [], consts: [], names: [], module: isModule, line: node.line ?? 1,
+      gen: !!scope.isGenerator,
     };
     this.codes.push(code);
     if (!isModule) {
@@ -846,6 +856,27 @@ class Compiler {
         break;
       }
       case 'Lambda': this.makeFunction(e, '<lambda>', e.params, e.body); break;
+      case 'GenExp':
+        this.makeFunction(e, '<genexpr>', e.params, e.body);
+        this.expr(e.firstIter);
+        this.emit(OP.GET_ITER, 0, e);
+        this.emit(OP.CALL, 1, e);
+        break;
+      case 'Yield':
+        if (e.value) this.expr(e.value); else this.emit(OP.LOAD_CONST, this.constIdx(null), e);
+        this.emit(OP.YIELD, 0, e);
+        break;
+      case 'YieldFrom': {
+        this.expr(e.value);
+        this.emit(OP.GET_ITER, 0, e);
+        const top = this.emit(OP.FOR_ITER, 0, e);
+        this.emit(OP.YIELD, 0, e);
+        this.emit(OP.POP, 0, e);
+        this.emit(OP.JUMP, top, e);
+        this.patch(top);
+        this.emit(OP.LOAD_CONST, this.constIdx(null), e);
+        break;
+      }
       case 'JoinedStr': {
         let n = 0;
         for (const p of e.parts) {

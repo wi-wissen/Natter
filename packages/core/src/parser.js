@@ -7,7 +7,7 @@ import { ScriptError } from './errors.js';
 import { PyFloat } from './values.js';
 
 /** Language features that are (still) missing: friendly message instead of "unexpected token". */
-const UNSUPPORTED_KW = { with: 'with', yield: 'yield', async: 'async', await: 'async' };
+const UNSUPPORTED_KW = { with: 'with', async: 'async', await: 'async' };
 
 const AUG_OPS = { '+=': '+', '-=': '-', '*=': '*', '/=': '/', '//=': '//', '%=': '%', '**=': '**', '&=': '&', '|=': '|', '^=': '^', '<<=': '<<', '>>=': '>>' };
 const COMPARE_OPS = new Set(['<', '>', '==', '>=', '<=', '!=']);
@@ -176,7 +176,17 @@ class Parser {
       }
       if (UNSUPPORTED_KW[t.value]) throw this.error('notSupported', { feature: UNSUPPORTED_KW[t.value] });
     }
+    if (this.atKw('yield')) return { type: 'Expr', value: this.yieldExpr(), ...p };
     return this.exprStatement();
+  }
+
+  /** yield, yield x, yield from x (an expression: its value is what send() passes in). */
+  yieldExpr() {
+    const p = this.pos();
+    this.next();
+    if (this.accept('kw', 'from')) return { type: 'YieldFrom', value: this.test(), ...p };
+    const empty = this.at('newline') || this.at('eof') || this.atOp(';') || this.atOp(')') || this.atOp('=');
+    return { type: 'Yield', value: empty ? null : this.testListStarExpr(), ...p };
   }
 
   importName(plain = false) {
@@ -208,7 +218,7 @@ class Parser {
       const targets = [first];
       let value = null;
       while (this.accept('op', '=')) {
-        value = this.testListStarExpr();
+        value = this.atKw('yield') ? this.yieldExpr() : this.testListStarExpr();
         targets.push(value);
       }
       targets.pop();
@@ -668,6 +678,7 @@ class Parser {
     const p = this.pos();
     this.next();
     if (this.accept('op', ')')) return { type: 'Tuple', elts: [], ...p };
+    if (this.atKw('yield')) { const y = this.yieldExpr(); this.expect('op', ')'); return y; }
     const first = this.atOp('*') ? this.starOrExpr() : this.test();
     if (this.atKw('for')) {
       const g = this.comprehension('GeneratorExp', first, p);
@@ -756,8 +767,23 @@ class Parser {
       while (this.atKw('if')) { this.next(); ifs.push(this.testNoCond()); }
       generators.push({ target, iter, ifs });
     }
-    // Generator expressions are evaluated like lists (sum(x for x in …) works the same)
-    return { type: type === 'GeneratorExp' ? 'ListComp' : type, elt, generators, generator: type === 'GeneratorExp', ...p };
+    if (type === 'GeneratorExp') return this.genExp(elt, generators, p);
+    return { type, elt, generators, ...p };
+  }
+
+  /**
+   * Generator expression: like Python, a function with one parameter (the first iterable, evaluated outside)
+   * whose body loops over the sources, filters and yields the element.
+   */
+  genExp(elt, generators, p) {
+    let body = [{ type: 'Expr', value: { type: 'Yield', value: elt, ...p }, ...p }];
+    for (let i = generators.length - 1; i >= 0; i--) {
+      const g = generators[i];
+      for (let k = g.ifs.length - 1; k >= 0; k--) body = [{ type: 'If', test: g.ifs[k], body, orelse: [], ...p }];
+      const iter = i === 0 ? { type: 'Name', id: '.0', ...p } : g.iter;
+      body = [{ type: 'For', target: g.target, iter, body, orelse: [], ...p }];
+    }
+    return { type: 'GenExp', params: [{ name: '.0', default: null, ...p }], vararg: null, kwarg: null, body, firstIter: generators[0].iter, ...p };
   }
 
   /** Consecutive strings are joined ("a" "b"), f-strings split into parts. */

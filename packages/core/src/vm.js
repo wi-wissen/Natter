@@ -12,7 +12,7 @@ import { OP, BIN_OPS, UNARY_OPS, CMP_OPS } from './compiler.js';
 import { ScriptError, suggest } from './errors.js';
 import {
   PyFloat, PyList, PyTuple, PyDict, PySlice, PyFunction, PyBuiltin, PyPartial, PyBoundMethod, PyHost, PyModule,
-  PySet, setInplace, PyClass, PyInstance, PyMethod, PySuper, PyProperty, PyStaticMethod, PyClassMethod, OBJECT, NO_METHOD, hooks,
+  PySet, setInplace, PyGenerator, PyClass, PyInstance, PyMethod, PySuper, PyProperty, PyStaticMethod, PyClassMethod, OBJECT, NO_METHOD, hooks,
   Cell, binary, binaryDunder, unary, compare, truthy, makeIter, iterNext, DONE, iterItems, getItem, setItem, delItem, toStr,
   formatValue, typeName, keyOf, pushAll, lookupClass, TYPE_NAMES,
 } from './values.js';
@@ -240,14 +240,26 @@ export class VM {
       if (r instanceof Suspend) throw new ScriptError('type', { what: 'waitInSync' });
       return r;
     }
+    const task = this.syncTask(parent, pc.frame, pc.fn);
+    this.runSync(task);
+    if (task.state !== 'done') throw task.state === 'waiting' ? new ScriptError('type', { what: 'waitInSync' }) : new ScriptError('tooLong', {});
+    return task.result;
+  }
+
+  /** A task for a call made from a native (sorted(key=…), operators on instances, generators). */
+  syncTask(parent, frame, fn) {
     // The depth counts on across synchronous calls (base = frames of the calling tasks)
     const base = parent ? parent.frames.length + (parent.base ?? 0) : 0;
-    if (base >= MAX_DEPTH) throw this.recursionError(parent, pc.fn);
+    if (base >= MAX_DEPTH) throw this.recursionError(parent, fn);
+    return { id: 0, frames: [frame], state: 'ready', wait: null, result: null, error: null, debug: null, meta: parent?.meta ?? null, sync: true, parent, base };
+  }
+
+  /** Run a synchronous task until it ends or yields; an error of the task is thrown on. */
+  runSync(task) {
     if ((this.syncNesting ?? 0) >= MAX_SYNC_NESTING) throw new ScriptError('recursion', { what: 'callbacks', max: MAX_SYNC_NESTING });
     // All synchronous calls of a tick share the host's budget (syncBudget, reset by the host every tick)
     const limit = Math.min(SYNC_LIMIT, this.syncBudget);
     if (limit <= 0) throw new ScriptError('tooLong', {});
-    const task = { id: 0, frames: [pc.frame], state: 'ready', wait: null, result: null, error: null, debug: null, meta: parent?.meta ?? null, sync: true, parent, base };
     this.syncNesting = (this.syncNesting ?? 0) + 1;
     try {
       this.syncBudget -= this.execute(task, limit, true);
@@ -259,8 +271,33 @@ export class VM {
       e.inner = true;
       throw e;
     }
+  }
+
+  /**
+   * Run a generator to its next yield.
+   * @param {PyGenerator} gen @param {any} sent value of the yield expression (None for next())
+   * @returns {any|typeof DONE} the yielded value, or DONE when the generator has ended
+   */
+  genResume(gen, sent = null) {
+    if (gen.state === 'running') throw new ScriptError('value', { what: 'genRunning' });
+    if (gen.state === 'done') return DONE;
+    if (gen.state === 'new') {
+      if (sent !== null) throw new ScriptError('type', { what: 'genSendFirst' });
+    } else gen.frame.stack.push(sent);
+    const task = this.syncTask(this.curTask, gen.frame, gen.fn);
+    task.gen = gen;
+    gen.state = 'running';
+    try {
+      this.runSync(task);
+    } catch (e) {
+      gen.state = 'done';
+      throw e;
+    }
+    if (task.state === 'yielded') { gen.state = 'suspended'; return task.result; }
+    gen.state = 'done';
+    gen.returned = task.result;
     if (task.state !== 'done') throw task.state === 'waiting' ? new ScriptError('type', { what: 'waitInSync' }) : new ScriptError('tooLong', {});
-    return task.result;
+    return DONE;
   }
 
   /**
@@ -268,8 +305,8 @@ export class VM {
    * or null if the callee is a native (built-in function, host method).
    */
   prepareCall(task, fn, args, kw) {
-    if (fn instanceof PyFunction) return { frame: this.bindFrame(fn, args, kw), fn };
-    if (fn instanceof PyMethod) return { frame: this.bindFrame(fn.fn, [fn.self, ...args], kw), fn: fn.fn };
+    if (fn instanceof PyFunction) return this.callPython(fn, args, kw);
+    if (fn instanceof PyMethod) return this.callPython(fn.fn, [fn.self, ...args], kw);
     if (fn instanceof PyClass) return this.instantiate(task, fn, args, kw);
     if (fn instanceof PyInstance) {
       const call = lookupClass(fn.cls, '__call__');
@@ -279,6 +316,13 @@ export class VM {
     return null;
   }
 
+  /** Frame for a Python function; a generator function only makes the generator (the body runs on the first next()). */
+  callPython(fn, args, kw) {
+    const frame = this.bindFrame(fn, args, kw);
+    if (this.codes[fn.code].gen) return { value: new PyGenerator(frame, fn) };
+    return { frame, fn };
+  }
+
   /** Create an instance: run __init__ as a frame (its result is replaced by the instance) or native initialisers at once. */
   instantiate(task, cls, args, kw) {
     const inst = new PyInstance(cls);
@@ -286,6 +330,7 @@ export class VM {
     const init = lookupClass(cls, '__init__');
     if (init instanceof PyFunction) {
       const frame = this.bindFrame(init, [inst, ...args], kw);
+      if (this.codes[init.code].gen) throw new ScriptError('type', { what: 'initReturn', type: 'generator' });
       frame.ctor = inst;
       return { frame, fn: init };
     }
@@ -668,6 +713,7 @@ export class VM {
             frame = nf; code = this.codes[nf.code]; stack = nf.stack;
             break;
           }
+          case OP.YIELD: { task.result = stack.pop(); task.state = 'yielded'; break loop; }
           case OP.SETUP_TRY: (frame.blocks ??= []).push({ handler: arg, depth: stack.length, excs: frame.excs ? frame.excs.length : 0 }); break;
           case OP.POP_BLOCK: frame.blocks.pop(); break;
           case OP.EXC_MATCH: { const spec = stack.pop(), exc = stack.pop(); stack.push(this.excMatches(exc, spec)); break; }

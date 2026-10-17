@@ -10,7 +10,7 @@ import {
   PyFloat, PyList, PyTuple, PyDict, PyRange, PyBuiltin, PyIterator, PyView, PyFunction, PyPartial, PyBoundMethod,
   PyModule, PyHost, checkInt, isInt, isNum, num, typeName, truthy, eq, lt, iterItems, makeIter, iterNext, DONE, length,
   roundFloat, formatValue, binary, TYPE_NAMES, toIndex, keyOf, normBig, pow10, pushAll,
-  keyError, PySet, setOf, PyClass, PyInstance, PyMethod, PySuper, PyProperty, PyStaticMethod, PyClassMethod, OBJECT, NOT_IMPLEMENTED, NO_METHOD,
+  keyError, PyGenerator, PyUserIter, PySet, setOf, PyClass, PyInstance, PyMethod, PySuper, PyProperty, PyStaticMethod, PyClassMethod, OBJECT, NOT_IMPLEMENTED, NO_METHOD,
   callDunder, lookupClass, defaultRepr, setOp,
 } from './values.js';
 
@@ -398,8 +398,11 @@ export const BUILTINS = {
   iter(ctx, args, kw) { const [x] = params('iter', args, kw, ['obj']); return makeIter(x); },
   next(ctx, args, kw) {
     const [it, def] = params('next', args, kw, ['iterator', '?default']);
-    if (!(it instanceof PyIterator)) throw err('type', { what: 'notIterator', type: typeName(it) });
-    const v = iterNext(it);
+    let v;
+    if (it instanceof PyIterator || it instanceof PyGenerator || it instanceof PyUserIter) v = iterNext(it);
+    else if (it instanceof PyInstance && lookupClass(it.cls, '__next__') !== undefined) {
+      try { v = callDunder(it, '__next__'); } catch (e) { if (e instanceof ScriptError && e.kind === 'StopIteration') v = DONE; else throw e; }
+    } else throw err('type', { what: 'notIterator', type: typeName(it) });
     if (v === DONE) { if (args.length > 1) return def; throw err('stopIteration', {}); }
     return v;
   },
@@ -729,6 +732,10 @@ export const METHODS = {
       return i;
     },
     count: (c, t, a, kw) => { const [x] = params('count', a, kw, ['value']); return t.items.filter((y) => eq(y, x)).length; },
+  },
+  generator: {
+    send: (c, g, a, kw) => { const [x] = params('send', a, kw, ['value']); const v = c.vm.genResume(g, x); if (v === DONE) throw err('stopIteration', {}); return v; },
+    close: (c, g) => { g.state = 'done'; return null; },
   },
   set: {
     add: (c, st, a, kw) => { const [x] = params('add', a, kw, ['elem']); st.add(x); return null; },
