@@ -85,6 +85,7 @@ export function pyMessage(e) {
     case 'overflow': return 'integer too large';
     case 'stopIteration': return '';
     case 'eof': return 'EOF when reading a line';
+    case 'kara': return message(`err.script.kara.${p.what}`, p, 'en');
     case 'internal': return p.message ?? 'internal error';
     case 'raised': return p.message ?? '';
     case 'type':

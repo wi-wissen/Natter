@@ -3,6 +3,7 @@
 
 import { compile as compileRaw, OP, OP_NAMES } from './compiler.js';
 import { VM, Suspend } from './vm.js';
+import { PyBuiltin } from './values.js';
 import { BUILTINS, CLASS_GLOBALS, MODULES } from './builtins.js';
 import { ScriptError, suggest } from './errors.js';
 
@@ -53,7 +54,7 @@ export function runToEnd(source, opts = {}) {
     if (e instanceof ScriptError) return { output, error: e.toJSON(), vm: null };
     throw e;
   }
-  const vm = new VM(prog, { host: { print: (t) => { output += t; }, printErr: (t) => { errors += t; } }, seed: opts.seed ?? 1 });
+  const vm = new VM(prog, { globals: opts.globals, host: { print: (t) => { output += t; }, printErr: (t) => { errors += t; }, ...(opts.host ?? {}) }, seed: opts.seed ?? 1 });
   const task = vm.start();
   let budget = opts.budget ?? 50_000_000;
   for (;;) {
@@ -65,10 +66,20 @@ export function runToEnd(source, opts = {}) {
       vm.resume(task, null);
       continue;
     }
+    if (r.status === 'waiting' && task.wait?.kind === 'turtle-event') { vm.resume(task, null); continue; } // no events in a headless run: the program ends
     if (r.status !== 'waiting' || task.wait?.kind !== 'input') break;
     // input(): the next prepared line, or EOFError when there is none
     if (inputs.length) vm.resume(task, inputs.shift());
     else vm.resumeWithError(task, new ScriptError('eof', {}));
   }
   return { output, errors, error: task.state === 'error' ? task.error : task.state === 'ready' ? { code: 'err.script.tooLong', kind: 'RuntimeError', params: {}, line: vm.lineOf(task) } : null, vm };
+}
+
+/** Names of the Kara module as predefined globals (for a host that starts programs with `move()` without an import). */
+import { KARA_NAMES } from './stdlib/kara.js';
+export { KARA_NAMES };
+
+/** The Kara commands as predefined globals: pass as `globals` to VM or runToEnd. */
+export function karaGlobals() {
+  return Object.fromEntries(KARA_NAMES.map((n) => [n, new PyBuiltin(`kara.${n}`)]));
 }

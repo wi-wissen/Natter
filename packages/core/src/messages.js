@@ -193,6 +193,15 @@ export const de = {
   "err.script.value.weightsLength": "Es muss genauso viele Gewichte wie Elemente geben.",
   "err.script.value.weightsTotal": "Die Summe der Gewichte muss größer als 0 sein.",
   "err.script.jsonDecode": "Das ist kein gültiges JSON: {msg} (Zeichen {pos}).",
+  "err.script.kara.tree": "Kara hat sich den Kopf an einem Baum gestoßen.",
+  "err.script.kara.edge": "Kara ist am Rand der Wiese angekommen und kann nicht weiter.",
+  "err.script.kara.mushroom": "Der Pilz lässt sich nicht schieben, dahinter ist ein Baum, ein Pilz oder der Rand.",
+  "err.script.kara.berryThere": "Hier liegt schon eine Blaubeere.",
+  "err.script.kara.noBerry": "Hier liegt keine Blaubeere zum Aufheben.",
+  "err.script.kara.noWorld": "Es gibt noch keine Wiese. Rufe zuerst world(\"\"\"...\"\"\") auf.",
+  "err.script.kara.noKara": "In der Wiese fehlt Kara (das Zeichen @ oder +).",
+  "err.script.kara.twoKaras": "In der Wiese gibt es mehr als eine Kara.",
+  "err.script.kara.badChar": "Das Zeichen „{char}“ gibt es in der Wiese nicht (Zeile {y}, Spalte {x}).",
 };
 
 export const en = {
@@ -386,4 +395,13 @@ export const en = {
   "err.script.value.weightsLength": "There must be as many weights as elements.",
   "err.script.value.weightsTotal": "The weights must add up to more than 0.",
   "err.script.jsonDecode": "This is not valid JSON: {msg} (character {pos}).",
+  "err.script.kara.tree": "Kara bumped her head on a tree.",
+  "err.script.kara.edge": "Kara reached the edge of the meadow and cannot go further.",
+  "err.script.kara.mushroom": "The mushroom cannot be pushed: behind it is a tree, a mushroom or the edge.",
+  "err.script.kara.berryThere": "There is already a blueberry here.",
+  "err.script.kara.noBerry": "There is no blueberry here to pick up.",
+  "err.script.kara.noWorld": "There is no meadow yet. Call world(\"\"\"...\"\"\") first.",
+  "err.script.kara.noKara": "The meadow has no Kara (the character @ or +).",
+  "err.script.kara.twoKaras": "The meadow has more than one Kara.",
+  "err.script.kara.badChar": "The character “{char}” does not exist in the meadow (line {y}, column {x}).",
 };

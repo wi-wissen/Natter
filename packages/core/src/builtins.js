@@ -11,6 +11,8 @@ import { RANDOM_NATIVES, RANDOM_NAMES } from './stdlib/random.js';
 import { CLOCK_NATIVES, CLOCK_NAMES } from './stdlib/clock.js';
 import { JSON_NATIVES, JSON_NAMES } from './stdlib/json.js';
 import { RE_NATIVES, RE_NAMES } from './stdlib/re.js';
+import { TURTLE_NATIVES, TURTLE_NAMES } from './stdlib/turtle.js';
+import { KARA_NATIVES, KARA_NAMES } from './stdlib/kara.js';
 import { COPY_NATIVES, COPY_NAMES } from './stdlib/copy.js';
 import { EXCEPTION_CLASSES } from './exceptions.js';
 import {
@@ -416,6 +418,8 @@ export const BUILTINS = {
   ...CLOCK_NATIVES,
   ...JSON_NATIVES,
   ...RE_NATIVES,
+  ...TURTLE_NATIVES,
+  ...KARA_NATIVES,
   ...COPY_NATIVES,
 };
 
@@ -473,6 +477,8 @@ export const MODULES = {
   _time: CLOCK_NAMES,
   _json: JSON_NAMES,
   _re: RE_NAMES,
+  _turtle_host: TURTLE_NAMES,
+  kara: KARA_NAMES,
   _sys: ['write_err'],
   copy: COPY_NAMES,
 };

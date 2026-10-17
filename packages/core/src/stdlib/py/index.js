@@ -12,6 +12,7 @@ import datetime from './datetime.js';
 import re from './re.js';
 import textwrap from './textwrap.js';
 import pprint from './pprint.js';
+import turtle from './turtle.js';
 
 /** @type {Record<string, string>} */
-export const PYMODULES = { collections, functools, itertools, statistics, string, json, sys, time, _calendar, datetime, re, textwrap, pprint };
+export const PYMODULES = { collections, functools, itertools, statistics, string, json, sys, time, _calendar, datetime, re, textwrap, pprint, turtle };
