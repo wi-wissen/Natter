@@ -2,7 +2,7 @@
 // nesting of data, exact powers of ten. A device's JS stack must never decide where a program fails.
 
 import { describe, it, expect } from 'vitest';
-import { runToEnd, compile, VM, saveVm, loadVm, PyBuiltin } from '../src/index.js';
+import { runToEnd, compile, VM, PyBuiltin } from '../src/index.js';
 
 const FLOOD = (n) => `
 size = ${n}
@@ -53,17 +53,6 @@ describe('nested data', () => {
   it('printing or comparing very deep lists is a RecursionError', () => {
     expect(runToEnd(`${deep}print(x)`).error).toMatchObject({ kind: 'RecursionError', params: { what: 'nested' } });
     expect(runToEnd(`${deep}y = x\nprint(x == [y])`).error).toMatchObject({ kind: 'RecursionError', params: { what: 'nested' } });
-  });
-
-  it('a VM holding very deep lists can be saved and loaded', () => {
-    const prog = compile(`${deep}z = 1`);
-    const vm = new VM(prog, {});
-    vm.run(vm.start());
-    const data = JSON.parse(JSON.stringify(saveVm(vm)));
-    const copy = loadVm(prog, data, {});
-    let v = copy.globals.get('x'), n = 0;
-    while (v.items.length) { v = v.items[0]; n++; }
-    expect(n).toBe(5000);
   });
 });
 

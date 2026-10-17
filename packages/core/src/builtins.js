@@ -9,6 +9,8 @@ import {
   PyFloat, PyList, PyTuple, PyDict, PyRange, PyBuiltin, PyIterator, PyView, PyFunction, PyPartial, PyBoundMethod,
   PyModule, PyHost, checkInt, isInt, isNum, num, typeName, truthy, eq, lt, iterItems, makeIter, iterNext, DONE, length,
   roundFloat, formatValue, binary, TYPE_NAMES, toIndex, keyOf, normBig, pow10, pushAll,
+  PyClass, PyInstance, PyMethod, PySuper, PyProperty, PyStaticMethod, PyClassMethod, OBJECT, NOT_IMPLEMENTED, NO_METHOD,
+  callDunder, lookupClass, defaultRepr,
 } from './values.js';
 
 const err = (code, params) => new ScriptError(code, params);
@@ -125,11 +127,26 @@ function parseFloatStr(s) {
 /** isinstance(True, int) is true in Python. */
 function isInstance(v, t) {
   if (t instanceof PyTuple) return t.items.some((x) => isInstance(v, x));
+  if (t instanceof PyClass) return t === OBJECT || (v instanceof PyInstance && v.cls.mro.includes(t));
   if (!(t instanceof PyBuiltin)) throw err('type', { what: 'isinstanceType' });
   const name = t.name.startsWith('class:') ? t.name.slice(6) : t.name;
   const tn = typeName(v);
   return tn === name || (name === 'int' && tn === 'bool');
 }
+
+/** issubclass(a, b) for classes made in Python and for the built-in types. */
+function isSubclassOf(a, b) {
+  if (b instanceof PyTuple) return b.items.some((x) => isSubclassOf(a, x));
+  if (b === OBJECT) return a instanceof PyClass || a instanceof PyBuiltin;
+  if (a instanceof PyClass && b instanceof PyClass) return a.mro.includes(b);
+  if (a instanceof PyBuiltin && b instanceof PyBuiltin) {
+    const x = a.name.replace(/^class:/, ''), y = b.name.replace(/^class:/, '');
+    return x === y || (x === 'bool' && y === 'int');
+  }
+  return false;
+}
+
+const isTypeLike = (x) => x instanceof PyClass || (x instanceof PyBuiltin && (TYPE_NAMES.has(x.name) || x.name.startsWith('class:')));
 
 /** Iterator over a finished list (enumerate, zip, map, reversed). */
 const listIter = (items, label) => new PyIterator(new PyList(items), 0, label);
@@ -247,13 +264,85 @@ export const BUILTINS = {
   },
   type(ctx, args, kw) {
     const [x] = params('type', args, kw, ['object']);
+    if (x instanceof PyInstance) return x.cls;
     const t = typeName(x);
     return new PyBuiltin(TYPE_NAMES.has(t) ? t : `class:${t}`);
   },
   isinstance(ctx, args, kw) { const [x, t] = params('isinstance', args, kw, ['obj', 'class']); return isInstance(x, t); },
+  issubclass(ctx, args, kw) {
+    const [a, b] = params('issubclass', args, kw, ['class', 'classinfo']);
+    if (!isTypeLike(a)) throw err('type', { what: 'issubclassArg', type: typeName(a) });
+    return isSubclassOf(a, b);
+  },
+  hasattr(ctx, args, kw) {
+    const [o, n] = params('hasattr', args, kw, ['object', 'name']);
+    try { ctx.vm.getattr(ctx.task, o, needStr(n, 'name')); return true; } catch (e) { if (e instanceof ScriptError && e.short === 'attr') return false; throw e; }
+  },
+  getattr(ctx, args, kw) {
+    const [o, n, def] = params('getattr', args, kw, ['object', 'name', '?default']);
+    try { return ctx.vm.getattr(ctx.task, o, needStr(n, 'name')); } catch (e) {
+      if (e instanceof ScriptError && e.short === 'attr' && (args.length > 2 || 'default' in kw)) return def;
+      throw e;
+    }
+  },
+  setattr(ctx, args, kw) {
+    const [o, n, v] = params('setattr', args, kw, ['object', 'name', 'value']);
+    ctx.vm.setattr(ctx.task, o, needStr(n, 'name'), v);
+    return null;
+  },
+  delattr(ctx, args, kw) {
+    const [o, n] = params('delattr', args, kw, ['object', 'name']);
+    ctx.vm.delattr(ctx.task, o, needStr(n, 'name'));
+    return null;
+  },
+  super(ctx, args, kw) {
+    const [cls, obj] = params('super', args, kw, ['type', 'object']);
+    if (!(cls instanceof PyClass)) throw err('type', { what: 'superArgs', type: typeName(cls) });
+    const ok = obj instanceof PyInstance ? obj.cls.mro.includes(cls) : obj instanceof PyClass && obj.mro.includes(cls);
+    if (!ok) throw err('type', { what: 'superArgs', type: typeName(obj) });
+    return new PySuper(cls, obj);
+  },
+  property(ctx, args, kw) {
+    const [get = null, set = null, del = null] = params('property', args, kw, ['?fget', '?fset', '?fdel']);
+    return new PyProperty(get, set, del);
+  },
+  staticmethod(ctx, args, kw) { const [f] = params('staticmethod', args, kw, ['function']); return new PyStaticMethod(f); },
+  classmethod(ctx, args, kw) { const [f] = params('classmethod', args, kw, ['function']); return new PyClassMethod(f); },
+  id(ctx, args, kw) {
+    const [x] = params('id', args, kw, ['obj']);
+    if (x instanceof PyInstance) return 0x10000000 + x.id * 16;
+    return fnv(keyOfLoose(x)) + 0x20000000;
+  },
+  hash(ctx, args, kw) {
+    const [x] = params('hash', args, kw, ['obj']);
+    const k = keyOf(x);
+    if (isNum(x) && !(x instanceof PyFloat && !Number.isInteger(x.v))) return typeof num(x) === 'bigint' ? fnv(k) : num(x);
+    return fnv(k);
+  },
+  vars(ctx, args, kw) {
+    const [o] = params('vars', args, kw, ['object']);
+    if (!(o instanceof PyInstance)) throw err('type', { what: 'varsArg', type: typeName(o) });
+    const d = new PyDict();
+    for (const [k, v] of o.dict) d.set(k, v);
+    return d;
+  },
+
+  // ---------- Methods of object and helpers for properties ----------
+  'object.__init__'() { return null; },
+  'object.__repr__'(ctx, args) { return defaultRepr(args[0]); },
+  'object.__str__'(ctx, args) { return ctx.vm.repr(args[0]); },
+  'object.__eq__'(ctx, args) { return args[0] === args[1] ? true : NOT_IMPLEMENTED; },
+  'object.__ne__'(ctx, args) {
+    const r = callDunder(args[0], '__eq__', [args[1]]);
+    return r === NO_METHOD || r === NOT_IMPLEMENTED ? NOT_IMPLEMENTED : !truthy(r);
+  },
+  'property.setter'(ctx, args) { return new PyProperty(args[0].fget, args[1], args[0].fdel); },
+  'property.getter'(ctx, args) { return new PyProperty(args[1], args[0].fset, args[0].fdel); },
+  'property.deleter'(ctx, args) { return new PyProperty(args[0].fget, args[0].fset, args[1]); },
   callable(ctx, args, kw) {
     const [x] = params('callable', args, kw, ['obj']);
-    return x instanceof PyFunction || x instanceof PyPartial || x instanceof PyBoundMethod || (x instanceof PyBuiltin && !x.name.startsWith('class:'));
+    return x instanceof PyFunction || x instanceof PyPartial || x instanceof PyBoundMethod || x instanceof PyMethod || x instanceof PyClass
+      || (x instanceof PyBuiltin && !x.name.startsWith('class:')) || (x instanceof PyInstance && lookupClass(x.cls, '__call__') !== undefined);
   },
   any(ctx, args, kw) { const [it] = params('any', args, kw, ['iterable']); return iterItems(it).some(truthy); },
   all(ctx, args, kw) { const [it] = params('all', args, kw, ['iterable']); return iterItems(it).every(truthy); },
@@ -384,6 +473,18 @@ export const BUILTINS = {
   },
 };
 
+/** FNV-1a of a text as a non-negative 31-bit number (hash(), id()). */
+function fnv(text) {
+  let h = 0x811c9dc5;
+  for (let i = 0; i < text.length; i++) { h ^= text.charCodeAt(i); h = Math.imul(h, 0x01000193); }
+  return (h >>> 0) & 0x7fffffff;
+}
+
+/** Text key of any value (also unhashable ones, for id()). */
+function keyOfLoose(v) {
+  try { return keyOf(v); } catch { return `u${typeName(v)}`; }
+}
+
 /** Uniformly distributed integer 0 … n-1 without bias (rejection). */
 function randBelow(vm, n) {
   if (n <= 0) return 0;
@@ -399,6 +500,16 @@ function random53(vm) {
   const a = vm.random32() >>> 5, b = vm.random32() >>> 6;
   return (a * 67108864 + b) / 9007199254740992;
 }
+
+/** Names of classes and constants that every program knows. */
+export const CLASS_GLOBALS = { object: OBJECT, NotImplemented: NOT_IMPLEMENTED };
+
+// object's default methods (found by lookups in the class chain, so that super().__init__() and friends work)
+OBJECT.dict.set('__init__', new PyBuiltin('object.__init__'));
+OBJECT.dict.set('__repr__', new PyBuiltin('object.__repr__'));
+OBJECT.dict.set('__str__', new PyBuiltin('object.__str__'));
+OBJECT.dict.set('__eq__', new PyBuiltin('object.__eq__'));
+OBJECT.dict.set('__ne__', new PyBuiltin('object.__ne__'));
 
 export const MODULES = {
   math: ['sqrt', 'floor', 'ceil', 'trunc', 'fabs', 'hypot', 'isqrt', 'gcd', 'dist', 'pi', 'e', 'inf', 'nan', 'tau'],

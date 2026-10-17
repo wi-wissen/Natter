@@ -3,6 +3,8 @@
 // Placeholders in {braces} are filled from the error parameters (see errorText.js).
 
 export const de = {
+  "err.script.notSupported.subclassBuiltin": "Von eingebauten Typen wie list oder dict kann man (noch) keine Klasse ableiten.",
+  "err.script.notSupported.metaclass": "Metaklassen und Schlüsselwörter in der Klassendefinition gibt es nicht.",
   "err.script.unexpected": "Hier passt „{token}“ nicht hin.",
   "err.script.unclosed": "Die Klammer „{bracket}“ aus Zeile {line} wird nicht geschlossen.",
   "err.script.badChar": "Das Zeichen „{char}“ gibt es in Python nicht.",
@@ -146,10 +148,27 @@ export const de = {
   "script.token.newline": "Zeilenende",
   "script.token.eof": "Ende des Programms",
   "script.token.indent": "Einrückung",
-  "script.token.dedent": "Ende der Einrückung"
+  "script.token.dedent": "Ende der Einrückung",
+  "err.script.type.noArgsClass": "„{name}()“ nimmt keine Argumente – die Klasse hat keine __init__-Methode.",
+  "err.script.type.mroConflict": "Die Reihenfolge der Oberklassen von „{name}“ passt nicht zusammen.",
+  "err.script.type.initReturn": "__init__ darf nichts zurückgeben (außer None), nicht „{type}“.",
+  "err.script.type.boolReturn": "__bool__ muss True oder False liefern, nicht „{type}“.",
+  "err.script.type.lenReturn": "__len__ muss eine Ganzzahl liefern, nicht „{type}“.",
+  "err.script.type.hashReturn": "__hash__ muss eine Ganzzahl liefern, nicht „{type}“.",
+  "err.script.type.iterReturn": "__iter__ muss einen Iterator liefern (ein Objekt mit __next__), nicht „{type}“.",
+  "err.script.type.strReturn": "{name} muss einen Text liefern, nicht „{type}“.",
+  "err.script.type.superOutside": "super() geht nur in einer Methode einer Klasse.",
+  "err.script.type.superArgs": "super() braucht eine Klasse und ein passendes Objekt, nicht „{type}“.",
+  "err.script.type.issubclassArg": "issubclass() braucht als erstes Argument eine Klasse, nicht „{type}“.",
+  "err.script.type.varsArg": "vars() braucht ein Objekt mit Attributen, nicht „{type}“.",
+  "err.script.value.lenNegative": "__len__ darf nicht negativ sein.",
+  "err.script.attr.noSetter": "„{name}“ lässt sich nicht ändern (Eigenschaft ohne Setter).",
+  "err.script.attr.noGetter": "„{name}“ lässt sich nicht lesen (Eigenschaft ohne Getter).",
 };
 
 export const en = {
+  "err.script.notSupported.subclassBuiltin": "You cannot (yet) derive a class from built-in types like list or dict.",
+  "err.script.notSupported.metaclass": "Metaclasses and keywords in a class definition are not supported.",
   "err.script.unexpected": "“{token}” does not belong here.",
   "err.script.unclosed": "The bracket “{bracket}” from line {line} is never closed.",
   "err.script.badChar": "The character “{char}” does not exist in Python.",
@@ -293,5 +312,20 @@ export const en = {
   "script.token.newline": "end of line",
   "script.token.eof": "end of the program",
   "script.token.indent": "indentation",
-  "script.token.dedent": "end of indentation"
+  "script.token.dedent": "end of indentation",
+  "err.script.type.noArgsClass": "“{name}()” takes no arguments – the class has no __init__ method.",
+  "err.script.type.mroConflict": "The order of the base classes of “{name}” is inconsistent.",
+  "err.script.type.initReturn": "__init__ must not return anything (only None), not “{type}”.",
+  "err.script.type.boolReturn": "__bool__ must return True or False, not “{type}”.",
+  "err.script.type.lenReturn": "__len__ must return an integer, not “{type}”.",
+  "err.script.type.hashReturn": "__hash__ must return an integer, not “{type}”.",
+  "err.script.type.iterReturn": "__iter__ must return an iterator (an object with __next__), not “{type}”.",
+  "err.script.type.strReturn": "{name} must return a text, not “{type}”.",
+  "err.script.type.superOutside": "super() only works inside a method of a class.",
+  "err.script.type.superArgs": "super() needs a class and a matching object, not “{type}”.",
+  "err.script.type.issubclassArg": "issubclass() needs a class as its first argument, not “{type}”.",
+  "err.script.type.varsArg": "vars() needs an object with attributes, not “{type}”.",
+  "err.script.value.lenNegative": "__len__ must not be negative.",
+  "err.script.attr.noSetter": "“{name}” cannot be changed (property without a setter).",
+  "err.script.attr.noGetter": "“{name}” cannot be read (property without a getter).",
 };

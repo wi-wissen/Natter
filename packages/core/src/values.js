@@ -46,6 +46,91 @@ export class PyDict {
   entries() { return [...this.map.values()]; }
 }
 
+// ---------- Objects: classes and instances ----------
+
+/** Hooks the running VM installs so that operators on instances can call Python methods. */
+export const hooks = { vm: null, call: (fn, args) => hooks.vm.callSync(fn, args, null, hooks.vm.curTask) };
+
+/** Marker result of a dunder method that declines the operation (NotImplemented). */
+export class PyNotImplemented {}
+export const NOT_IMPLEMENTED = new PyNotImplemented();
+/** No such method (distinct from NotImplemented). */
+export const NO_METHOD = Symbol('no method');
+
+/**
+ * Class. `native` is null for classes made in Python and a tag ('object', 'exception') for built-in ones.
+ * `dict` holds methods and class attributes.
+ */
+export class PyClass {
+  /** @param {string} name @param {PyClass[]} bases @param {Map<string, any>} dict @param {string|null} [native] */
+  constructor(name, bases, dict, native = null) {
+    this.name = name;
+    this.bases = bases;
+    this.dict = dict;
+    this.native = native;
+    this.mro = computeMro(this);
+  }
+}
+
+/** Instance of a class made in Python (also exceptions). `id` is stable and used for hashing. */
+export class PyInstance {
+  constructor(cls) {
+    this.cls = cls;
+    /** @type {Map<string, any>} */ this.dict = new Map();
+    this.id = hooks.vm ? hooks.vm.nextObjectId++ : 0;
+  }
+}
+/** Function bound to an instance (or, for class methods, to the class). */
+export class PyMethod { constructor(self, fn) { this.self = self; this.fn = fn; } }
+/** super(): methods of the classes after `cls` in the MRO of `obj`. */
+export class PySuper { constructor(cls, obj) { this.cls = cls; this.obj = obj; } }
+export class PyProperty { constructor(fget, fset = null, fdel = null) { this.fget = fget; this.fset = fset; this.fdel = fdel; } }
+export class PyStaticMethod { constructor(fn) { this.fn = fn; } }
+export class PyClassMethod { constructor(fn) { this.fn = fn; } }
+/** Iterator over an object with __next__. */
+export class PyUserIter { constructor(obj) { this.obj = obj; } }
+
+/** Linearisation of the base classes (C3), as in Python. */
+function computeMro(cls) {
+  const seqs = [...cls.bases.map((b) => b.mro.slice()), cls.bases.slice()];
+  const out = [cls];
+  for (;;) {
+    const lists = seqs.filter((x) => x.length);
+    if (!lists.length) return out;
+    let head = null;
+    for (const l of lists) {
+      if (!lists.some((m) => m.indexOf(l[0]) > 0)) { head = l[0]; break; }
+    }
+    if (!head) throw err('type', { what: 'mroConflict', name: cls.name });
+    out.push(head);
+    for (const l of lists) if (l[0] === head) l.shift();
+  }
+}
+
+/** The root of every class. */
+export const OBJECT = new PyClass('object', [], new Map(), 'object');
+
+/** Attribute of a class or one of its bases (undefined if there is none). */
+export function lookupClass(cls, name) {
+  for (const c of cls.mro) {
+    const v = c.dict.get(name);
+    if (v !== undefined) return v;
+  }
+  return undefined;
+}
+
+export const isSubclass = (a, b) => a.mro.includes(b);
+
+/** Call a special method of an instance; NO_METHOD if its class has none. */
+export function callDunder(obj, name, args = []) {
+  const f = lookupClass(obj.cls, name);
+  if (f === undefined || f === null) return NO_METHOD;
+  return hooks.call(f, [obj, ...args]);
+}
+
+/** Does the class define this special method itself (not just the default of object)? */
+export const definesDunder = (cls, name) => cls.mro.some((c) => c !== OBJECT && c.dict.get(name) != null);
+
 // ---------- Helpers ----------
 
 export const err = (code, params) => new ScriptError(code, params);
@@ -101,6 +186,14 @@ export function typeName(v) {
   if (v instanceof PyIterator) return v.label ?? 'iterator';
   if (v instanceof PySlice) return 'slice';
   if (v instanceof Cell) return 'cell';
+  if (v instanceof PyInstance) return v.cls.name;
+  if (v instanceof PyClass) return 'type';
+  if (v instanceof PyMethod) return 'method';
+  if (v instanceof PySuper) return 'super';
+  if (v instanceof PyProperty) return 'property';
+  if (v instanceof PyStaticMethod) return 'staticmethod';
+  if (v instanceof PyClassMethod) return 'classmethod';
+  if (v instanceof PyNotImplemented) return 'NotImplementedType';
   return 'object';
 }
 
@@ -120,6 +213,15 @@ function nested(fn) {
   try { return fn(); } finally { dataDepth--; }
 }
 
+const identities = new WeakMap();
+let nextIdentity = 1;
+/** Stable number for an object (functions and classes as dictionary keys). */
+function identityOf(v) {
+  let id = identities.get(v);
+  if (id === undefined) { id = nextIdentity++; identities.set(v, id); }
+  return id;
+}
+
 export function keyOf(v) {
   if (v === null) return 'N';
   switch (typeof v) {
@@ -132,6 +234,18 @@ export function keyOf(v) {
   if (v instanceof PyTuple) return nested(() => `t(${v.items.map(keyOf).join(',')})`);
   if (v instanceof PyHost) return `h${v.cls}:${v.id}`;
   if (v instanceof PyBuiltin) return `b${v.name}`;
+  if (v instanceof PyInstance) {
+    const h = lookupClass(v.cls, '__hash__');
+    if (h === null) throw err('unhashable', { type: typeName(v) });
+    if (h !== undefined) {
+      const r = hooks.call(h, [v]);
+      if (!isInt(r)) throw err('type', { what: 'hashReturn', type: typeName(r) });
+      return `x${num(r)}`;
+    }
+    return `o${v.id}`;
+  }
+  if (v instanceof PyClass || v instanceof PyFunction) return `c${identityOf(v)}`;
+  if (v instanceof PyMethod) return `m${keyOf(v.self)}:${identityOf(v.fn)}`;
   throw err('unhashable', { type: typeName(v) });
 }
 
@@ -151,11 +265,33 @@ export function truthy(v) {
   if (v instanceof PyDict) return v.size > 0;
   if (v instanceof PyRange) return rangeLen(v) > 0;
   if (v instanceof PyView) return v.dict.size > 0;
+  if (v instanceof PyInstance) {
+    const b = callDunder(v, '__bool__');
+    if (b !== NO_METHOD) {
+      if (typeof b !== 'boolean') throw err('type', { what: 'boolReturn', type: typeName(b) });
+      return b;
+    }
+    const n = callDunder(v, '__len__');
+    if (n !== NO_METHOD) return num(n) !== 0;
+  }
   return true;
+}
+
+function instEq(a, b) {
+  if (a instanceof PyInstance) {
+    const r = callDunder(a, '__eq__', [b]);
+    if (r !== NO_METHOD && r !== NOT_IMPLEMENTED) return truthy(r);
+  }
+  if (b instanceof PyInstance) {
+    const r = callDunder(b, '__eq__', [a]);
+    if (r !== NO_METHOD && r !== NOT_IMPLEMENTED) return truthy(r);
+  }
+  return a === b;
 }
 
 export function eq(a, b) {
   if (a === b) return !(a instanceof PyFloat && Number.isNaN(a.v));
+  if (a instanceof PyInstance || b instanceof PyInstance) return instEq(a, b);
   if (isNum(a) && isNum(b)) return numEq(num(a), num(b));
   if (typeof a === 'string' || typeof b === 'string') return false;
   if (a instanceof PyList && b instanceof PyList) return nested(() => seqEq(a.items, b.items));
@@ -181,8 +317,25 @@ function seqEq(x, y) {
 }
 
 /** a < b by Python rules. */
+const CMP_DUNDER = { '<': ['__lt__', '__gt__'], '>': ['__gt__', '__lt__'], '<=': ['__le__', '__ge__'], '>=': ['__ge__', '__le__'] };
+
+/** a < b, a > b, a <= b or a >= b with special methods (the reflected one of b is tried second). */
+function richCompare(op, a, b) {
+  const [m, r] = CMP_DUNDER[op];
+  if (a instanceof PyInstance) {
+    const x = callDunder(a, m, [b]);
+    if (x !== NO_METHOD && x !== NOT_IMPLEMENTED) return truthy(x);
+  }
+  if (b instanceof PyInstance) {
+    const x = callDunder(b, r, [a]);
+    if (x !== NO_METHOD && x !== NOT_IMPLEMENTED) return truthy(x);
+  }
+  throw err('compare', { op, a: typeName(a), b: typeName(b) });
+}
+
 export function lt(a, b, op = '<') {
   if (isNum(a) && isNum(b)) return num(a) < num(b);
+  if (a instanceof PyInstance || b instanceof PyInstance) return richCompare('<', a, b);
   if (typeof a === 'string' && typeof b === 'string') return a < b;
   if ((a instanceof PyList && b instanceof PyList) || (a instanceof PyTuple && b instanceof PyTuple)) {
     const x = a.items, y = b.items;
@@ -201,9 +354,9 @@ export function compare(op, a, b) {
     case '==': return eq(a, b);
     case '!=': return !eq(a, b);
     case '<': return lt(a, b, '<');
-    case '>': return lt(b, a, '>');
-    case '<=': return isNum(a) && isNum(b) ? num(a) <= num(b) : (lt(a, b, '<=') || eq(a, b));
-    case '>=': return isNum(a) && isNum(b) ? num(a) >= num(b) : (lt(b, a, '>=') || eq(a, b));
+    case '>': return a instanceof PyInstance || b instanceof PyInstance ? richCompare('>', a, b) : lt(b, a, '>');
+    case '<=': return a instanceof PyInstance || b instanceof PyInstance ? richCompare('<=', a, b) : isNum(a) && isNum(b) ? num(a) <= num(b) : (lt(a, b, '<=') || eq(a, b));
+    case '>=': return a instanceof PyInstance || b instanceof PyInstance ? richCompare('>=', a, b) : isNum(a) && isNum(b) ? num(a) >= num(b) : (lt(b, a, '>=') || eq(a, b));
     case 'in': return contains(b, a);
     case 'not in': return !contains(b, a);
     case 'is': return a === b || (a === null && b === undefined);
@@ -228,6 +381,11 @@ export function contains(c, x) {
     const v = num(x), { start, stop, step } = c;
     if (step > 0 ? v < start || v >= stop : v > start || v <= stop) return false;
     return (v - start) % step === 0;
+  }
+  if (c instanceof PyInstance) {
+    const r = callDunder(c, '__contains__', [x]);
+    if (r !== NO_METHOD) return truthy(r);
+    return iterItems(c).some((v) => eq(v, x));
   }
   throw err('notIterable', { type: typeName(c) });
 }
@@ -267,9 +425,10 @@ export function iterItems(v) {
     if (v.kind === 'values') return v.dict.values();
     return v.dict.entries().map(([k, x]) => new PyTuple([k, x]));
   }
-  if (v instanceof PyIterator) {
+  if (v instanceof PyIterator || v instanceof PyUserIter || v instanceof PyInstance) {
+    const it = makeIter(v);
     const out = [];
-    for (let x = iterNext(v); x !== DONE; x = iterNext(v)) out.push(x);
+    for (let x = iterNext(it); x !== DONE; x = iterNext(it)) { if (out.length >= MAX_ITEMS) throw err('overflow', {}); out.push(x); }
     return out;
   }
   throw err('notIterable', { type: typeName(v) });
@@ -279,7 +438,19 @@ export const DONE = Symbol('done');
 
 /** Iterator for a value (for loops). */
 export function makeIter(v) {
-  if (v instanceof PyIterator) return v;
+  if (v instanceof PyIterator || v instanceof PyUserIter) return v;
+  if (v instanceof PyInstance) {
+    const r = callDunder(v, '__iter__');
+    if (r === NO_METHOD) {
+      if (lookupClass(v.cls, '__getitem__') !== undefined) return new PyUserIter({ seq: v, i: 0 });
+      throw err('notIterable', { type: typeName(v) });
+    }
+    if (r instanceof PyInstance) {
+      if (lookupClass(r.cls, '__next__') === undefined) throw err('type', { what: 'iterReturn', type: typeName(r) });
+      return new PyUserIter(r);
+    }
+    return makeIter(r);
+  }
   if (v instanceof PyList || v instanceof PyTuple || typeof v === 'string' || v instanceof PyRange) return new PyIterator(v, 0);
   if (v instanceof PyDict || v instanceof PyView) return new PyIterator(new PyList(iterItems(v)), 0);
   throw err('notIterable', { type: typeName(v) });
@@ -287,6 +458,14 @@ export function makeIter(v) {
 
 /** Next element or DONE. */
 export function iterNext(it) {
+  if (it instanceof PyUserIter) {
+    const o = it.obj;
+    if (o instanceof PyInstance) {
+      try { return callDunder(o, '__next__'); } catch (e) { if (e instanceof ScriptError && e.kind === 'StopIteration') return DONE; throw e; }
+    }
+    // sequence protocol: __getitem__(0), __getitem__(1) … until IndexError
+    try { const v = callDunder(o.seq, '__getitem__', [o.i]); o.i++; return v; } catch (e) { if (e instanceof ScriptError && e.kind === 'IndexError') return DONE; throw e; }
+  }
   const s = it.seq;
   if (s instanceof PyRange) {
     if (it.i >= rangeLen(s)) return DONE;
@@ -304,6 +483,14 @@ export function length(v) {
   if (v instanceof PyDict) return v.size;
   if (v instanceof PyRange) return rangeLen(v);
   if (v instanceof PyView) return v.dict.size;
+  if (v instanceof PyInstance) {
+    const n = callDunder(v, '__len__');
+    if (n !== NO_METHOD) {
+      if (!isInt(n)) throw err('type', { what: 'lenReturn', type: typeName(n) });
+      if (num(n) < 0) throw err('value', { what: 'lenNegative' });
+      return num(n);
+    }
+  }
   throw err('type', { what: 'noLen', type: typeName(v) });
 }
 
@@ -364,6 +551,10 @@ export function getItem(obj, idx) {
     }
     return obj.start + normIndex(toIndex(idx), rangeLen(obj), 'range') * obj.step;
   }
+  if (obj instanceof PyInstance) {
+    const r = callDunder(obj, '__getitem__', [idx]);
+    if (r !== NO_METHOD) return r;
+  }
   if (obj instanceof PyBuiltin || obj instanceof PyFunction) throw err('notSubscriptable', { what: 'function', type: typeName(obj), name: obj.name.replace(/^.*[.:]/, '') });
   throw err('notSubscriptable', { type: typeName(obj) });
 }
@@ -385,6 +576,7 @@ export function setItem(obj, idx, v) {
     return;
   }
   if (obj instanceof PyDict) { keyOf(idx); obj.set(idx, v); return; }
+  if (obj instanceof PyInstance && callDunder(obj, '__setitem__', [idx, v]) !== NO_METHOD) return;
   throw err('type', { what: 'noItemAssign', type: typeName(obj) });
 }
 
@@ -405,10 +597,27 @@ export function delItem(obj, idx) {
     if (!obj.delete(idx)) throw err('key', { key: repr(idx) });
     return;
   }
+  if (obj instanceof PyInstance && callDunder(obj, '__delitem__', [idx]) !== NO_METHOD) return;
   throw err('type', { what: 'noItemDelete', type: typeName(obj) });
 }
 
 // ---------- Arithmetic ----------
+
+const BIN_DUNDER = { '+': 'add', '-': 'sub', '*': 'mul', '/': 'truediv', '//': 'floordiv', '%': 'mod', '**': 'pow', '&': 'and', '|': 'or', '^': 'xor', '<<': 'lshift', '>>': 'rshift' };
+
+/** a + b with __add__ and the reflected __radd__ of b; NO_METHOD if neither exists or both decline. */
+export function binaryDunder(op, a, b, prefix = '') {
+  const n = BIN_DUNDER[op];
+  if (a instanceof PyInstance) {
+    const r = callDunder(a, `__${prefix}${n}__`, [b]);
+    if (r !== NO_METHOD && r !== NOT_IMPLEMENTED) return r;
+  }
+  if (b instanceof PyInstance && !prefix) {
+    const r = callDunder(b, `__r${n}__`, [a]);
+    if (r !== NO_METHOD && r !== NOT_IMPLEMENTED) return r;
+  }
+  return NO_METHOD;
+}
 
 const opErr = (op, a, b) => err('operand', { op, a: typeName(a), b: typeName(b), ...(a === null || b === null || a === undefined || b === undefined ? { what: 'none' } : {}) });
 
@@ -538,6 +747,10 @@ export function binary(op, a, b) {
       default: return bigBits(op, a, b);
     }
   }
+  if (a instanceof PyInstance || b instanceof PyInstance) {
+    const r = binaryDunder(op, a, b);
+    if (r !== NO_METHOD) return r;
+  }
   switch (op) {
     case '+':
       if (typeof a === 'string' && typeof b === 'string') { if (a.length + b.length > MAX_STR) throw err('overflow', {}); return a + b; }
@@ -588,6 +801,10 @@ function floatOp(op, x, y, a, b) {
 
 export function unary(op, v) {
   if (op === 'not') return !truthy(v);
+  if (v instanceof PyInstance) {
+    const r = callDunder(v, { '-': '__neg__', '+': '__pos__', '~': '__invert__' }[op]);
+    if (r !== NO_METHOD) return r;
+  }
   if (op === '-') {
     if (v instanceof PyFloat) return new PyFloat(-v.v);
     if (typeof v === 'bigint') return normBig(-v);
@@ -707,6 +924,14 @@ export function toStr(v, asRepr = false, hostRepr = null, seen = new Set()) {
     default: break;
   }
   if (v instanceof PyFloat) return formatFloat(v.v);
+  if (v instanceof PyInstance) return instStr(v, asRepr);
+  if (v instanceof PyClass) return v.native ? `<class '${v.name}'>` : `<class '__main__.${v.name}'>`;
+  if (v instanceof PyMethod) return `<bound method ${v.fn.name} of ${toStr(v.self, true, hostRepr, seen)}>`;
+  if (v instanceof PyNotImplemented) return 'NotImplemented';
+  if (v instanceof PySuper) return `<super: <class '${v.cls.name}'>, <${typeName(v.obj)} object>>`;
+  if (v instanceof PyProperty) return '<property object>';
+  if (v instanceof PyStaticMethod) return '<staticmethod object>';
+  if (v instanceof PyClassMethod) return '<classmethod object>';
   const rec = (x) => toStr(x, true, hostRepr, seen);
   if (v instanceof PyList || v instanceof PyTuple || v instanceof PyDict) {
     if (seen.has(v)) return v instanceof PyList ? '[...]' : v instanceof PyDict ? '{...}' : '(...)';
@@ -736,6 +961,22 @@ export function toStr(v, asRepr = false, hostRepr = null, seen = new Set()) {
   if (v instanceof PyIterator) return `<${v.label ?? 'iterator'} object>`;
   if (v instanceof PySlice) return `slice(${rec(v.start)}, ${rec(v.stop)}, ${rec(v.step)})`;
   return '<object>';
+}
+
+/** Default repr of an instance, like CPython without the memory address. */
+export const defaultRepr = (v) => `<__main__.${v.cls.name} object at 0x${v.id.toString(16).padStart(12, '0')}>`;
+
+/** str() or repr() of an instance: __str__ (falling back to __repr__) or __repr__. */
+function instStr(v, asRepr) {
+  const names = asRepr ? ['__repr__'] : ['__str__', '__repr__'];
+  for (const n of names) {
+    const f = lookupClass(v.cls, n);
+    if (f === undefined || f === null) continue;
+    const r = hooks.call(f, [v]);
+    if (typeof r !== 'string') throw err('type', { what: 'strReturn', name: n, type: typeName(r) });
+    return r;
+  }
+  return defaultRepr(v);
 }
 
 export const repr = (v) => toStr(v, true);

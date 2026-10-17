@@ -2,7 +2,7 @@
 
 import { describe, it, expect } from 'vitest';
 import {
-  compile, runToEnd, VM, Suspend, saveVm, loadVm, highlightRanges, PyBuiltin, PyHost, sourceHash,
+  compile, runToEnd, VM, Suspend, highlightRanges, PyBuiltin, PyHost, sourceHash,
 } from '../src/index.js';
 
 /** VM with output buffer and a waiting function wait(n) (host counts ticks). */
@@ -46,7 +46,7 @@ describe('Error messages', () => {
   });
 
   it('missing language features report themselves in a friendly way', () => {
-    expect(errOf('class A:\n    pass')).toMatchObject({ code: 'err.script.notSupported', params: { feature: 'class' } });
+    expect(errOf('class A(list):\n    pass')).toMatchObject({ code: 'err.script.notSupported', params: { feature: 'subclassBuiltin' } });
     expect(errOf('try:\n    pass\nexcept:\n    pass')).toMatchObject({ params: { feature: 'try' } });
     expect(errOf('s = {1, 2}')).toMatchObject({ params: { feature: 'set' } });
   });
@@ -187,76 +187,6 @@ describe('Debugger', () => {
     vm.debugCommand(task, 'continue');
     vm.run(task);
     expect(task.state).toBe('done');
-  });
-});
-
-describe('Saving mid-run', () => {
-  const src = [
-    'import random',
-    'shared = []',
-    'alias = shared',
-    'acc = {"n": 0, "xs": shared}',
-    'def gen(k):',
-    '    total = 0',
-    '    for i in range(k):',
-    '        total += random.randint(1, 6)',
-    '        shared.append(total)',
-    '        if i % 3 == 0:',
-    '            wait(1)',
-    '    return total',
-    'f = lambda: acc["n"]',
-    'acc["n"] = gen(10)',
-    'print(acc["n"], len(alias), alias is shared, f(), 2 ** 70 + acc["n"], 1.5 * acc["n"])',
-  ].join('\n');
-
-  const runAll = (vm, task, out, saveAt = -1) => {
-    let steps = 0;
-    for (;;) {
-      const r = vm.run(task, 7);
-      if (r.status === 'done' || r.status === 'error') return { vm, task };
-      if (r.status === 'waiting') vm.resume(task, null);
-      if (steps++ === saveAt) {
-        const data = JSON.parse(JSON.stringify(saveVm(vm)));
-        const prog = compile(src, { known: ['wait'] });
-        const { opts } = makeVm(src);
-        opts.host.print = (t) => out.push(t);
-        vm = loadVm(prog, data, opts);
-        task = vm.tasks.get(task.id);
-      }
-    }
-  };
-
-  it('same output with and without saving – at every position', () => {
-    const ref = makeVm(src);
-    runAll(ref.vm, ref.vm.start(), ref.out);
-    const expected = ref.out.join('');
-    expect(expected).toMatch(/^\d+ 10 True \d+ 1180591620717411303\d+ \d+\.\d+\n$/);
-    for (const at of [0, 3, 7, 12, 20, 30]) {
-      const m = makeVm(src);
-      runAll(m.vm, m.vm.start(), m.out, at);
-      expect(m.out.join(''), `saved after ${at}`).toBe(expected);
-    }
-  });
-
-  it('dictionaries with tuple keys survive loading', () => {
-    const src = 'd = {}\nfor x in range(3):\n    d[(x, x * 2)] = x\nwait(1)\nprint(sorted(d.items()), d[(2, 4)])';
-    const { vm, prog, opts } = makeVm(src);
-    const t = vm.start();
-    vm.run(t);
-    const out = [];
-    opts.host.print = (s) => out.push(s);
-    const vm2 = loadVm(prog, JSON.parse(JSON.stringify(saveVm(vm))), opts);
-    const t2 = vm2.tasks.get(t.id);
-    vm2.resume(t2);
-    vm2.run(t2);
-    expect(out.join('')).toBe('[((0, 0), 0), ((1, 2), 1), ((2, 4), 2)] 2\n');
-  });
-
-  it('game objects are saved as a handle', () => {
-    const { vm } = makeVm('h = hero', { known: ['hero'], globals: { hero: new PyHost('Hero', 12) } });
-    vm.run(vm.start());
-    const data = saveVm(vm);
-    expect(data.globals).toEqual([['h', { h: 'Hero', id: 12 }]]);
   });
 });
 

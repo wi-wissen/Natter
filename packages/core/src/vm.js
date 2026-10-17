@@ -12,10 +12,11 @@ import { OP, BIN_OPS, UNARY_OPS, CMP_OPS } from './compiler.js';
 import { ScriptError, suggest } from './errors.js';
 import {
   PyFloat, PyList, PyTuple, PyDict, PySlice, PyFunction, PyBuiltin, PyPartial, PyBoundMethod, PyHost, PyModule,
-  Cell, binary, unary, compare, truthy, makeIter, iterNext, DONE, iterItems, getItem, setItem, delItem, toStr,
-  formatValue, typeName, keyOf, pushAll,
+  PyClass, PyInstance, PyMethod, PySuper, PyProperty, PyStaticMethod, PyClassMethod, OBJECT, NO_METHOD, hooks,
+  Cell, binary, binaryDunder, unary, compare, truthy, makeIter, iterNext, DONE, iterItems, getItem, setItem, delItem, toStr,
+  formatValue, typeName, keyOf, pushAll, lookupClass, TYPE_NAMES,
 } from './values.js';
-import { BUILTINS, METHODS, MODULES, moduleAttr } from './builtins.js';
+import { BUILTINS, CLASS_GLOBALS, METHODS, MODULES, moduleAttr } from './builtins.js';
 
 /** Return value of a native: the task parks until the host resumes it. */
 export class Suspend {
@@ -83,6 +84,19 @@ export class VM {
     this.rng = seedRng(opts.seed ?? 1);
     /** Counted instructions (statistics, detecting infinite loops) */
     this.steps = 0;
+    /** Next number for instances (stable ids for hashing and default repr) */
+    this.nextObjectId = 1;
+    /** Task whose code is running (operators on instances call methods in its context) */
+    this.curTask = null;
+    for (const [name, cls] of Object.entries(CLASS_GLOBALS)) if (!this.predef.has(name)) this.predef.set(name, cls);
+    if (!this.predef.has('__name__')) this.predef.set('__name__', '__main__');
+  }
+
+  /** Run `fn` with this VM as the one that operators on instances call back into. */
+  active(fn) {
+    const prev = hooks.vm;
+    hooks.vm = this;
+    try { return fn(); } finally { hooks.vm = prev; }
   }
 
   // ---------- Tasks ----------
@@ -196,7 +210,7 @@ export class VM {
       else throw new ScriptError('argMissing', { name: fn.name, arg: c.params[i] });
     }
     const cells = c.cellvars.map((_, j) => new Cell(c.cellParams[j] >= 0 ? locals[c.cellParams[j]] : undefined)).concat(fn.cells);
-    return { code: fn.code, pc: 0, locals, stack: [], cells };
+    return { code: fn.code, pc: 0, locals, stack: [], cells, fn };
   }
 
   /**
@@ -217,19 +231,21 @@ export class VM {
    * Must not wait; breakpoints do not apply here.
    */
   callSync(fn, args = [], kw = null, parent = null) {
-    if (!(fn instanceof PyFunction)) {
+    const pc = this.prepareCall(parent, fn, args, kw);
+    if (pc !== null && pc.value !== undefined) return pc.value;
+    if (pc === null) {
       const r = this.callNative(parent, fn, args, kw);
       if (r instanceof Suspend) throw new ScriptError('type', { what: 'waitInSync' });
       return r;
     }
     // The depth counts on across synchronous calls (base = frames of the calling tasks)
     const base = parent ? parent.frames.length + (parent.base ?? 0) : 0;
-    if (base >= MAX_DEPTH) throw this.recursionError(parent, fn);
+    if (base >= MAX_DEPTH) throw this.recursionError(parent, pc.fn);
     if ((this.syncNesting ?? 0) >= MAX_SYNC_NESTING) throw new ScriptError('recursion', { what: 'callbacks', max: MAX_SYNC_NESTING });
     // All synchronous calls of a tick share the host's budget (syncBudget, reset by the host every tick)
     const limit = Math.min(SYNC_LIMIT, this.syncBudget);
     if (limit <= 0) throw new ScriptError('tooLong', {});
-    const task = { id: 0, frames: [this.bindFrame(fn, args, kw)], state: 'ready', wait: null, result: null, error: null, debug: null, meta: parent?.meta ?? null, sync: true, parent, base };
+    const task = { id: 0, frames: [pc.frame], state: 'ready', wait: null, result: null, error: null, debug: null, meta: parent?.meta ?? null, sync: true, parent, base };
     this.syncNesting = (this.syncNesting ?? 0) + 1;
     try {
       this.syncBudget -= this.execute(task, limit, true);
@@ -240,10 +256,45 @@ export class VM {
       const e = new ScriptError(task.error.code.replace('err.script.', ''), task.error.params, task.error);
       e.traceback = task.error.traceback;
       e.inner = true;
+      if (task.errorRaw?.pyexc) e.pyexc = task.errorRaw.pyexc;
       throw e;
     }
     if (task.state !== 'done') throw task.state === 'waiting' ? new ScriptError('type', { what: 'waitInSync' }) : new ScriptError('tooLong', {});
     return task.result;
+  }
+
+  /**
+   * Prepare a call of something made in Python: a frame to run ({ frame, fn }), a finished result ({ value })
+   * or null if the callee is a native (built-in function, host method).
+   */
+  prepareCall(task, fn, args, kw) {
+    if (fn instanceof PyFunction) return { frame: this.bindFrame(fn, args, kw), fn };
+    if (fn instanceof PyMethod) return { frame: this.bindFrame(fn.fn, [fn.self, ...args], kw), fn: fn.fn };
+    if (fn instanceof PyClass) return this.instantiate(task, fn, args, kw);
+    if (fn instanceof PyInstance) {
+      const call = lookupClass(fn.cls, '__call__');
+      if (call === undefined) throw new ScriptError('notCallable', { type: typeName(fn) });
+      return this.prepareCall(task, call, [fn, ...args], kw);
+    }
+    return null;
+  }
+
+  /** Create an instance: run __init__ as a frame (its result is replaced by the instance) or native initialisers at once. */
+  instantiate(task, cls, args, kw) {
+    const inst = new PyInstance(cls);
+    if (cls.mro.some((c) => c.native === 'exception')) inst.dict.set('args', new PyTuple(args.slice()));
+    const init = lookupClass(cls, '__init__');
+    if (init instanceof PyFunction) {
+      const frame = this.bindFrame(init, [inst, ...args], kw);
+      frame.ctor = inst;
+      return { frame, fn: init };
+    }
+    if (init instanceof PyBuiltin && init.name !== 'object.__init__') {
+      this.callNative(task, init, [inst, ...args], kw);
+      return { value: inst };
+    }
+    if (args.length || (kw && kw.length)) throw new ScriptError('type', { what: 'noArgsClass', name: cls.name });
+    return { value: inst };
   }
 
   /** RecursionError for a call that would go too deep; names the function if it calls itself. */
@@ -290,8 +341,16 @@ export class VM {
     task.wait = null;
   }
 
-  /** Main loop. @returns {number} executed instructions */
+  /** Run the main loop with this VM and task as the context of callbacks. @returns {number} executed instructions */
   execute(task, budget, sync) {
+    const prevVm = hooks.vm, prevTask = this.curTask;
+    hooks.vm = this;
+    this.curTask = task;
+    try { return this.executeLoop(task, budget, sync); } finally { hooks.vm = prevVm; this.curTask = prevTask; }
+  }
+
+  /** Main loop. @returns {number} executed instructions */
+  executeLoop(task, budget, sync) {
     let frame = task.frames[task.frames.length - 1];
     let code = this.codes[frame.code];
     let stack = frame.stack;
@@ -353,7 +412,10 @@ export class VM {
             const b = stack.pop(), a = stack.pop();
             // list += extends the same list (as in Python)
             if (a instanceof PyList && BIN_OPS[arg] === '+') { pushAll(a.items, iterItems(b)); stack.push(a); }
-            else stack.push(binary(BIN_OPS[arg], a, b));
+            else if (a instanceof PyInstance) {
+              const r = binaryDunder(BIN_OPS[arg], a, b, 'i');
+              stack.push(r !== NO_METHOD ? r : binary(BIN_OPS[arg], a, b));
+            } else stack.push(binary(BIN_OPS[arg], a, b));
             break;
           }
           case OP.UNARY: stack.push(unary(UNARY_OPS[arg], stack.pop())); break;
@@ -433,11 +495,12 @@ export class VM {
               }
             }
             const fn = stack.pop();
-            if (fn instanceof PyFunction) {
-              if (task.frames.length + (task.base ?? 0) >= MAX_DEPTH) throw this.recursionError(task, fn);
-              const nf = this.bindFrame(fn, args, kw);
-              task.frames.push(nf);
-              frame = nf; code = this.codes[nf.code]; stack = nf.stack;
+            const pc = this.prepareCall(task, fn, args, kw);
+            if (pc !== null) {
+              if (pc.value !== undefined) { stack.push(pc.value); break; }
+              if (task.frames.length + (task.base ?? 0) >= MAX_DEPTH) throw this.recursionError(task, pc.fn);
+              task.frames.push(pc.frame);
+              frame = pc.frame; code = this.codes[frame.code]; stack = frame.stack;
               break;
             }
             const r = this.callNative(task, fn, args, kw);
@@ -453,7 +516,11 @@ export class VM {
             break;
           }
           case OP.RETURN: {
-            const v = stack.pop();
+            let v = stack.pop();
+            if (frame.ctor !== undefined) {
+              if (v !== null) throw new ScriptError('type', { what: 'initReturn', type: typeName(v) });
+              v = frame.ctor;
+            } else if (frame.classInfo) v = this.buildClass(frame);
             task.frames.pop();
             if (!task.frames.length) {
               task.state = 'done';
@@ -486,6 +553,32 @@ export class VM {
           case OP.IMPORT_STAR: {
             const m = stack.pop();
             for (const n of this.moduleNames(m)) this.globals.set(n, this.getattr(task, m, n));
+            break;
+          }
+          case OP.LOAD_NAME: {
+            const n = code.names[arg];
+            stack.push(frame.ns.has(n) ? frame.ns.get(n) : this.loadGlobal(n));
+            break;
+          }
+          case OP.STORE_NAME: frame.ns.set(code.names[arg], stack.pop()); break;
+          case OP.DELETE_NAME:
+            if (!frame.ns.delete(code.names[arg])) throw new ScriptError('nameUnbound', { name: code.names[arg] });
+            break;
+          case OP.DELETE_ATTR: this.delattr(task, stack.pop(), code.names[arg]); break;
+          case OP.SUPER: {
+            const f = frame.fn;
+            if (!f || !f.cls || frame.locals[0] === undefined) throw new ScriptError('type', { what: 'superOutside' });
+            stack.push(new PySuper(f.cls, frame.locals[0]));
+            break;
+          }
+          case OP.BUILD_CLASS: {
+            const body = stack.pop(), bases = stack.pop(), name = stack.pop();
+            const nf = this.bindFrame(body, [], null);
+            nf.ns = new Map();
+            nf.classInfo = { name, bases: bases.items };
+            if (task.frames.length + (task.base ?? 0) >= MAX_DEPTH) throw this.recursionError(task, body);
+            task.frames.push(nf);
+            frame = nf; code = this.codes[nf.code]; stack = nf.stack;
             break;
           }
           case OP.ASSERT_FAIL: {
@@ -586,6 +679,15 @@ export class VM {
   }
 
   getattr(task, obj, name) {
+    if (obj instanceof PyInstance) return this.instAttr(task, obj, name);
+    if (obj instanceof PyClass) return this.classAttr(task, obj, name);
+    if (obj instanceof PySuper) return this.superAttr(task, obj, name);
+    if (obj instanceof PyMethod) {
+      if (name === '__name__') return obj.fn.name;
+      if (name === '__self__') return obj.self;
+      if (name === '__func__') return obj.fn;
+    }
+    if (obj instanceof PyProperty && (name === 'setter' || name === 'getter' || name === 'deleter')) return new PyPartial(new PyBuiltin(`property.${name}`), [obj]);
     if (obj instanceof PyModule) {
       const v = moduleAttr(obj.name, name);
       if (v !== undefined) return v;
@@ -599,6 +701,8 @@ export class VM {
       throw new ScriptError('attr', { type: obj.cls, name, suggestion: suggest(name, this.host.dir?.(obj) ?? []) });
     }
     if (obj instanceof PyFunction && name === '__name__') return obj.name;
+    if (obj instanceof PyBuiltin && name === '__name__') return obj.name.replace(/^class:/, '');
+    if (name === '__class__' && !(obj instanceof PyHost)) { const t = typeName(obj); return new PyBuiltin(TYPE_NAMES.has(t) ? t : `class:${t}`); }
     if (obj instanceof PyBuiltin && METHODS[obj.name] && Object.hasOwn(METHODS[obj.name], name)) return new PyBuiltin(`${obj.name}.${name}`);
     const t = typeName(obj);
     const table = METHODS[t];
@@ -607,13 +711,109 @@ export class VM {
     throw new ScriptError('attr', { type: t, name, suggestion: table ? suggest(name, Object.keys(table)) : null, ...(obj === null || obj === undefined ? { what: 'none' } : {}) });
   }
 
+  /** A function found in a class, seen from an instance: methods get bound, static methods are plain functions. */
+  bindAttr(task, attr, obj, cls, name = '?') {
+    if (attr instanceof PyFunction) return new PyMethod(obj, attr);
+    if (attr instanceof PyBuiltin) return new PyPartial(attr, [obj]);
+    if (attr instanceof PyStaticMethod) return attr.fn;
+    if (attr instanceof PyClassMethod) return new PyMethod(cls, attr.fn);
+    if (attr instanceof PyProperty) {
+      if (!attr.fget) throw new ScriptError('attr', { type: cls.name, name, what: 'noGetter' });
+      return this.callSync(attr.fget, [obj], null, task);
+    }
+    return attr;
+  }
+
+  instAttr(task, obj, name) {
+    const cls = obj.cls;
+    const attr = lookupClass(cls, name);
+    if (attr instanceof PyProperty) return this.bindAttr(task, attr, obj, cls, name);
+    const own = obj.dict.get(name);
+    if (own !== undefined) return own;
+    if (attr !== undefined) return this.bindAttr(task, attr, obj, cls, name);
+    if (name === '__class__') return cls;
+    if (name === '__dict__') { const d = new PyDict(); for (const [k, v] of obj.dict) d.set(k, v); return d; }
+    const ga = lookupClass(cls, '__getattr__');
+    if (ga) return this.callSync(ga, [obj, name], null, task);
+    const names = [...obj.dict.keys(), ...cls.mro.flatMap((c) => [...c.dict.keys()])].filter((n) => !n.startsWith('__'));
+    throw new ScriptError('attr', { type: cls.name, name, suggestion: suggest(name, names) });
+  }
+
+  classAttr(task, cls, name) {
+    if (name === '__name__') return cls.name;
+    if (name === '__bases__') return new PyTuple(cls.bases.slice());
+    if (name === '__mro__') return new PyTuple(cls.mro.slice());
+    const attr = lookupClass(cls, name);
+    if (attr !== undefined) {
+      if (attr instanceof PyStaticMethod) return attr.fn;
+      if (attr instanceof PyClassMethod) return new PyMethod(cls, attr.fn);
+      return attr;
+    }
+    const names = cls.mro.flatMap((c) => [...c.dict.keys()]).filter((n) => !n.startsWith('__'));
+    throw new ScriptError('attr', { type: `type object '${cls.name}'`, name, suggestion: suggest(name, names), what: 'class' });
+  }
+
+  superAttr(task, sup, name) {
+    const obj = sup.obj;
+    const start = obj instanceof PyClass ? obj : obj instanceof PyInstance ? obj.cls : null;
+    if (!start) throw new ScriptError('type', { what: 'superArgs', type: typeName(obj) });
+    const mro = start.mro;
+    for (let k = mro.indexOf(sup.cls) + 1; k < mro.length; k++) {
+      if (!mro[k].dict.has(name)) continue;
+      const attr = mro[k].dict.get(name);
+      if (obj instanceof PyInstance) return this.bindAttr(task, attr, obj, start);
+      if (attr instanceof PyClassMethod) return new PyMethod(obj, attr.fn);
+      if (attr instanceof PyStaticMethod) return attr.fn;
+      return attr;
+    }
+    throw new ScriptError('attr', { type: 'super', name });
+  }
+
+  /** Class from the finished body of a class statement. */
+  buildClass(frame) {
+    const { name, bases } = frame.classInfo;
+    for (const b of bases) if (!(b instanceof PyClass)) throw new ScriptError('notSupported', { feature: 'subclassBuiltin' });
+    const dict = new Map();
+    for (const [k, v] of frame.ns) if (!k.startsWith('.')) dict.set(k, v);
+    // As in Python: a class that compares with __eq__ but has no __hash__ is not hashable
+    if (dict.has('__eq__') && !dict.has('__hash__')) dict.set('__hash__', null);
+    const cls = new PyClass(name, bases.length ? bases : [OBJECT], dict, null);
+    // Functions remember their class (for super())
+    for (const v of dict.values()) {
+      if (v instanceof PyFunction) v.cls = cls;
+      else if (v instanceof PyStaticMethod || v instanceof PyClassMethod) { if (v.fn instanceof PyFunction) v.fn.cls = cls; }
+      else if (v instanceof PyProperty) for (const f of [v.fget, v.fset, v.fdel]) if (f instanceof PyFunction) f.cls = cls;
+    }
+    return cls;
+  }
+
+  delattr(task, obj, name) {
+    if (obj instanceof PyInstance || obj instanceof PyClass) {
+      const d = obj instanceof PyInstance ? obj.dict : obj.dict;
+      if (!d.delete(name)) throw new ScriptError('attr', { type: obj instanceof PyInstance ? obj.cls.name : `type object '${obj.name}'`, name });
+      return;
+    }
+    throw new ScriptError('attr', { type: typeName(obj), name, readonly: true });
+  }
+
   setattr(task, obj, name, v) {
+    if (obj instanceof PyInstance) {
+      const attr = lookupClass(obj.cls, name);
+      if (attr instanceof PyProperty) {
+        if (!attr.fset) throw new ScriptError('attr', { type: obj.cls.name, name, what: 'noSetter' });
+        this.callSync(attr.fset, [obj, v], null, task);
+        return;
+      }
+      obj.dict.set(name, v);
+      return;
+    }
+    if (obj instanceof PyClass) { obj.dict.set(name, v); return; }
     if (obj instanceof PyHost && this.host.setattr?.({ vm: this, task }, obj, name, v)) return;
     throw new ScriptError('attr', { type: typeName(obj), name, readonly: true });
   }
 
-  str(v) { return toStr(v, false, (h) => this.hostRepr(h)); }
-  repr(v) { return toStr(v, true, (h) => this.hostRepr(h)); }
+  str(v) { return this.active(() => toStr(v, false, (h) => this.hostRepr(h))); }
+  repr(v) { return this.active(() => toStr(v, true, (h) => this.hostRepr(h))); }
   hostRepr(h) { return this.host.repr?.(h) ?? `<${h.cls} ${h.id}>`; }
 
   /** Output of print(). */

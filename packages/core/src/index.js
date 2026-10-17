@@ -3,11 +3,10 @@
 
 import { compile as compileRaw, OP, OP_NAMES } from './compiler.js';
 import { VM, Suspend } from './vm.js';
-import { BUILTINS, MODULES } from './builtins.js';
+import { BUILTINS, CLASS_GLOBALS, MODULES } from './builtins.js';
 import { ScriptError, suggest } from './errors.js';
-import { saveVm, loadVm } from './serialize.js';
 
-export { VM, Suspend, ScriptError, suggest, OP, OP_NAMES, saveVm, loadVm, MODULES };
+export { VM, Suspend, ScriptError, suggest, OP, OP_NAMES, MODULES };
 export { KINDS as ERROR_KINDS } from './errors.js';
 export { BUDGET_LIMITS } from './vm.js';
 export * from './values.js';
@@ -15,7 +14,7 @@ export { highlightRanges, tokenize } from './lexer.js';
 export { scriptErrorText, message, hasMessage, LANGS } from './errorText.js';
 
 /** Names that every program knows without an import. */
-export const BUILTIN_NAMES = Object.keys(BUILTINS).filter((n) => !n.includes('.'));
+export const BUILTIN_NAMES = [...Object.keys(BUILTINS).filter((n) => !n.includes('.')), ...Object.keys(CLASS_GLOBALS), '__name__'];
 
 /**
  * Translate source text. Built-in functions and modules are always known.

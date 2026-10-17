@@ -19,6 +19,7 @@ export const OP = {
   UNPACK: 32, UNPACK_EX: 33, LIST_APPEND: 34, DICT_SET: 35, LIST_EXTEND: 36, LIST_TO_TUPLE: 37, LIST_PUSH: 38,
   MAKE_FUNCTION: 39, CALL: 40, CALL_KW: 41, CALL_EX: 42, RETURN: 43, POP: 44, DUP: 45, DUP2: 46, ROT2: 47, ROT3: 48,
   FORMAT: 49, BUILD_STRING: 50, IMPORT: 51, IMPORT_FROM: 52, IMPORT_STAR: 53, ASSERT_FAIL: 54,
+  BUILD_CLASS: 55, LOAD_NAME: 56, STORE_NAME: 57, DELETE_NAME: 58, SUPER: 59, DELETE_ATTR: 60,
 };
 export const OP_NAMES = Object.fromEntries(Object.entries(OP).map(([k, v]) => [v, k]));
 
@@ -65,7 +66,7 @@ export function compile(source, opts = {}) {
 
 class Scope {
   constructor(kind, node, parent) {
-    this.kind = kind;            // 'module' | 'function'
+    this.kind = kind;            // 'module' | 'function' | 'class'
     this.node = node;
     this.parent = parent;
     this.params = [];
@@ -166,6 +167,19 @@ class Compiler {
         st.nameNode = nameNode;
         scope.uses.push(nameNode);
         this.collectFunction(st, scope, renames, st.body);
+        break;
+      }
+      case 'ClassDef': {
+        for (const d of st.decorators) this.collectExpr(d, scope, renames);
+        for (const b of st.bases) this.collectExpr(b, scope, renames);
+        scope.assigned.add(st.name);
+        const nameNode = { type: 'Name', id: st.name, line: st.line, col: st.col };
+        st.nameNode = nameNode;
+        scope.uses.push(nameNode);
+        const cs = new Scope('class', st, scope);
+        st.scope = cs;
+        (scope.children ??= []).push(cs);
+        this.collectBody(st.body, cs, renames);
         break;
       }
       case 'Return': if (st.value) this.collectExpr(st.value, scope, renames); break;
@@ -292,16 +306,20 @@ class Compiler {
   resolveName(node, scope) {
     const name = node.id;
     if (scope.kind === 'module' || scope.globals.has(name)) return { kind: 'global' };
+    // Names assigned in a class body live in the class namespace
+    if (scope.kind === 'class' && scope.assigned.has(name)) return { kind: 'name' };
     if (scope.locals.has(name)) return { kind: 'local', scope };
-    // Free: search in enclosing functions
+    // Free: search in enclosing functions (class bodies are skipped for lookup but pass the variable on)
     const chain = [scope];
-    for (let s = scope.parent; s && s.kind === 'function'; s = s.parent) {
-      if (s.locals.has(name)) {
-        s.cells.add(name);
-        for (const c of chain) c.frees.add(name);
-        return { kind: 'free', scope };
+    for (let s = scope.parent; s && s.kind !== 'module'; s = s.parent) {
+      if (s.kind === 'function') {
+        if (s.locals.has(name)) {
+          s.cells.add(name);
+          for (const c of chain) c.frees.add(name);
+          return { kind: 'free', scope };
+        }
+        if (s.globals.has(name)) break;
       }
-      if (s.globals.has(name)) break;
       chain.push(s);
     }
     if (scope.nonlocals.has(name)) throw this.err('nonlocalMissing', { name }, node);
@@ -488,8 +506,22 @@ class Compiler {
         this.storeName(s.nameNode);
         break;
       }
+      case 'ClassDef': {
+        for (const d of s.decorators) this.expr(d);
+        this.emit(OP.LOAD_CONST, this.constIdx(s.name), s);
+        for (const b of s.bases) this.expr(b);
+        this.emit(OP.BUILD_TUPLE, s.bases.length, s);
+        const idx = this.compileCode(s, s.scope, s.name, []);
+        this.codes[idx].classBody = true;
+        for (const f of this.codes[idx].freevars) this.emit(OP.LOAD_CLOSURE, this.cellIndex(f), s);
+        this.emit(OP.MAKE_FUNCTION, idx, s);
+        this.emit(OP.BUILD_CLASS, 0, s);
+        for (let i = 0; i < s.decorators.length; i++) this.emit(OP.CALL, 1, s);
+        this.storeName(s.nameNode);
+        break;
+      }
       case 'Return':
-        if (this.code.module) throw this.err('outsideFunction', { what: 'return' }, s);
+        if (this.code.module || this.code.classBody) throw this.err('outsideFunction', { what: 'return' }, s);
         if (s.value) this.expr(s.value); else this.emit(OP.LOAD_CONST, this.constIdx(null), s);
         this.emit(OP.RETURN, 0, s);
         break;
@@ -575,6 +607,7 @@ class Compiler {
   /** How is a name addressed in the current code? */
   access(node) {
     const ref = node.ref;
+    if (ref && ref.kind === 'name') return ['n', this.nameIdx(node.id)];
     if (!ref || ref.kind === 'global' || this.code.module) return ['g', this.nameIdx(node.id)];
     const c = this.code;
     if (c.cellvars.includes(node.id) || c.freevars.includes(node.id)) return ['d', this.cellIndex(node.id)];
@@ -583,12 +616,12 @@ class Compiler {
 
   loadName(node) {
     const [k, i] = this.access(node);
-    this.emit(k === 'g' ? OP.LOAD_GLOBAL : k === 'd' ? OP.LOAD_DEREF : OP.LOAD_FAST, i, node);
+    this.emit(k === 'g' ? OP.LOAD_GLOBAL : k === 'd' ? OP.LOAD_DEREF : k === 'n' ? OP.LOAD_NAME : OP.LOAD_FAST, i, node);
   }
 
   storeName(node) {
     const [k, i] = this.access(node);
-    this.emit(k === 'g' ? OP.STORE_GLOBAL : k === 'd' ? OP.STORE_DEREF : OP.STORE_FAST, i, node);
+    this.emit(k === 'g' ? OP.STORE_GLOBAL : k === 'd' ? OP.STORE_DEREF : k === 'n' ? OP.STORE_NAME : OP.STORE_FAST, i, node);
   }
 
   store(t) {
@@ -611,10 +644,11 @@ class Compiler {
     switch (t.type) {
       case 'Name': {
         const [k, i] = this.access(t);
-        this.emit(k === 'g' ? OP.DELETE_GLOBAL : k === 'd' ? OP.DELETE_DEREF : OP.DELETE_FAST, i, t);
+        this.emit(k === 'g' ? OP.DELETE_GLOBAL : k === 'd' ? OP.DELETE_DEREF : k === 'n' ? OP.DELETE_NAME : OP.DELETE_FAST, i, t);
         break;
       }
       case 'Subscript': this.expr(t.value); this.expr(t.index); this.emit(OP.DELETE_INDEX, 0, t); break;
+      case 'Attribute': this.expr(t.value); this.emit(OP.DELETE_ATTR, this.nameIdx(t.attr), t); break;
       case 'Tuple': case 'List': for (const e of t.elts) this.del(e); break;
       default: throw this.err('badAssign', { what: 'del' }, t);
     }
@@ -718,6 +752,11 @@ class Compiler {
   }
 
   call(e) {
+    // super() without arguments: the class of the running method and its first argument
+    if (e.func.type === 'Name' && e.func.id === 'super' && !e.args.length && !e.keywords.length && !this.code.module && !this.code.classBody) {
+      this.emit(OP.SUPER, 0, e);
+      return;
+    }
     this.expr(e.func);
     const starred = e.args.some((a) => a.type === 'Starred') || e.keywords.some((k) => k.name === null);
     if (starred) {

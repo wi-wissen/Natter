@@ -7,7 +7,7 @@ import { ScriptError } from './errors.js';
 import { PyFloat } from './values.js';
 
 /** Language features that are (still) missing: friendly message instead of "unexpected token". */
-const UNSUPPORTED_KW = { class: 'class', try: 'try', except: 'try', finally: 'try', raise: 'raise', with: 'with', yield: 'yield', async: 'async', await: 'async' };
+const UNSUPPORTED_KW = { try: 'try', except: 'try', finally: 'try', raise: 'raise', with: 'with', yield: 'yield', async: 'async', await: 'async' };
 
 const AUG_OPS = { '+=': '+', '-=': '-', '*=': '*', '/=': '/', '//=': '//', '%=': '%', '**=': '**', '&=': '&', '|=': '|', '^=': '^', '<<=': '<<', '>>=': '>>' };
 const COMPARE_OPS = new Set(['<', '>', '==', '>=', '<=', '!=']);
@@ -96,6 +96,7 @@ class Parser {
         case 'while': return [this.whileStmt()];
         case 'for': return [this.forStmt()];
         case 'def': return [this.funcDef([])];
+        case 'class': return [this.classDef([])];
         default: break;
       }
       if (UNSUPPORTED_KW[t.value]) throw this.error('notSupported', { feature: UNSUPPORTED_KW[t.value] });
@@ -306,11 +307,27 @@ class Parser {
       decorators.push(this.namedTest());
       this.expect('newline');
     }
-    if (!this.atKw('def')) {
-      if (this.atKw('class')) throw this.error('notSupported', { feature: 'class' });
-      throw this.error('expected', { what: 'def', got: this.tokText(this.tok) });
-    }
+    if (this.atKw('class')) return this.classDef(decorators);
+    if (!this.atKw('def')) throw this.error('expected', { what: 'def', got: this.tokText(this.tok) });
     return this.funcDef(decorators);
+  }
+
+  classDef(decorators) {
+    const p = this.pos();
+    this.next();
+    const name = this.expect('name', undefined, 'name').value;
+    const bases = [];
+    if (this.accept('op', '(')) {
+      while (!this.atOp(')')) {
+        if (this.at('name') && this.peek().type === 'op' && this.peek().value === '=') throw this.error('notSupported', { feature: 'metaclass' });
+        if (this.atOp('*') || this.atOp('**')) throw this.error('notSupported', { feature: 'metaclass' });
+        bases.push(this.test());
+        if (!this.accept('op', ',')) break;
+      }
+      this.expect('op', ')');
+    }
+    const body = this.block();
+    return { type: 'ClassDef', name, bases, body, decorators, ...p };
   }
 
   funcDef(decorators) {
