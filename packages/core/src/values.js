@@ -28,7 +28,8 @@ export class PyPartial { constructor(fn, args = [], kwargs = []) { this.fn = fn;
 export class PyBoundMethod { constructor(self, name) { this.self = self; this.name = name; } }
 /** Host object (turtle, widget …): only a handle, the data lives in the host. */
 export class PyHost { constructor(cls, id) { this.cls = cls; this.id = id; } }
-export class PyModule { constructor(name) { this.name = name; } }
+/** Module. `ns` is the namespace of a module written in Python; native modules keep their names in builtins.js. */
+export class PyModule { constructor(name, ns = null) { this.name = name; this.ns = ns; } }
 /** View of a dictionary: keys(), values(), items(). */
 export class PyView { constructor(dict, kind) { this.dict = dict; this.kind = kind; } }
 /** Iterator over a sequence (list, tuple, text, range). */

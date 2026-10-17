@@ -177,6 +177,7 @@ export const de = {
   "err.script.type.genSendFirst": "An einen Generator, der noch nicht gestartet ist, lässt sich nur None senden (erst next(…) aufrufen).",
   "err.script.outsideFunction.yield": "„yield“ gehört in eine Funktion (def).",
   "err.script.type.noContext": "„{type}“ lässt sich nicht mit „with“ benutzen (es braucht __enter__ und __exit__).",
+  "err.script.nameUnbound.import": "„{name}“ ist ein Modul. Fehlt oben „import {name}“?",
 };
 
 export const en = {
@@ -354,4 +355,5 @@ export const en = {
   "err.script.type.genSendFirst": "Only None can be sent to a generator that has not started yet (call next(…) first).",
   "err.script.outsideFunction.yield": "“yield” belongs inside a function (def).",
   "err.script.type.noContext": "“{type}” cannot be used with “with” (it needs __enter__ and __exit__).",
+  "err.script.nameUnbound.import": "“{name}” is a module. Is “import {name}” missing at the top?",
 };

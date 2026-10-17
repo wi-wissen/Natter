@@ -59,6 +59,7 @@ export const CMP_OPS = ['==', '!=', '<', '>', '<=', '>=', 'in', 'not in', 'is', 
  *   removed: names that no longer exist → parameters of their NameError (what to write instead);
  *   modules: modules for import/from … import * with their names;
  *   strictNames: unknown names are errors at compile time (default: warnings, error when the line runs);
+ *   codeBase: number of the first code object (modules compiled later);
  * @returns {Program}
  */
 export function compile(source, opts = {}) {
@@ -91,6 +92,8 @@ class Compiler {
     this.modules = opts.modules ?? {};
     this.removed = opts.removed ?? {};
     this.strictNames = !!opts.strictNames;
+    /** Number of the first code object: modules compiled later continue after the codes already in the VM */
+    this.codeBase = opts.codeBase ?? 0;
     /** Problems that are no errors yet (unknown names: Python only fails when the line runs) */
     this.warnings = [];
     /** @type {Code[]} */
@@ -119,7 +122,7 @@ class Compiler {
     if (this.starImports) for (const n of this.starImports) this.globalNames.add(n);
     this.checkUnknown(mod);
     this.compileCode(tree, mod, '<module>', [], true);
-    return { codes: this.codes, source: this.source, globals: [...this.globalNames], warnings: this.warnings, removed: this.removed };
+    return { codes: this.codes, source: this.source, globals: [...this.globalNames], warnings: this.warnings, removed: this.removed, base: this.codeBase };
   }
 
   /** @param {any[]} renames stack of renamings (loop variables in comprehensions) */
@@ -390,7 +393,7 @@ class Compiler {
    * @param {Scope} scope
    */
   compileCode(node, scope, name, params, isModule = false) {
-    const idx = this.codes.length;
+    const idx = this.codeBase + this.codes.length;
     /** @type {Code} */
     const code = {
       name, params: params.map((p) => p.name), ndefaults: params.filter((p) => p.default).length,
@@ -566,8 +569,8 @@ class Compiler {
         for (const b of s.bases) this.expr(b);
         this.emit(OP.BUILD_TUPLE, s.bases.length, s);
         const idx = this.compileCode(s, s.scope, s.name, []);
-        this.codes[idx].classBody = true;
-        for (const f of this.codes[idx].freevars) this.emit(OP.LOAD_CLOSURE, this.cellIndex(f), s);
+        this.codes[idx - this.codeBase].classBody = true;
+        for (const f of this.codes[idx - this.codeBase].freevars) this.emit(OP.LOAD_CLOSURE, this.cellIndex(f), s);
         this.emit(OP.MAKE_FUNCTION, idx, s);
         this.emit(OP.BUILD_CLASS, 0, s);
         for (let i = 0; i < s.decorators.length; i++) this.emit(OP.CALL, 1, s);
@@ -745,7 +748,7 @@ class Compiler {
   makeFunction(node, name, params, body) {
     for (const p of params) if (p.default) this.expr(p.default);
     const idx = this.compileCode(node, node.scope, name, params);
-    const inner = this.codes[idx];
+    const inner = this.codes[idx - this.codeBase];
     for (const f of inner.freevars) this.emit(OP.LOAD_CLOSURE, this.cellIndex(f), node);
     this.emit(OP.MAKE_FUNCTION, idx, node);
     return idx;

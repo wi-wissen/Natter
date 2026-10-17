@@ -28,6 +28,7 @@ export function compile(source, opts = {}) {
     modules: { ...MODULES, ...(opts.modules ?? {}) },
     removed: opts.removed,
     strictNames: opts.strictNames,
+    codeBase: opts.codeBase,
   });
 }
 

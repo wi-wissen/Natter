@@ -19,6 +19,8 @@ import {
 import { BUILTINS, CLASS_GLOBALS, METHODS, MODULES, moduleAttr } from './builtins.js';
 import { EXCEPTION_CLASSES, exceptionClassFor, isExceptionClass } from './exceptions.js';
 import { pyMessage } from './pymessages.js';
+import { PYMODULES } from './stdlibPy.js';
+import { compile as compileRaw } from './compiler.js';
 
 export { Suspend };
 
@@ -64,7 +66,10 @@ export class VM {
    */
   constructor(program, opts = {}) {
     this.program = program;
-    this.codes = program.codes;
+    /** All code objects: the program first, modules loaded later after it */
+    this.codes = program.codes.slice();
+    /** @type {Map<string, PyModule>} modules imported so far */
+    this.moduleCache = new Map();
     this.host = opts.host ?? {};
     this.natives = { ...BUILTINS, ...(opts.natives ?? {}) };
     /** Predefined names (not saved – come back from the host API on loading) */
@@ -172,9 +177,9 @@ export class VM {
 
   // ---------- Execution ----------
 
-  newFrame(codeIdx, cells) {
+  newFrame(codeIdx, cells, g = this.globals) {
     const c = this.codes[codeIdx];
-    return { code: codeIdx, pc: 0, locals: new Array(c.varnames.length).fill(undefined), stack: [], cells };
+    return { code: codeIdx, pc: 0, locals: new Array(c.varnames.length).fill(undefined), stack: [], cells, g };
   }
 
   /**
@@ -208,7 +213,7 @@ export class VM {
       else throw new ScriptError('argMissing', { name: fn.name, arg: c.params[i] });
     }
     const cells = c.cellvars.map((_, j) => new Cell(c.cellParams[j] >= 0 ? locals[c.cellParams[j]] : undefined)).concat(fn.cells);
-    return { code: fn.code, pc: 0, locals, stack: [], cells, fn };
+    return { code: fn.code, pc: 0, locals, stack: [], cells, fn, g: fn.g ?? this.globals };
   }
 
   /**
@@ -532,10 +537,10 @@ export class VM {
             if (frame.locals[arg] === undefined) throw new ScriptError('localUnbound', { name: code.varnames[arg] });
             frame.locals[arg] = undefined;
             break;
-          case OP.LOAD_GLOBAL: stack.push(this.loadGlobal(code.names[arg])); break;
-          case OP.STORE_GLOBAL: this.globals.set(code.names[arg], stack.pop()); break;
+          case OP.LOAD_GLOBAL: stack.push(this.loadGlobal(code.names[arg], frame.g)); break;
+          case OP.STORE_GLOBAL: frame.g.set(code.names[arg], stack.pop()); break;
           case OP.DELETE_GLOBAL:
-            if (!this.globals.delete(code.names[arg])) throw new ScriptError('nameUnbound', { name: code.names[arg] });
+            if (!frame.g.delete(code.names[arg])) throw new ScriptError('nameUnbound', { name: code.names[arg] });
             break;
           case OP.LOAD_DEREF: {
             const v = frame.cells[arg].v;
@@ -620,7 +625,9 @@ export class VM {
             const c = this.codes[arg];
             const cells = c.freevars.length ? stack.splice(stack.length - c.freevars.length) : [];
             const defaults = c.ndefaults ? stack.splice(stack.length - c.ndefaults) : [];
-            stack.push(new PyFunction(arg, c.name, defaults, cells));
+            const made = new PyFunction(arg, c.name, defaults, cells);
+            made.g = frame.g;
+            stack.push(made);
             break;
           }
           case OP.CALL: case OP.CALL_KW: case OP.CALL_EX: {
@@ -704,16 +711,16 @@ export class VM {
             break;
           }
           case OP.BUILD_STRING: stack.push(stack.splice(stack.length - arg).join('')); break;
-          case OP.IMPORT: stack.push(this.importModule(code.names[arg])); break;
+          case OP.IMPORT: stack.push(this.importModule(code.names[arg], task)); break;
           case OP.IMPORT_FROM: stack.push(this.getattr(task, stack[stack.length - 1], code.names[arg])); break;
           case OP.IMPORT_STAR: {
             const m = stack.pop();
-            for (const n of this.moduleNames(m)) this.globals.set(n, this.getattr(task, m, n));
+            for (const n of this.moduleNames(m)) frame.g.set(n, this.getattr(task, m, n));
             break;
           }
           case OP.LOAD_NAME: {
             const n = code.names[arg];
-            stack.push(frame.ns.has(n) ? frame.ns.get(n) : this.loadGlobal(n));
+            stack.push(frame.ns.has(n) ? frame.ns.get(n) : this.loadGlobal(n, frame.g));
             break;
           }
           case OP.STORE_NAME: frame.ns.set(code.names[arg], stack.pop()); break;
@@ -817,27 +824,55 @@ export class VM {
     return i < code.cellvars.length ? code.cellvars[i] : code.freevars[i - code.cellvars.length];
   }
 
-  loadGlobal(name) {
-    const v = this.globals.get(name);
+  /** Value of a global name: the module's own names, then the host's, then the built-in functions and classes. */
+  loadGlobal(name, g = this.globals) {
+    const v = g.get(name);
     if (v !== undefined) return v;
     const d = this.dynamic.get(name);
     if (d) return d() ?? null;
     const p = this.predef.get(name);
     if (p !== undefined) return p;
-    if (MODULES[name]) return new PyModule(name);
     const removed = this.program.removed?.[name];
     // true/false/none: Python writes them with a capital letter
     const constant = { true: 'True', false: 'False', none: 'None', null: 'None' }[name.toLowerCase()];
-    throw new ScriptError('nameUnbound', { name, ...(removed ?? {}), suggestion: removed?.suggestion ?? constant ?? suggest(name, [...this.globals.keys(), ...this.dynamic.keys(), ...this.predef.keys()]) });
+    const isModule = MODULES[name] || PYMODULES[name] || this.host.modules?.[name];
+    throw new ScriptError('nameUnbound', { name, ...(isModule ? { what: 'import' } : {}), ...(removed ?? {}), suggestion: removed?.suggestion ?? constant ?? suggest(name, [...g.keys(), ...this.dynamic.keys(), ...this.predef.keys()]) });
   }
 
-  importModule(name) {
-    if (MODULES[name] || this.host.modules?.[name]) return new PyModule(name);
-    throw new ScriptError('importUnknown', { name });
+  /** `import name`: a built-in module, a standard module written in Python, or a source the host provides. */
+  importModule(name, task) {
+    const cached = this.moduleCache.get(name);
+    if (cached) return cached;
+    if (MODULES[name] || this.host.modules?.[name]) {
+      const m = new PyModule(name);
+      this.moduleCache.set(name, m);
+      return m;
+    }
+    const src = PYMODULES[name] ?? this.host.readModule?.(name);
+    if (src === undefined || src === null) throw new ScriptError('importUnknown', { name });
+    return this.loadModule(name, src, task);
+  }
+
+  /** Compile a module and run its code in a namespace of its own (the module object is cached before it runs). */
+  loadModule(name, src, task) {
+    const prog = compileRaw(src, { known: [...this.predef.keys(), ...Object.keys(CLASS_GLOBALS)], modules: MODULES, codeBase: this.codes.length });
+    this.codes.push(...prog.codes);
+    const ns = new Map([['__name__', name]]);
+    const mod = new PyModule(name, ns);
+    this.moduleCache.set(name, mod);
+    const frame = this.newFrame(prog.base, [], ns);
+    try {
+      this.runSync(this.syncTask(task ?? this.curTask, frame, { code: prog.base }));
+    } catch (e) {
+      this.moduleCache.delete(name);
+      throw e;
+    }
+    return mod;
   }
 
   moduleNames(m) {
     if (!(m instanceof PyModule)) return [];
+    if (m.ns) return [...m.ns.keys()].filter((k) => !k.startsWith('_'));
     return MODULES[m.name] ?? this.host.modules?.[m.name] ?? [];
   }
 
@@ -894,6 +929,11 @@ export class VM {
     }
     if (obj instanceof PyProperty && (name === 'setter' || name === 'getter' || name === 'deleter')) return new PyPartial(new PyBuiltin(`property.${name}`), [obj]);
     if (obj instanceof PyModule) {
+      if (obj.ns) {
+        const nv = obj.ns.get(name);
+        if (nv !== undefined) return nv;
+        throw new ScriptError('attr', { type: `module '${obj.name}'`, name, suggestion: suggest(name, this.moduleNames(obj)) });
+      }
       const v = moduleAttr(obj.name, name);
       if (v !== undefined) return v;
       const hv = this.host.moduleAttr?.(obj.name, name);
@@ -1013,6 +1053,7 @@ export class VM {
       return;
     }
     if (obj instanceof PyClass) { obj.dict.set(name, v); return; }
+    if (obj instanceof PyModule && obj.ns) { obj.ns.set(name, v); return; }
     if (obj instanceof PyHost && this.host.setattr?.({ vm: this, task }, obj, name, v)) return;
     throw new ScriptError('attr', { type: typeName(obj), name, readonly: true });
   }
