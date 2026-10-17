@@ -30,7 +30,7 @@ The VM is a stack machine with its own frame stack (no JavaScript recursion). It
 0. Repository setup, interpreter core with its tests. **Done.**
 1. Language core: classes, exceptions, sets, generators, `with`, `input()`. **Done.**
 2. Standard library and deterministic math. **Done:** `math`, `random`, `time`, `datetime`, `json`, `statistics`, `collections`, `itertools`, `functools`, `string`, `copy`, `sys`. `re`, `pprint`, `textwrap` and correctly rounded `math` are in, too.
-3. `turtle` and `kara`.
+3. `turtle` and `kara`. **Engines done** (movement, commands, errors, tests against CPython; see `docs/HOST-TURTLE-KARA.md`). The drawing surface comes with the browser host.
 4. Projects with several files, `import`, assets.
 5. Games with the full Pygame Zero reference.
 6. Forms with the `guizero` API (a subset), grid layout.
