@@ -2,7 +2,7 @@
 
 A small Python interpreter written in JavaScript, made for teaching in the browser.
 
-- **Small:** the core is about 40 KB gzipped (126 KB minified), including error messages in two languages.
+- **Small:** the core is about 76 KB gzipped (260 KB minified) with the standard library, including error messages in two languages.
 - **Never freezes:** programs run in slices with an instruction budget, so an endless loop stops instead of blocking the page.
 - **Debugger built in:** breakpoints, step into/over/out, variables and call stack.
 - **Friendly errors:** English and German messages with hints, in the style of CPython 3.12.
