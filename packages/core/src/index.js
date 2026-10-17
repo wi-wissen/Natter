@@ -67,6 +67,7 @@ export function runToEnd(source, opts = {}) {
       continue;
     }
     if (r.status === 'waiting' && task.wait?.kind === 'turtle-event') { vm.resume(task, null); continue; } // no events in a headless run: the program ends
+    if (r.status === 'waiting' && (task.wait?.kind === 'forms-event' || task.wait?.kind === 'forms-dialog')) { vm.resume(task, formsHeadless(vm, task.wait)); continue; } // guizero: timers on the virtual clock
     if (r.status === 'waiting' && task.wait?.kind === 'http') { vm.resume(task, httpResult(opts.http ? opts.http(task.wait) : { error: 'network', message: 'No network in this run.' })); continue; }
     if (r.status !== 'waiting' || task.wait?.kind !== 'input') break;
     // input(): the next prepared line, or EOFError when there is none
@@ -80,6 +81,8 @@ export function runToEnd(source, opts = {}) {
 import { KARA_NAMES } from './stdlib/kara.js';
 import { httpResult } from './stdlib/http.js';
 export { httpResult };
+import { formsHeadless } from './stdlib/forms.js';
+export { formsEvent } from './stdlib/forms.js';
 export { KARA_NAMES };
 
 /** The Kara commands as predefined globals: pass as `globals` to VM or runToEnd. */

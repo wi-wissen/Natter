@@ -1,0 +1,26 @@
+inherited ('black', 'white', 16, 'DejaVu Sans')
+button inherited ('black', 'white', 16, 'DejaVu Sans')
+cascade ('white', 'white')
+disabled app (False, False, False)
+enabled app (True, True)
+own enabled False
+disabled box False
+after float EXC TclError bad argument "100.5": must be cancel, idle, info, or an integer
+after str EXC TclError bad argument "x": must be cancel, idle, info, or an integer
+after neg None
+------------------------------------------------------------
+*** GUIZERO WARNING ***
+Could not cancel function - it doesnt exist, it may have already run
+------------------------------------------------------------
+cancel unknown None
+negative ms
+note b
+note c
+note d
+note a
+note on text
+finish
+after destroy in callback
+display returned None
+text after app destroy 'inherits'
+bg after app destroy EXC TclError invalid command name ".!label"

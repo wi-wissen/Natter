@@ -1,0 +1,70 @@
+before display
+phase1
+button 1
+checkbox 1
+checkbox 0
+group y y
+combo 'r' r
+combo no arg q
+listbox 'j'
+listbox multi ['i', 'k']
+slider '37' 37
+
+textbox key '' 'hi'
+textbox no arg 'yo'
+textbox value 'hi'
+waffle 1 1
+waffle 0 0
+waffle no arg
+paste
+open
+updated
+clicked [PushButton] object with text 'b' 4 5 True
+button value 1
+button value 0
+clicked [PushButton] object with text 'b' 1 1 True
+app sees click [App] object
+app sees click [App] object
+clicked [Drawing] object 7 8 True
+released
+right 7
+moved 7 8
+dragged 7 8
+clicked [Drawing] object 7 8 True
+double
+enter
+leave
+event getters True None
+method h
+method with event h 3
+------------------------------------------------------------
+*** GUIZERO WARNING ***
+An event callback function must accept either 0 or 1 arguments.
+The current callback has 2 arguments.
+------------------------------------------------------------
+group clicked [ButtonGroup] object with selected option 'y'
+waffle 1 0
+waffle clicked
+waffle clicked
+key 'a' a [Drawing] object
+key 'a' a [App] object
+key '' Left [Drawing] object
+key '' Left [App] object
+key up space
+slider set 81
+slider '81' 81
+phase2 two 2
+------------------------------------------------------------
+*** GUIZERO WARNING ***
+Could not cancel function - it doesnt exist, it may have already run
+------------------------------------------------------------
+tick 1
+tick 2
+cancel late
+tick 3
+tick 4
+tick 5
+phase3
+closing Events
+really close
+after display 5

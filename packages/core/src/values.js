@@ -425,7 +425,31 @@ export function lt(a, b, op = '<') {
   throw err('compare', { op, a: typeName(a), b: typeName(b) });
 }
 
+/** Special methods of the rich comparisons: [own, reflected]. */
+const RICH = { '==': ['__eq__', '__eq__'], '!=': ['__ne__', '__ne__'], '<': ['__lt__', '__gt__'], '>': ['__gt__', '__lt__'], '<=': ['__le__', '__ge__'], '>=': ['__ge__', '__le__'] };
+
+/**
+ * a < b and friends on instances as an operator: the method's result as it is (numpy arrays return arrays),
+ * NO_METHOD if neither side has a method that takes the operands.
+ */
+function richResult(op, a, b) {
+  const [m, r] = RICH[op];
+  if (a instanceof PyInstance && definesDunder(a.cls, m)) {
+    const x = callDunder(a, m, [b]);
+    if (x !== NO_METHOD && x !== NOT_IMPLEMENTED) return x;
+  }
+  if (b instanceof PyInstance && definesDunder(b.cls, r)) {
+    const x = callDunder(b, r, [a]);
+    if (x !== NO_METHOD && x !== NOT_IMPLEMENTED) return x;
+  }
+  return NO_METHOD;
+}
+
 export function compare(op, a, b) {
+  if ((a instanceof PyInstance || b instanceof PyInstance) && RICH[op]) {
+    const r = richResult(op, a, b);
+    if (r !== NO_METHOD) return r;
+  }
   switch (op) {
     case '==': return eq(a, b);
     case '!=': return !eq(a, b);
@@ -708,7 +732,7 @@ export function setInplace(op, a, b) {
   return a;
 }
 
-const BIN_DUNDER = { '+': 'add', '-': 'sub', '*': 'mul', '/': 'truediv', '//': 'floordiv', '%': 'mod', '**': 'pow', '&': 'and', '|': 'or', '^': 'xor', '<<': 'lshift', '>>': 'rshift' };
+const BIN_DUNDER = { '+': 'add', '-': 'sub', '*': 'mul', '/': 'truediv', '//': 'floordiv', '%': 'mod', '**': 'pow', '&': 'and', '|': 'or', '^': 'xor', '<<': 'lshift', '>>': 'rshift', '@': 'matmul' };
 
 /** a + b with __add__ and the reflected __radd__ of b; NO_METHOD if neither exists or both decline. */
 export function binaryDunder(op, a, b, prefix = '') {

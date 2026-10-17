@@ -1,0 +1,177 @@
+app ('[App] object', 'guizero.App object', 'Props', 300, 200, None, 'auto', True, True)
+app text (None, None, None, False, None, [])
+app title '42'
+app bg 'light blue'
+app bg2 '#0a141e'
+app width 400
+app height 250
+text ("[Text] object with text 'hello'", 'hello', '#d9d9d9', 'red', 14, 14, True, False, 0, 0)
+text more (None, None, True, True, None, None, guizero.App object, "[Text] object with text 'hello'")
+text value '3.5'
+text append '3.5 more'
+text clear ''
+text size 20
+text size bad EXC TclError expected integer but got "12.5"
+text size bad2 EXC TclError expected integer but got "big"
+text font 'DejaVu Serif'
+text italic True
+text underline 1
+text overstrike 1
+text bold off False
+text font after ('DejaVu Serif', 20, False, True, 1, 1)
+text color '#00FF00'
+text color tuple '#0000ff'
+text enabled False
+text enabled2 True
+text width 20
+text height 3
+text width fill 'fill'
+text visible False
+text shown True
+textbox ("[TextBox] object with text ''", '', '#ffffff', '#000000', 10, 10, 1, False, None, True)
+textbox value '123'
+textbox append '1234'
+textbox hide True
+textbox hide char '#'
+textbox disabled value 'still'
+textbox enabled False
+textbox clear ''
+------------------------------------------------------------
+*** GUIZERO WARNING ***
+Cannot change the height of a single line TextBox[TextBox] object with text ''
+------------------------------------------------------------
+textbox height 1
+textbox multi ('line\n', 30, 4, True)
+textbox multi value 'a\nb\n'
+textbox multi wrap False
+------------------------------------------------------------
+*** GUIZERO WARNING ***
+wrap can only be set on a multiline TextBox
+------------------------------------------------------------
+button ("[PushButton] object with text 'Button'", 'Button', 0, '#d9d9d9', '#000000', 10, None, None, None, True)
+button text '7'
+button toggle False
+button toggle2 True
+button bg 'yellow'
+button size 18
+button2 ('Go', 10, 2, False)
+checkbox ("[CheckBox] object with text 'tick'", 'tick', 0, '#d9d9d9', True)
+checkbox 1 1
+checkbox 2 1
+checkbox str 0
+------------------------------------------------------------
+*** GUIZERO WARNING ***
+You can only set the value of [CheckBox] object with text 'tick' to either 0 (not checked) or 1 (checked)
+------------------------------------------------------------
+checkbox bad 0
+checkbox True 1
+checkbox None EXC TypeError int() argument must be a string, a bytes-like object or a real number, not 'NoneType'
+checkbox toggle 0
+checkbox text 'tock'
+group ("[ButtonGroup] object with selected option 'b'", 'b', 'Bee', [['a', 'a'], ['Bee', 'b'], ['c', 'c']], 'grid', 3, [['a', 'a'], ['Bee', 'b'], ['c', 'c']])
+group value 'c'
+group value missing 'zz'
+group text missing ''
+group value_text 'Bee'
+group append ([['Zed', 'z'], ['a', 'a'], ['Bee', 'b'], ['c', 'c'], ['d', 'd']], 5, [['Zed', 'z'], ['a', 'a'], ['Bee', 'b'], ['c', 'c'], ['d', 'd']], 'b')
+group remove (True, False, [['Zed', 'z'], ['Bee', 'b'], ['c', 'c'], ['d', 'd']])
+group clear ([], '', [])
+group empty ('None', '', [])
+group nums ('1', [[1, 1], [2, 2]], [1, 2], [0, 0])
+combo ("[Combo] object with options ['x', '2', 'z']", 'x', ['x', '2', 'z'], '#d9d9d9', '#000000', None)
+combo value '2'
+------------------------------------------------------------
+*** GUIZERO WARNING ***
+Tried to set [Combo] object with options ['x', '2', 'z'] to option "nope", which does not exist
+------------------------------------------------------------
+combo value bad '2'
+combo append (['x', 'v', '2', 'z', 'w'], '2')
+combo remove (True, 'x', ['x', 'v', 'z', 'w'], False)
+combo remove selected ('x', ['x', 'v', 'w'])
+combo default 'x'
+combo clear ('', [])
+------------------------------------------------------------
+*** GUIZERO WARNING ***
+[Combo] object with options []
+Unable to select default option as the Combo is empty
+------------------------------------------------------------
+combo after clear ('first', ['first'])
+combo2 'q'
+combo3 ''
+listbox ('[ListBox] object', None, ['one', 'two', 3], None, None, 'auto', [guizero.ListBoxWidget object])
+listbox value 'two'
+listbox value int 3
+listbox value missing None
+listbox insert ['zero', 'one', 'two', 3, 'four']
+listbox remove (True, 'two', ['zero', 'two', 3, 'four'], False)
+listbox removed sel None
+listbox clear ([], None)
+listbox multi (['b', 'd'], 2)
+listbox multi value ['a', 'c']
+listbox multi empty None
+listbox colors ('red', 'green')
+slider ('[Slider] object from 0.0 to 100.0', 0, 0.0, 100.0, 1.0, None, None)
+slider value 43
+slider high 100
+slider str 12
+slider bad EXC TclError expected floating-point number but got "x"
+slider2 ('[Slider] object from 10.0 to -10.0', 0.0, 10.0, -10.0, 0.5)
+slider2 value 3.5
+slider2 value low -10.0
+slider2 step 2.0
+slider2 start 5.0
+slider2 after (-9, 5.0, -9.0)
+slider3 5
+slider4 0.8
+slider4 b 0.5
+waffle ('[Waffle] object with text (3x3)', 3, 3, 20, 5, 'white', False, '#d9d9d9', True)
+------------------------------------------------------------
+*** GUIZERO WARNING ***
+Pixel x=5 y=5 is off the edge of the waffle
+------------------------------------------------------------
+waffle pixel ('red', 'white', [['white', 'white', 'white'], ['white', 'white', 'white'], ['white', 'red', 'white']])
+waffle color [['blue', 'blue', 'blue'], ['blue', 'blue', 'blue'], ['blue', 'red', 'blue']]
+waffle all ([['green', '#ff0000', '#ff0000'], ['#ff0000', '#ff0000', '#ff0000'], ['#ff0000', '#ff0000', '#ff0000']], True, 1, 1, 20)
+waffle resize (4, 2, [['green', '#ff0000', '#ff0000', 'blue'], ['#ff0000', '#ff0000', '#ff0000', 'blue']])
+waffle reset ([['blue', 'blue', 'blue', 'blue'], ['blue', 'blue', 'blue', 'blue']], False)
+waffle disabled False
+waffle bad color EXC TclError unknown color name "nocolour"
+waffle2 ([['#010203', '#010203'], ['#010203', '#010203']], True, 10, 2)
+drawing ('[Drawing] object', 100, 100, '#d9d9d9')
+drawing ids (1, 2, 3, 4, 5, 6)
+drawing after clear 7
+drawing bad color EXC TclError unknown color name "nocolour"
+drawing bad size EXC TclError expected integer but got "1.5"
+box ('[Box] object', 'auto', None, None, None, None, 0, None, None, True, [])
+box border 1
+box border2 3
+box border3 2
+box bg 'pink'
+box inherit ('pink', 'black')
+box cascade ('white', 20, 'white', 20)
+box disable (False, False)
+------------------------------------------------------------
+*** GUIZERO WARNING ***
+You must specify a width and a height for [Box] object
+------------------------------------------------------------
+box3 ('fill', 50, 'grid')
+titlebox ('[TitleBox] object', 'Title', 2, None, '#000000', 10, 'auto')
+titlebox text 'New'
+titlebox color 'blue'
+titlebox size 16
+titlebox inherit ('blue', 16)
+picture ('[Picture] object', None, None, None, None)
+picture missing EXC GUIZeroException |------------------------------------------------------------|*** GUIZERO ERROR ***|Image import error - 'couldn't open "does-not-exist.png": no such file or directory'|Check the file path and image type is GIF/PNG|------------------------------------------------------------|
+menubar ('[MenuBar] object', True, True)
+window ('[Window] object', 'Second', 200, 100, 'grid', 'red', True, True, True)
+window hide False
+window show True
+window full True
+window destroyed False
+children ['Text', 'TextBox', 'TextBox', 'PushButton', 'PushButton', 'CheckBox', 'ButtonGroup', 'ButtonGroup', 'ButtonGroup', 'Combo', 'Combo', 'Combo', 'ListBox', 'ListBox', 'Slider', 'Slider', 'Slider', 'Slider', 'Waffle', 'Waffle', 'Drawing', 'Box', 'Box', 'Box', 'TitleBox', 'Picture', 'Picture', 'MenuBar']
+version '1.6.0'
+------------------------------------------------------------
+*** GUIZERO WARNING ***
+There should only be 1 guizero App, use Window to create multiple windows.
+------------------------------------------------------------
+app2 '[App] object'

@@ -1,0 +1,45 @@
+97 122 48 57 32 13 27 1073741904 1073741903 1073741906 1073741905 1073742049 1073742053 1073742048 9 8 1073741882 1073741893 1073741922 1073741912 1073741896 1073741896 1073742004 1073742051 1073742051 43 45 61 127
+134 97 97 ValueError: 5 is not a valid keys True True KeyError: 'NOPE'
+3 1 192 768 3072 3072 8192 4096 0 16384 1024
+1 2 3 4 5 3 5 [1, 2, 3, 4, 5] ValueError: 7 is not a valid mouse
+False False False False False False
+KeyError: 'NOKEY'
+(66, 92) 40 25 (101, 7) <rect(0, 0, 1, 1)> <rect(67, 54, 66, 92)> <rect(2, 3, 40, 30)>
+True True
+AttributeError: No image found like 'nothing'. Are you sure the image exists?
+KeyError: "No image found like 'nothing'. Are you sure the image exists?"
+AttributeError: No image found like 'Alien'. Are you sure the image exists?
+0.5 1.2499773502349854 True
+1.0
+0.5 0.5
+0.3 0.296875
+1.0 1.0
+2.0 1.0
+0.999 0.9921875
+-1 0.9921875
+0 0.0
+0.01 0.0078125
+0.0078125 0.0078125
+AttributeError: No sound found like 'nothing'. Are you sure the sound exists?
+A4 440.0
+A0 27.499999999999947
+C4 261.6255653005985
+C#4 277.182630976872
+Db4 277.182630976872
+B8 7902.132820098003
+G#7 3322.437580639566
+E2 82.40688922821738
+Fb3 164.81377845643485
+Cb0 15.43385316425384
+B#8 8372.018089619174
+H4 InvalidNote: H4 is not a valid note. notes are A-F, are either normal, flat (b) or sharp (#) and of octave 0-8
+A9 InvalidNote: A9 is not a valid note. notes are A-F, are either normal, flat (b) or sharp (#) and of octave 0-8
+a4 InvalidNote: a4 is not a valid note. notes are A-F, are either normal, flat (b) or sharp (#) and of octave 0-8
+A InvalidNote: A is not a valid note. notes are A-F, are either normal, flat (b) or sharp (#) and of octave 0-8
+A# InvalidNote: A# is not a valid note. notes are A-F, are either normal, flat (b) or sharp (#) and of octave 0-8
+A4  InvalidNote: A4  is not a valid note. notes are A-F, are either normal, flat (b) or sharp (#) and of octave 0-8
+InvalidNote: Note duration 5s is too long: notes may be at most 4s long InvalidNote: Note has zero duration InvalidNote: X1 is not a valid note. notes are A-F, are either normal, flat (b) or sharp (#) and of octave 0-8
+A4 0.5 0.590703
+440 1 1.090703
+C5 0.1 0.190703
+261.63 2.5 2.590703

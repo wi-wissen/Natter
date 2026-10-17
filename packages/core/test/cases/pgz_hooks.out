@@ -1,0 +1,17 @@
+Warning: found constant named WIDHT: did you mean WIDTH?
+--- frame 0
+draw 0.05
+--- frame 1
+later 0.1
+draw 0.1
+--- frame 2
+key down
+draw 0.15
+--- frame 3
+--- frame 4
+--- frame 5
+--- frame 6
+mouse down 2
+music ended
+draw 0.35
+--- frame 7

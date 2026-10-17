@@ -745,7 +745,7 @@ export class VM {
           }
           case OP.BUILD_STRING: stack.push(stack.splice(stack.length - arg).join('')); break;
           case OP.IMPORT: stack.push(this.importModule(code.names[arg], task)); break;
-          case OP.IMPORT_FROM: stack.push(this.getattr(task, stack[stack.length - 1], code.names[arg])); break;
+          case OP.IMPORT_FROM: stack.push(this.importFrom(task, stack[stack.length - 1], code.names[arg])); break;
           case OP.IMPORT_STAR: {
             const m = stack.pop();
             for (const n of this.moduleNames(m)) frame.g.set(n, this.getattr(task, m, n));
@@ -876,6 +876,8 @@ export class VM {
   importModule(name, task) {
     const cached = this.moduleCache.get(name);
     if (cached) return cached;
+    const dot = name.lastIndexOf('.');
+    if (dot > 0) return this.importSubmodule(name.slice(0, dot), name.slice(dot + 1), task);
     if (MODULES[name] || this.host.modules?.[name]) {
       const m = new PyModule(name);
       this.moduleCache.set(name, m);
@@ -884,6 +886,40 @@ export class VM {
     const src = PYMODULES[name] ?? this.host.readModule?.(name);
     if (src === undefined || src === null) throw new ScriptError('importUnknown', { name });
     return this.loadModule(name, src, task);
+  }
+
+  /**
+   * `import a.b`: the package a first, then its submodule b (a source named 'a.b', or a module that a already
+   * holds as attribute b, like os.path); the submodule becomes an attribute of a.
+   */
+  importSubmodule(parentName, child, task) {
+    const name = `${parentName}.${child}`;
+    const parent = this.importModule(parentName, task);
+    const cached = this.moduleCache.get(name);
+    if (cached) return cached;
+    let mod;
+    if (PYMODULES[name] !== undefined || MODULES[name] || this.host.modules?.[name]) {
+      mod = MODULES[name] || this.host.modules?.[name] ? new PyModule(name) : this.loadModule(name, PYMODULES[name], task);
+      this.moduleCache.set(name, mod);
+    } else {
+      const v = parent.ns?.get(child);
+      if (!(v instanceof PyModule)) throw new ScriptError('importUnknown', { name });
+      mod = v;
+    }
+    if (parent.ns) parent.ns.set(child, mod);
+    return mod;
+  }
+
+  /** `from m import x`: an attribute of m, or else its submodule m.x (from matplotlib import pyplot). */
+  importFrom(task, mod, name) {
+    try {
+      return this.getattr(task, mod, name);
+    } catch (e) {
+      if (!(e instanceof ScriptError) || e.short !== 'attr' || !(mod instanceof PyModule)) throw e;
+      const sub = `${mod.name}.${name}`;
+      if (PYMODULES[sub] === undefined && !MODULES[sub] && !this.host.modules?.[sub]) throw e;
+      return this.importModule(sub, task);
+    }
   }
 
   /** Compile a module and run its code in a namespace of its own (the module object is cached before it runs). */

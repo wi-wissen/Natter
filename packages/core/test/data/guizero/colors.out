@@ -1,0 +1,81 @@
+bg 'red' 'red'
+fg 'red' 'red'
+bg 'Red' 'Red'
+fg 'Red' 'Red'
+bg 'LightBlue' 'LightBlue'
+fg 'LightBlue' 'LightBlue'
+bg 'light blue' 'light blue'
+fg 'light blue' 'light blue'
+bg 'LIGHT BLUE' 'LIGHT BLUE'
+fg 'LIGHT BLUE' 'LIGHT BLUE'
+bg 'light  blue' EXC TclError unknown color name "light  blue"
+fg 'light  blue' EXC TclError unknown color name "light  blue"
+bg 'gray50' 'gray50'
+fg 'gray50' 'gray50'
+bg 'grey50' 'grey50'
+fg 'grey50' 'grey50'
+bg 'Grey 50' EXC TclError unknown color name "Grey 50"
+fg 'Grey 50' EXC TclError unknown color name "Grey 50"
+bg 'navy blue' 'navy blue'
+fg 'navy blue' 'navy blue'
+bg 'lightgoldenrod' 'lightgoldenrod'
+fg 'lightgoldenrod' 'lightgoldenrod'
+bg 'DarkSeaGreen3' 'DarkSeaGreen3'
+fg 'DarkSeaGreen3' 'DarkSeaGreen3'
+bg 'rebeccapurple' 'rebeccapurple'
+fg 'rebeccapurple' 'rebeccapurple'
+bg 'crimson' 'crimson'
+fg 'crimson' 'crimson'
+bg 'fuchsia' 'fuchsia'
+fg 'fuchsia' 'fuchsia'
+bg 'nocolor' EXC TclError unknown color name "nocolor"
+fg 'nocolor' EXC TclError unknown color name "nocolor"
+bg '' EXC IndexError string index out of range
+fg '' EXC IndexError string index out of range
+bg ' white ' 'white'
+fg ' white ' 'white'
+bg '#ABCDEF' '#ABCDEF'
+fg '#ABCDEF' '#ABCDEF'
+bg '#abc' EXC ValueError #abc is not a valid # color, it must be in the format #ffffff.
+fg '#abc' EXC ValueError #abc is not a valid # color, it must be in the format #ffffff.
+bg '#12345' EXC ValueError #12345 is not a valid # color, it must be in the format #ffffff.
+fg '#12345' EXC ValueError #12345 is not a valid # color, it must be in the format #ffffff.
+bg '#1234567' EXC ValueError #1234567 is not a valid # color, it must be in the format #ffffff.
+fg '#1234567' EXC ValueError #1234567 is not a valid # color, it must be in the format #ffffff.
+bg '#gg0000' EXC ValueError gg is not a valid value, it must be hex 00 - ff
+fg '#gg0000' EXC ValueError gg is not a valid value, it must be hex 00 - ff
+bg '#-10000' EXC ValueError -1 is not a valid color value, it must be 00 - ff
+fg '#-10000' EXC ValueError -1 is not a valid color value, it must be 00 - ff
+bg (0, 128, 255) '#0080ff'
+fg (0, 128, 255) '#0080ff'
+bg [255, 255, 255] '#ffffff'
+fg [255, 255, 255] '#ffffff'
+bg (256, 0, 0) EXC ValueError {} is not a valid color value, it must be 0 - 255
+fg (256, 0, 0) EXC ValueError {} is not a valid color value, it must be 0 - 255
+bg (-1, 0, 0) EXC ValueError {} is not a valid color value, it must be 0 - 255
+fg (-1, 0, 0) EXC ValueError {} is not a valid color value, it must be 0 - 255
+bg (1, 2) EXC ValueError A color must contain 3 values (red, green, blue)
+fg (1, 2) EXC ValueError A color must contain 3 values (red, green, blue)
+bg (1, 2, 3, 4) EXC ValueError A color must contain 3 values (red, green, blue)
+fg (1, 2, 3, 4) EXC ValueError A color must contain 3 values (red, green, blue)
+bg 7 EXC ValueError A color must be a list or tuple of 3 values (red, green, blue)
+fg 7 EXC ValueError A color must be a list or tuple of 3 values (red, green, blue)
+bg None '#d9d9d9'
+fg None 'black'
+bg 'SystemButtonFace' EXC TclError unknown color name "SystemButtonFace"
+fg 'SystemButtonFace' EXC TclError unknown color name "SystemButtonFace"
+bg 'transparent' EXC TclError unknown color name "transparent"
+fg 'transparent' EXC TclError unknown color name "transparent"
+bg 'blue4' 'blue4'
+fg 'blue4' 'blue4'
+bg 'medium purple' 'medium purple'
+fg 'medium purple' 'medium purple'
+bg 'MediumPurple1' 'MediumPurple1'
+fg 'MediumPurple1' 'MediumPurple1'
+waffle 'light blue'
+waffle bad EXC TclError unknown color name "nocolor"
+waffle tuple bad EXC ValueError {} is not a valid color value, it must be 0 - 255
+drawing 1
+drawing bad outline EXC TclError unknown color name "nocolor"
+drawing bad outline unused 3
+box border color EXC TclError unknown color name "nocolor"

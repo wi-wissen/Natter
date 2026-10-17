@@ -25,7 +25,7 @@ export const OP = {
 };
 export const OP_NAMES = Object.fromEntries(Object.entries(OP).map(([k, v]) => [v, k]));
 
-export const BIN_OPS = ['+', '-', '*', '/', '//', '%', '**', '&', '|', '^', '<<', '>>'];
+export const BIN_OPS = ['+', '-', '*', '/', '//', '%', '**', '&', '|', '^', '<<', '>>', '@'];
 export const UNARY_OPS = ['-', '+', '~', 'not'];
 export const CMP_OPS = ['==', '!=', '<', '>', '<=', '>=', 'in', 'not in', 'is', 'is not'];
 
@@ -599,8 +599,9 @@ class Compiler {
       }
       case 'Import':
         for (const n of s.names) {
-          if (n.name.includes('.')) throw this.err('importUnknown', { name: n.name }, s);
           this.emit(OP.IMPORT, this.nameIdx(n.name), s);
+          // import a.b binds a (after loading a.b); import a.b as c binds the submodule
+          if (n.name.includes('.') && !n.asname) { this.emit(OP.POP, 0, s); this.emit(OP.IMPORT, this.nameIdx(n.name.split('.')[0]), s); }
           this.storeName(n.node);
         }
         break;

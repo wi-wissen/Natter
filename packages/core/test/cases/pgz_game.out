@@ -1,0 +1,63 @@
+loaded (50.0, 50.0) (220.0, 115.0)
+--- frame 0
+update 0.016 0.016
+draw (50.0, 50.0) (220.0, 115.0) 0 False False False False
+--- frame 1
+key_down 1073741903 0 '' False True
+update 0.017 0.033
+draw (52.0, 50.0) (220.0, 115.0) 0 False True False False
+--- frame 2
+update 0.016 0.049
+draw (54.0, 50.0) (220.0, 115.0) 0 False True False False
+--- frame 3
+key_up 1073741903
+key_down 97 1 'A' False False
+blink 0.065
+update 0.016 0.065
+draw (54.0, 50.0) (220.0, 115.0) 0 False False True False
+--- frame 4
+mouse_down (50, 50) 1 True True
+mouse_up (50, 51) 1
+mouse_down (0, 0) 3 False False
+update 0.033 0.098
+draw (54.0, 50.0) (220.0, 115.0) 1 False False True False
+--- frame 5
+mouse_move (10, 20) (3, -4) [1, 3]
+mouse_move (11, 20) (1, 0) []
+update 0.016 0.114
+draw (54.0, 50.0) (220.0, 115.0) 1 False False True False
+--- frame 6
+mouse_down (60, 60) 4 False True
+blink 0.13
+update 0.016 0.13
+draw (54.0, 50.0) (220.0, 115.0) 2 False False True False
+--- frame 7
+key_down 32 0 ' ' True False
+update 0.016 0.146
+draw (54.0, 50.0) (207.712, 108.344) 2 False False True True
+--- frame 8
+key_up 32
+update 0.02 0.166
+draw (54.0, 50.0) (157.79199999999997, 81.304) 2 False False True False
+--- frame 9
+arrived (100.0, 50.0)
+blink 0.186
+update 0.02 0.186
+collision
+draw (54.0, 50.0) (100.0, 50.0) 2 False False True False
+--- frame 10
+key_down 1073741904 64 '' False False
+update 0.02 0.206
+collision
+draw (52.0, 50.0) (100.0, 50.0) 2 True False True False
+--- frame 11
+update 0.025 0.231
+collision
+draw (50.0, 50.0) (100.0, 50.0) 2 True False True False
+--- frame 12
+key_up 97
+key_up 1073741904
+blink 0.247
+update 0.016 0.247
+collision
+draw (50.0, 50.0) (100.0, 50.0) 2 False False False False

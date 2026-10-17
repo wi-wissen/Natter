@@ -9,7 +9,7 @@ import { PyFloat } from './values.js';
 /** Language features that are (still) missing: friendly message instead of "unexpected token". */
 const UNSUPPORTED_KW = { async: 'async', await: 'async' };
 
-const AUG_OPS = { '+=': '+', '-=': '-', '*=': '*', '/=': '/', '//=': '//', '%=': '%', '**=': '**', '&=': '&', '|=': '|', '^=': '^', '<<=': '<<', '>>=': '>>' };
+const AUG_OPS = { '+=': '+', '-=': '-', '*=': '*', '/=': '/', '//=': '//', '%=': '%', '**=': '**', '&=': '&', '|=': '|', '^=': '^', '<<=': '<<', '>>=': '>>', '@=': '@' };
 const COMPARE_OPS = new Set(['<', '>', '==', '>=', '<=', '!=']);
 
 /**
@@ -576,9 +576,7 @@ class Parser {
   shiftExpr() { return this.binLevel(() => this.arith(), ['<<', '>>']); }
   arith() { return this.binLevel(() => this.term(), ['+', '-']); }
   term() {
-    const e = this.binLevel(() => this.factor(), ['*', '/', '//', '%', '@']);
-    if (e.type === 'BinOp' && e.op === '@') throw new ScriptError('notSupported', { feature: 'matmul' }, e);
-    return e;
+    return this.binLevel(() => this.factor(), ['*', '/', '//', '%', '@']);
   }
 
   factor() {

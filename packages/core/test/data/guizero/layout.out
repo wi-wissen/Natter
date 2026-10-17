@@ -1,0 +1,60 @@
+grids ('[0, 0]', '[1, 0, 2, 1]', 4, 2, [1, 0, 2, 1], 'left')
+------------------------------------------------------------
+*** GUIZERO WARNING ***
+[Text] object with text 'm' will not be displayed because it has a missing grid reference.
+------------------------------------------------------------
+missing grid EXC TypeError 'NoneType' object is not subscriptable
+------------------------------------------------------------
+*** GUIZERO WARNING ***
+[Text] object with text 'n' will not be displayed because the grid reference is not a list or tuple.
+------------------------------------------------------------
+grid not list EXC TypeError 'NoneType' object is not subscriptable
+------------------------------------------------------------
+*** GUIZERO WARNING ***
+[Text] object with text 'o' will not be displayed because the grid reference should be either grid=[x, y] or grid=[x, y, columnspan, rowspan].
+------------------------------------------------------------
+grid wrong length EXC TypeError 'NoneType' object is not subscriptable
+children ['a', 'b', 'm', 'n', 'o']
+cleaned ["[Text] object with text 'a'", "[PushButton] object with text 'b'"]
+negative column EXC TclError bad column value "-1": must be a non-negative integer
+text column EXC TclError bad column value "x": must be a non-negative integer
+float row EXC TclError bad row value "1.5": must be a non-negative integer
+zero span EXC TclError bad columnspan value "0": must be a positive integer
+string numbers '[2, 3]'
+grid set '[3, 4]'
+grid item set ('[5, 4]', 5)
+grid tuple '[1, 1]'
+------------------------------------------------------------
+*** GUIZERO WARNING ***
+Invalid align value ('middle') for [Text] object with text 'v'
+Should be: top, bottom, left or right
+------------------------------------------------------------
+align bad None
+align set 'top'
+------------------------------------------------------------
+*** GUIZERO WARNING ***
+Invalid align value ('centre') for [Text] object with text 'c'
+Should be: top, bottom, left or right
+------------------------------------------------------------
+align set bad None
+------------------------------------------------------------
+*** GUIZERO WARNING ***
+A grid is not required for [Text] object with text 'z' as it is not using a 'grid' layout.
+------------------------------------------------------------
+box children ['x', 'y', 'z']
+pack grid (None, None, 'left', None)
+hidden (False, [True, False, True])
+destroyed ['y', 'z']
+destroyed value 'x'
+destroyed bg EXC TclError invalid command name ".!frame.!label"
+destroyed set EXC TclError invalid command name ".!frame.!label"
+nested (True, True, True)
+box destroyed (False, ["[Text] object with text 'y'", "[Text] object with text 'z'", '[Box] object'], 'deep')
+deep bg EXC TclError invalid command name ".!frame.!frame.!label"
+app children ['Text', 'PushButton', 'Text', 'Text', 'Text', 'Text']
+grid box [('0', '[0, 0]'), ('1', '[0, 1]'), ('10', '[1, 0]'), ('11', '[1, 1]'), ('20', '[2, 0]'), ('21', '[2, 1]')]
+not a container EXC GUIZeroException |------------------------------------------------------------|*** GUIZERO ERROR ***|[Text] object with text 'bad'|Master is not an [App], [Window] or [Box]|------------------------------------------------------------|
+window children ["[Text] object with text 'w'"]
+after window destroy ['Text', 'PushButton', 'Text', 'Text', 'Text', 'Text', 'Box']
+app destroyed text 'a'
+app destroyed bg EXC TclError invalid command name ".!label"
