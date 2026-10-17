@@ -53,7 +53,7 @@ describe('Error messages', () => {
 
   it('missing language features report themselves in a friendly way', () => {
     expect(errOf('class A(list):\n    pass')).toMatchObject({ code: 'err.script.notSupported', params: { feature: 'subclassBuiltin' } });
-    expect(errOf('with x:\n    pass')).toMatchObject({ params: { feature: 'with' } });
+    expect(errOf('async def f():\n    pass')).toMatchObject({ params: { feature: 'async' } });
   });
 
   it('runtime errors with Python names and call stack', () => {

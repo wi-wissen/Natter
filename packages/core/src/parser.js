@@ -7,7 +7,7 @@ import { ScriptError } from './errors.js';
 import { PyFloat } from './values.js';
 
 /** Language features that are (still) missing: friendly message instead of "unexpected token". */
-const UNSUPPORTED_KW = { with: 'with', async: 'async', await: 'async' };
+const UNSUPPORTED_KW = { async: 'async', await: 'async' };
 
 const AUG_OPS = { '+=': '+', '-=': '-', '*=': '*', '/=': '/', '//=': '//', '%=': '%', '**=': '**', '&=': '&', '|=': '|', '^=': '^', '<<=': '<<', '>>=': '>>' };
 const COMPARE_OPS = new Set(['<', '>', '==', '>=', '<=', '!=']);
@@ -98,6 +98,7 @@ class Parser {
         case 'def': return [this.funcDef([])];
         case 'class': return [this.classDef([])];
         case 'try': return [this.tryStmt()];
+        case 'with': return [this.withStmt()];
         default: break;
       }
       if (UNSUPPORTED_KW[t.value]) throw this.error('notSupported', { feature: UNSUPPORTED_KW[t.value] });
@@ -286,6 +287,19 @@ class Parser {
     const body = this.block();
     const orelse = this.accept('kw', 'else') ? this.block() : [];
     return { type: 'While', test, body, orelse, ...p };
+  }
+
+  withStmt() {
+    const p = this.pos();
+    this.next();
+    const items = [];
+    do {
+      const ctx = this.test();
+      let target = null;
+      if (this.accept('kw', 'as')) { target = this.expr(); this.checkTarget(target); }
+      items.push({ ctx, target });
+    } while (this.accept('op', ','));
+    return { type: 'With', items, body: this.block(), ...p };
   }
 
   tryStmt() {

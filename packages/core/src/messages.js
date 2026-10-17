@@ -176,6 +176,7 @@ export const de = {
   "err.script.value.genRunning": "Der Generator läuft schon und kann nicht noch einmal gestartet werden.",
   "err.script.type.genSendFirst": "An einen Generator, der noch nicht gestartet ist, lässt sich nur None senden (erst next(…) aufrufen).",
   "err.script.outsideFunction.yield": "„yield“ gehört in eine Funktion (def).",
+  "err.script.type.noContext": "„{type}“ lässt sich nicht mit „with“ benutzen (es braucht __enter__ und __exit__).",
 };
 
 export const en = {
@@ -352,4 +353,5 @@ export const en = {
   "err.script.value.genRunning": "The generator is already running and cannot be started again.",
   "err.script.type.genSendFirst": "Only None can be sent to a generator that has not started yet (call next(…) first).",
   "err.script.outsideFunction.yield": "“yield” belongs inside a function (def).",
+  "err.script.type.noContext": "“{type}” cannot be used with “with” (it needs __enter__ and __exit__).",
 };

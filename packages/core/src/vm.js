@@ -737,6 +737,31 @@ export class VM {
             frame = nf; code = this.codes[nf.code]; stack = nf.stack;
             break;
           }
+          case OP.WITH_SETUP: {
+            const mgr = stack.pop();
+            let enter, exit;
+            try {
+              enter = this.getattr(task, mgr, '__enter__');
+              exit = this.getattr(task, mgr, '__exit__');
+            } catch (e) {
+              if (e instanceof ScriptError && e.short === 'attr') throw new ScriptError('type', { what: 'noContext', type: typeName(mgr) });
+              throw e;
+            }
+            const r = this.callSync(enter, [], null, task);
+            stack.push(exit, r);
+            break;
+          }
+          case OP.WITH_EXIT_OK: {
+            const [exit] = stack.splice(stack.length - 1 - arg, 1);
+            this.callSync(exit, [null, null, null], null, task);
+            break;
+          }
+          case OP.WITH_EXC: {
+            const exc = stack.pop();
+            const r = this.callSync(stack[stack.length - 1], [exc.cls, exc, null], null, task);
+            if (truthy(r)) { stack.pop(); frame.pc = arg; } else throw this.errorOfException(exc);
+            break;
+          }
           case OP.YIELD: { task.result = stack.pop(); task.state = 'yielded'; break loop; }
           case OP.SETUP_TRY: (frame.blocks ??= []).push({ handler: arg, depth: stack.length, excs: frame.excs ? frame.excs.length : 0 }); break;
           case OP.POP_BLOCK: frame.blocks.pop(); break;

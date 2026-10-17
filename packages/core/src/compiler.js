@@ -21,7 +21,7 @@ export const OP = {
   FORMAT: 49, BUILD_STRING: 50, IMPORT: 51, IMPORT_FROM: 52, IMPORT_STAR: 53, ASSERT_FAIL: 54,
   BUILD_CLASS: 55, LOAD_NAME: 56, STORE_NAME: 57, DELETE_NAME: 58, SUPER: 59, DELETE_ATTR: 60,
   SETUP_TRY: 61, POP_BLOCK: 62, EXC_MATCH: 63, ENTER_HANDLER: 64, EXIT_HANDLER: 65, LOAD_EXC: 66, RAISE: 67, RERAISE: 68,
-  BUILD_SET: 69, SET_ADD: 70, YIELD: 71,
+  BUILD_SET: 69, SET_ADD: 70, YIELD: 71, WITH_SETUP: 72, WITH_EXIT_OK: 73, WITH_EXC: 74,
 };
 export const OP_NAMES = Object.fromEntries(Object.entries(OP).map(([k, v]) => [v, k]));
 
@@ -201,6 +201,10 @@ class Compiler {
         }
         this.collectBody(st.orelse, scope, renames);
         this.collectBody(st.finalbody, scope, renames);
+        break;
+      case 'With':
+        for (const it of st.items) { this.collectExpr(it.ctx, scope, renames); if (it.target) this.addAssign(it.target, scope, renames); }
+        this.collectBody(st.body, scope, renames);
         break;
       case 'Raise': this.collectExpr(st.exc, scope, renames); this.collectExpr(st.cause, scope, renames); break;
       case 'Return': if (st.value) this.collectExpr(st.value, scope, renames); break;
@@ -540,6 +544,7 @@ class Compiler {
         break;
       }
       case 'Try': this.tryStmt(s); break;
+      case 'With': this.withStmt(s, 0); break;
       case 'Raise':
         if (!s.exc) this.emit(OP.RAISE, 0, s);
         else {
@@ -628,8 +633,31 @@ class Compiler {
         this.ctx = saved.slice(0, i);
         this.body(c.body);
         this.ctx = saved;
+      } else if (c.t === 'with') {
+        // leaving the with block: __exit__(None, None, None); a return value on the stack sits above the manager's exit
+        this.emit(OP.POP_BLOCK, 0, node);
+        this.emit(OP.WITH_EXIT_OK, isReturn ? 1 : 0, node);
       } else if (c.t === 'stack' && !isReturn) this.emit(OP.POP, 0, node);
     }
+  }
+
+  /** with a as x, b as y: body – the manager's __exit__ runs however the block is left. */
+  withStmt(s, i) {
+    const item = s.items[i];
+    this.expr(item.ctx);
+    this.emit(OP.WITH_SETUP, 0, s);
+    if (item.target) this.store(item.target); else this.emit(OP.POP, 0, s);
+    const setup = this.emit(OP.SETUP_TRY, 0, s);
+    this.ctx.push({ t: 'with' });
+    if (i + 1 < s.items.length) this.withStmt(s, i + 1); else this.body(s.body);
+    this.ctx.pop();
+    this.emit(OP.POP_BLOCK, 0, s);
+    this.emit(OP.WITH_EXIT_OK, 0, s);
+    const end = this.emit(OP.JUMP, 0, s);
+    this.patch(setup);
+    const exc = this.emit(OP.WITH_EXC, 0, s);
+    this.patch(end);
+    this.patch(exc);
   }
 
   /** try / except / else / finally. */

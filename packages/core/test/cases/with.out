@@ -1,0 +1,34 @@
+enter a
+body a
+exit a None None
+enter b
+no target
+exit b None None
+enter c
+exit c ValueError inside
+outer caught inside
+enter d
+exit d KeyError 'swallowed'
+after d
+enter e
+enter f
+both e f
+exit f None None
+exit e None None
+enter g
+exit g None None
+returned
+enter loop0
+exit loop0 None None
+enter loop1
+exit loop1 None None
+loop done
+enter outer
+enter inner
+exit inner None None
+exit outer None None
+42
+TypeError
+enter h
+exit h ZeroDivisionError division by zero
+zero

@@ -89,6 +89,7 @@ export function pyMessage(e) {
         case 'intNeeded': return `'${p.type}' object cannot be interpreted as an integer`;
         case 'inStr': return `'in <string>' requires string as left operand, not ${p.type}`;
         case 'joinStr': return `sequence item ${p.i}: expected str instance, ${p.type} found`;
+        case 'noContext': return `'${p.type}' object does not support the context manager protocol`;
         case 'noArgsClass': return `${p.name}() takes no arguments`;
         case 'initReturn': return `__init__() should return None, not '${p.type}'`;
         case 'sumStr': return "sum() can't sum strings [use ''.join(seq) instead]";
