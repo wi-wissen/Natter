@@ -7,7 +7,7 @@ import { ScriptError } from './errors.js';
 import { PyFloat } from './values.js';
 
 /** Language features that are (still) missing: friendly message instead of "unexpected token". */
-const UNSUPPORTED_KW = { try: 'try', except: 'try', finally: 'try', raise: 'raise', with: 'with', yield: 'yield', async: 'async', await: 'async' };
+const UNSUPPORTED_KW = { with: 'with', yield: 'yield', async: 'async', await: 'async' };
 
 const AUG_OPS = { '+=': '+', '-=': '-', '*=': '*', '/=': '/', '//=': '//', '%=': '%', '**=': '**', '&=': '&', '|=': '|', '^=': '^', '<<=': '<<', '>>=': '>>' };
 const COMPARE_OPS = new Set(['<', '>', '==', '>=', '<=', '!=']);
@@ -97,6 +97,7 @@ class Parser {
         case 'for': return [this.forStmt()];
         case 'def': return [this.funcDef([])];
         case 'class': return [this.classDef([])];
+        case 'try': return [this.tryStmt()];
         default: break;
       }
       if (UNSUPPORTED_KW[t.value]) throw this.error('notSupported', { feature: UNSUPPORTED_KW[t.value] });
@@ -126,6 +127,13 @@ class Parser {
           this.next();
           const value = this.at('newline') || this.at('eof') || this.atOp(';') ? null : this.testListStarExpr();
           return { type: 'Return', value, ...p };
+        }
+        case 'raise': {
+          this.next();
+          if (this.at('newline') || this.at('eof') || this.atOp(';')) return { type: 'Raise', exc: null, cause: null, ...p };
+          const exc = this.test();
+          const cause = this.accept('kw', 'from') ? this.test() : null;
+          return { type: 'Raise', exc, cause, ...p };
         }
         case 'global': case 'nonlocal': {
           this.next();
@@ -268,6 +276,31 @@ class Parser {
     const body = this.block();
     const orelse = this.accept('kw', 'else') ? this.block() : [];
     return { type: 'While', test, body, orelse, ...p };
+  }
+
+  tryStmt() {
+    const p = this.pos();
+    this.next();
+    const body = this.block();
+    const handlers = [];
+    while (this.atKw('except')) {
+      const hp = this.pos();
+      this.next();
+      let type = null, name = null;
+      if (this.atOp('*')) throw this.error('notSupported', { feature: 'exceptStar' });
+      if (!this.atOp(':')) {
+        type = this.test();
+        // except A, B: is a Python 2 habit
+        if (this.atOp(',')) throw this.error('notSupported', { feature: 'exceptComma' });
+        if (this.accept('kw', 'as')) name = this.expect('name', undefined, 'name').value;
+      }
+      if (handlers.length && handlers[handlers.length - 1].type === null) throw this.error('badExcept', { what: 'order' }, hp);
+      handlers.push({ type, name, body: this.block(), ...hp });
+    }
+    const orelse = handlers.length && this.accept('kw', 'else') ? this.block() : [];
+    const finalbody = this.accept('kw', 'finally') ? this.block() : [];
+    if (!handlers.length && !finalbody.length) throw this.error('expected', { what: 'exceptOrFinally', got: this.tokText(this.tok) });
+    return { type: 'Try', body, handlers, orelse, finalbody, ...p };
   }
 
   forStmt() {

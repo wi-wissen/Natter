@@ -37,10 +37,40 @@ export class PyIterator { constructor(seq, i = 0, label = null) { this.seq = seq
 export class PyDict {
   constructor() { /** @type {Map<string, [any, any]>} */ this.map = new Map(); }
   get size() { return this.map.size; }
-  get(k) { const e = this.map.get(keyOf(k)); return e ? e[1] : undefined; }
-  set(k, v) { const key = keyOf(k); const e = this.map.get(key); if (e) e[1] = v; else this.map.set(key, [k, v]); }
-  has(k) { return this.map.has(keyOf(k)); }
-  delete(k) { return this.map.delete(keyOf(k)); }
+  /**
+   * Key in the map. Instances with their own __hash__ share a hash: the slots after the first hold the ones that
+   * are not equal to the first (so __eq__ decides, as in Python).
+   */
+  slot(k) {
+    const key = keyOf(k);
+    if (key.charCodeAt(0) !== 120) return key; // only 'x…' keys (user-defined hashes) can collide
+    for (let n = 0; ; n++) {
+      const sk = n ? `${key}#${n}` : key;
+      const e = this.map.get(sk);
+      if (!e || eq(e[0], k)) return sk;
+    }
+  }
+  get(k) { const e = this.map.get(this.slot(k)); return e ? e[1] : undefined; }
+  set(k, v) { const key = this.slot(k); const e = this.map.get(key); if (e) e[1] = v; else this.map.set(key, [k, v]); }
+  has(k) { return this.map.has(this.slot(k)); }
+  delete(k) {
+    const key = this.slot(k);
+    if (!this.map.has(key)) return false;
+    this.map.delete(key);
+    // close the gap in a chain of colliding keys
+    const m = /^(.*)#(\d+)$/.exec(key);
+    const base = m ? m[1] : key, start = m ? Number(m[2]) : 0;
+    if (base.charCodeAt(0) === 120) {
+      for (let n = start + 1; ; n++) {
+        const from = `${base}#${n}`;
+        const e = this.map.get(from);
+        if (!e) break;
+        this.map.delete(from);
+        this.map.set(n - 1 ? `${base}#${n - 1}` : base, e);
+      }
+    }
+    return true;
+  }
   keys() { return [...this.map.values()].map((e) => e[0]); }
   values() { return [...this.map.values()].map((e) => e[1]); }
   entries() { return [...this.map.values()]; }
@@ -134,6 +164,12 @@ export const definesDunder = (cls, name) => cls.mro.some((c) => c !== OBJECT && 
 // ---------- Helpers ----------
 
 export const err = (code, params) => new ScriptError(code, params);
+/** KeyError for a missing key; the key itself travels along so that `except KeyError as e` sees it in e.args. */
+export function keyError(key) {
+  const e = new ScriptError('key', { key: repr(key) });
+  e.arg = key;
+  return e;
+}
 
 /** Check int (for results that must stay small: indices, counters) and avoid -0. */
 export function checkInt(n) {
@@ -495,10 +531,10 @@ export function length(v) {
 }
 
 /** Check index as int (bool counts as int, as in Python). */
-export function toIndex(v) {
+export function toIndex(v, container) {
   if (typeof v === 'bigint') throw err('index', { what: 'big' });
   if (isInt(v)) return num(v);
-  throw err('notIndex', { type: typeName(v) });
+  throw err('notIndex', { type: typeName(v), ...(container ? { container } : {}) });
 }
 
 /** Python algorithm slice.indices(len). */
@@ -532,16 +568,16 @@ function normIndex(i, len, what) {
 export function getItem(obj, idx) {
   if (obj instanceof PyList || obj instanceof PyTuple) {
     if (idx instanceof PySlice) { const it = sliceSeq(obj.items, idx); return obj instanceof PyList ? new PyList(it) : new PyTuple(it); }
-    return obj.items[normIndex(toIndex(idx), obj.items.length, typeName(obj))];
+    return obj.items[normIndex(toIndex(idx, typeName(obj)), obj.items.length, typeName(obj))];
   }
   if (typeof obj === 'string') {
     if (idx instanceof PySlice) return sliceSeq([...obj], idx).join('');
-    return obj[normIndex(toIndex(idx), obj.length, 'str')];
+    return obj[normIndex(toIndex(idx, 'str'), obj.length, 'str')];
   }
   if (obj instanceof PyDict) {
-    const e = obj.map.get(keyOf(idx));
-    if (!e) throw err('key', { key: repr(idx) });
-    return e[1];
+    const v = obj.get(idx);
+    if (v === undefined) throw keyError(idx);
+    return v;
   }
   if (obj instanceof PyRange) {
     if (idx instanceof PySlice) {
@@ -594,7 +630,7 @@ export function delItem(obj, idx) {
     return;
   }
   if (obj instanceof PyDict) {
-    if (!obj.delete(idx)) throw err('key', { key: repr(idx) });
+    if (!obj.delete(idx)) throw keyError(idx);
     return;
   }
   if (obj instanceof PyInstance && callDunder(obj, '__delitem__', [idx]) !== NO_METHOD) return;
@@ -785,9 +821,9 @@ function floatOp(op, x, y, a, b) {
     case '+': return new PyFloat(x + y);
     case '-': return new PyFloat(x - y);
     case '*': return new PyFloat(x * y);
-    case '/': if (y === 0) throw err('zeroDivision', { op: 'div' }); return new PyFloat(x / y);
-    case '//': if (y === 0) throw err('zeroDivision', { op: 'floordiv' }); return new PyFloat(fdivmod(x, y)[0]);
-    case '%': if (y === 0) throw err('zeroDivision', { op: 'mod' }); return new PyFloat(fdivmod(x, y)[1]);
+    case '/': if (y === 0) throw err('zeroDivision', { op: 'div', float: true }); return new PyFloat(x / y);
+    case '//': if (y === 0) throw err('zeroDivision', { op: 'floordiv', float: true }); return new PyFloat(fdivmod(x, y)[0]);
+    case '%': if (y === 0) throw err('zeroDivision', { op: 'mod', float: true }); return new PyFloat(fdivmod(x, y)[1]);
     case '**':
       if (Number.isInteger(y) && Math.abs(y) <= 1e6) {
         if (x === 0 && y < 0) throw err('zeroDivision', { op: 'pow' });

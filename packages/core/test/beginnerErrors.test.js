@@ -35,7 +35,7 @@ describe('beginner error messages', () => {
   });
 
   it('true/false/none and set() get a hint', () => {
-    expect(errOf('x = true')).toMatchObject({ code: 'err.script.nameUnknown', params: { suggestion: 'True' } });
+    expect(errOf('x = true')).toMatchObject({ code: 'err.script.nameUnbound', params: { suggestion: 'True' } });
     expect(errOf('x = none')).toMatchObject({ params: { suggestion: 'None' } });
     expect(errOf('s = set()')).toMatchObject({ code: 'err.script.notSupported', params: { feature: 'set' } });
   });

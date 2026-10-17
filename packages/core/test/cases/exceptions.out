@@ -1,0 +1,69 @@
+div -> ZeroDivisionError: division by zero
+floordiv -> ZeroDivisionError: integer division or modulo by zero
+mod -> ZeroDivisionError: integer modulo by zero
+fdiv -> ZeroDivisionError: float division by zero
+index -> IndexError: list index out of range
+strindex -> IndexError: string index out of range
+tupleindex -> IndexError: tuple index out of range
+key -> KeyError: 'b'
+int -> ValueError: invalid literal for int() with base 10: 'abc'
+float -> ValueError: could not convert string to float: 'x'
+concat -> TypeError: can only concatenate str (not "int") to str
+add -> TypeError: unsupported operand type(s) for +: 'int' and 'str'
+none -> TypeError: unsupported operand type(s) for +: 'NoneType' and 'int'
+listcat -> TypeError: can only concatenate list (not "int") to list
+name -> NameError: name 'undefined_name' is not defined
+len -> TypeError: object of type 'int' has no len()
+attr -> AttributeError: 'int' object has no attribute 'foo'
+nonefoo -> AttributeError: 'NoneType' object has no attribute 'foo'
+call -> TypeError: 'int' object is not callable
+iter -> TypeError: 'int' object is not iterable
+unhash -> TypeError: unhashable type: 'list'
+cmp -> TypeError: '<' not supported between instances of 'int' and 'str'
+sortcmp -> TypeError: '<' not supported between instances of 'str' and 'int'
+remove -> ValueError: list.remove(x): x not in list
+lindex -> ValueError: 7 is not in list
+popempty -> IndexError: pop from empty list
+neg -> TypeError: bad operand type for unary -: 'str'
+rangezero -> ValueError: range() arg 3 must not be zero
+maxempty -> ValueError: max() iterable argument is empty
+subscr -> TypeError: 'int' object is not subscriptable
+strmul -> TypeError: can't multiply sequence by non-int of type 'str'
+intconv -> TypeError: int() argument must be a string, a bytes-like object or a real number, not 'NoneType'
+argcount -> TypeError: f() takes 1 positional argument but 2 were given
+argmissing -> TypeError: f() missing 1 required positional argument: 'x'
+argkw -> TypeError: f() got an unexpected keyword argument 'y'
+caught: need 100 but have 70 70 100 ('need 100 but have 70',)
+finally 1
+try
+else
+finally 2
+['try', "tuple KeyError('k')", 'fin']
+cleanup runs
+from try
+2
+body 0
+fin 0
+fin 1
+body 2
+fin 2
+fin 3
+inner handler inner
+outer handler outer ValueError inner
+log
+got ZeroDivisionError division by zero
+deep: bottom
+ValueError() () True
+ValueError('a', 2) ('a', 2) ('a', 2)
+True True True
+IndexError pop from empty list
+stop
+retry: again
+retry: again
+done after 3
+inner finally
+outer 'x'
+1 missing b
+None
+-1
+ModuleNotFoundError No module named 'nothing_here'

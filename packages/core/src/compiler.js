@@ -20,6 +20,7 @@ export const OP = {
   MAKE_FUNCTION: 39, CALL: 40, CALL_KW: 41, CALL_EX: 42, RETURN: 43, POP: 44, DUP: 45, DUP2: 46, ROT2: 47, ROT3: 48,
   FORMAT: 49, BUILD_STRING: 50, IMPORT: 51, IMPORT_FROM: 52, IMPORT_STAR: 53, ASSERT_FAIL: 54,
   BUILD_CLASS: 55, LOAD_NAME: 56, STORE_NAME: 57, DELETE_NAME: 58, SUPER: 59, DELETE_ATTR: 60,
+  SETUP_TRY: 61, POP_BLOCK: 62, EXC_MATCH: 63, ENTER_HANDLER: 64, EXIT_HANDLER: 65, LOAD_EXC: 66, RAISE: 67, RERAISE: 68,
 };
 export const OP_NAMES = Object.fromEntries(Object.entries(OP).map(([k, v]) => [v, k]));
 
@@ -56,6 +57,7 @@ export const CMP_OPS = ['==', '!=', '<', '>', '<=', '>=', 'in', 'not in', 'is', 
  *   known: names available at run time (built-in functions, host API);
  *   removed: names that no longer exist → parameters of their NameError (what to write instead);
  *   modules: modules for import/from … import * with their names;
+ *   strictNames: unknown names are errors at compile time (default: warnings, error when the line runs);
  * @returns {Program}
  */
 export function compile(source, opts = {}) {
@@ -87,6 +89,9 @@ class Compiler {
     this.known = new Set(opts.known ?? []);
     this.modules = opts.modules ?? {};
     this.removed = opts.removed ?? {};
+    this.strictNames = !!opts.strictNames;
+    /** Problems that are no errors yet (unknown names: Python only fails when the line runs) */
+    this.warnings = [];
     /** @type {Code[]} */
     this.codes = [];
     this.hidden = 0;
@@ -113,7 +118,7 @@ class Compiler {
     if (this.starImports) for (const n of this.starImports) this.globalNames.add(n);
     this.checkUnknown(mod);
     this.compileCode(tree, mod, '<module>', [], true);
-    return { codes: this.codes, source: this.source, globals: [...this.globalNames] };
+    return { codes: this.codes, source: this.source, globals: [...this.globalNames], warnings: this.warnings, removed: this.removed };
   }
 
   /** @param {any[]} renames stack of renamings (loop variables in comprehensions) */
@@ -182,6 +187,21 @@ class Compiler {
         this.collectBody(st.body, cs, renames);
         break;
       }
+      case 'Try':
+        this.collectBody(st.body, scope, renames);
+        for (const h of st.handlers) {
+          if (h.type) this.collectExpr(h.type, scope, renames);
+          if (h.name) {
+            scope.assigned.add(h.name);
+            h.nameNode = { type: 'Name', id: h.name, line: h.line, col: h.col };
+            scope.uses.push(h.nameNode);
+          }
+          this.collectBody(h.body, scope, renames);
+        }
+        this.collectBody(st.orelse, scope, renames);
+        this.collectBody(st.finalbody, scope, renames);
+        break;
+      case 'Raise': this.collectExpr(st.exc, scope, renames); this.collectExpr(st.cause, scope, renames); break;
       case 'Return': if (st.value) this.collectExpr(st.value, scope, renames); break;
       case 'Global': case 'Nonlocal':
         for (const n of st.names) {
@@ -333,12 +353,18 @@ class Compiler {
       const n = node.id;
       if (n.startsWith('.') || this.globalNames.has(n) || this.known.has(n) || this.modules[n]) continue;
       if (node.isLoad === false) continue;
-      if (Object.hasOwn(this.removed, n)) throw this.err('nameUnknown', { name: n, ...this.removed[n] }, node);
-      const cands = new Set([...this.globalNames, ...this.known, ...Object.keys(this.modules)]);
-      for (let s = scope; s; s = s.parent) for (const l of s.locals) cands.add(l);
-      // true/false/none: Python writes them with a capital letter
-      const constant = { true: 'True', false: 'False', none: 'None', null: 'None' }[n.toLowerCase()];
-      throw this.err('nameUnknown', { name: n, suggestion: constant ?? suggest(n, cands) }, node);
+      let e;
+      if (Object.hasOwn(this.removed, n)) e = this.err('nameUnknown', { name: n, ...this.removed[n] }, node);
+      else {
+        const cands = new Set([...this.globalNames, ...this.known, ...Object.keys(this.modules)]);
+        for (let s = scope; s; s = s.parent) for (const l of s.locals) cands.add(l);
+        // true/false/none: Python writes them with a capital letter
+        const constant = { true: 'True', false: 'False', none: 'None', null: 'None' }[n.toLowerCase()];
+        e = this.err('nameUnknown', { name: n, suggestion: constant ?? suggest(n, cands) }, node);
+      }
+      // Python reports an unknown name only when the line runs; strictNames makes it an error right away
+      if (this.strictNames) throw e;
+      this.warnings.push(e.toJSON());
     }
     for (const c of scope.children ?? []) this.checkUnknown(c);
   }
@@ -366,8 +392,8 @@ class Compiler {
       code.freevars = [...scope.frees];
       code.cellParams = code.cellvars.map((c) => { const i = code.varnames.indexOf(c); return i >= 0 && i < code.params.length + (code.vararg ? 1 : 0) + (code.kwarg ? 1 : 0) ? i : -1; });
     }
-    const saved = { code: this.code, scope: this.scope, loops: this.loops, pendingStmt: this.pendingStmt };
-    this.code = code; this.scope = scope; this.loops = []; this.pendingStmt = 0;
+    const saved = { code: this.code, scope: this.scope, ctx: this.ctx, pendingStmt: this.pendingStmt };
+    this.code = code; this.scope = scope; this.ctx = []; this.pendingStmt = 0;
     if (node.type === 'Lambda') {
       this.expr(node.body);
       this.emit(OP.RETURN, 0, node.body);
@@ -457,9 +483,9 @@ class Compiler {
         this.expr(s.test);
         const jf = this.emit(OP.JUMP_IF_FALSE, 0, s);
         const loop = { cont: top, breaks: [], iter: false };
-        this.loops.push(loop);
+        this.ctx.push({ t: 'loop', loop });
         this.body(s.body);
-        this.loops.pop();
+        this.ctx.pop();
         this.pendingStmt = 0;
         this.emit(OP.JUMP, top, s);
         this.patch(jf);
@@ -476,9 +502,9 @@ class Compiler {
         const top = this.emit(OP.FOR_ITER, 0, s);
         const loop = { cont: top, breaks: [], iter: true };
         this.store(s.target);
-        this.loops.push(loop);
+        this.ctx.push({ t: 'loop', loop });
         this.body(s.body);
-        this.loops.pop();
+        this.ctx.pop();
         this.pendingStmt = 0;
         this.emit(OP.JUMP, top, s);
         this.patch(top);
@@ -487,18 +513,30 @@ class Compiler {
         break;
       }
       case 'Break': {
-        const loop = this.loops[this.loops.length - 1];
-        if (!loop) throw this.err('outsideLoop', { what: 'break' }, s);
+        const at = this.loopIndex();
+        if (at < 0) throw this.err('outsideLoop', { what: 'break' }, s);
+        const loop = this.ctx[at].loop;
+        this.leave(at, false, s);
         if (loop.iter) this.emit(OP.POP, 0, s);
         loop.breaks.push(this.emit(OP.JUMP, 0, s));
         break;
       }
       case 'Continue': {
-        const loop = this.loops[this.loops.length - 1];
-        if (!loop) throw this.err('outsideLoop', { what: 'continue' }, s);
-        this.emit(OP.JUMP, loop.cont, s);
+        const at = this.loopIndex();
+        if (at < 0) throw this.err('outsideLoop', { what: 'continue' }, s);
+        this.leave(at, false, s);
+        this.emit(OP.JUMP, this.ctx[at].loop.cont, s);
         break;
       }
+      case 'Try': this.tryStmt(s); break;
+      case 'Raise':
+        if (!s.exc) this.emit(OP.RAISE, 0, s);
+        else {
+          this.expr(s.exc);
+          if (s.cause) this.expr(s.cause);
+          this.emit(OP.RAISE, s.cause ? 2 : 1, s);
+        }
+        break;
       case 'FunctionDef': {
         for (const d of s.decorators) this.expr(d);
         this.makeFunction(s, s.name, s.params, s.body);
@@ -523,6 +561,7 @@ class Compiler {
       case 'Return':
         if (this.code.module || this.code.classBody) throw this.err('outsideFunction', { what: 'return' }, s);
         if (s.value) this.expr(s.value); else this.emit(OP.LOAD_CONST, this.constIdx(null), s);
+        this.leave(-1, true, s);
         this.emit(OP.RETURN, 0, s);
         break;
       case 'Global': case 'Nonlocal': this.emit(OP.NOP, 0, s); break;
@@ -555,6 +594,84 @@ class Compiler {
         break;
       default: throw this.err('notSupported', { feature: s.type }, s);
     }
+  }
+
+  /** Index of the innermost loop in the context stack, or -1. */
+  loopIndex() {
+    for (let i = this.ctx.length - 1; i >= 0; i--) if (this.ctx[i].t === 'loop') return i;
+    return -1;
+  }
+
+  /**
+   * Leave the constructs above `at` of the context stack (break, continue, return): drop the exception blocks and
+   * run the finally bodies inline (the value of a return stays on the stack meanwhile).
+   */
+  leave(at, isReturn, node) {
+    for (let i = this.ctx.length - 1; i > at; i--) {
+      const c = this.ctx[i];
+      if (c.t === 'try') this.emit(OP.POP_BLOCK, 0, node);
+      else if (c.t === 'handler') this.emit(OP.EXIT_HANDLER, 0, node);
+      else if (c.t === 'finally') {
+        this.emit(OP.POP_BLOCK, 0, node);
+        const saved = this.ctx;
+        this.ctx = saved.slice(0, i);
+        this.body(c.body);
+        this.ctx = saved;
+      } else if (c.t === 'stack' && !isReturn) this.emit(OP.POP, 0, node);
+    }
+  }
+
+  /** try / except / else / finally. */
+  tryStmt(s) {
+    if (!s.finalbody.length) { this.tryExcept(s); return; }
+    // try … finally: the finally body runs after the try part, before every jump out of it, and when an exception passes
+    const setup = this.emit(OP.SETUP_TRY, 0, s);
+    this.ctx.push({ t: 'finally', body: s.finalbody });
+    if (s.handlers.length) this.tryExcept(s); else this.body(s.body);
+    this.ctx.pop();
+    this.emit(OP.POP_BLOCK, 0, s);
+    this.body(s.finalbody);
+    const end = this.emit(OP.JUMP, 0, s);
+    this.patch(setup);
+    // exception path: the exception is on the stack while the finally body runs, then it continues
+    this.ctx.push({ t: 'stack' });
+    this.body(s.finalbody);
+    this.ctx.pop();
+    this.emit(OP.RERAISE, 0, s);
+    this.patch(end);
+  }
+
+  tryExcept(s) {
+    const setup = this.emit(OP.SETUP_TRY, 0, s);
+    this.ctx.push({ t: 'try' });
+    this.body(s.body);
+    this.ctx.pop();
+    this.emit(OP.POP_BLOCK, 0, s);
+    this.body(s.orelse);
+    const ends = [this.emit(OP.JUMP, 0, s)];
+    this.patch(setup);
+    for (const h of s.handlers) {
+      let next = null;
+      if (h.type) {
+        this.pendingStmt = h.line;
+        this.emit(OP.DUP, 0, h);
+        this.expr(h.type);
+        this.emit(OP.EXC_MATCH, 0, h);
+        next = this.emit(OP.JUMP_IF_FALSE, 0, h);
+      }
+      this.emit(OP.ENTER_HANDLER, 0, h);
+      if (h.name) { this.emit(OP.LOAD_EXC, 0, h); this.storeName(h.nameNode); }
+      this.ctx.push({ t: 'handler' });
+      this.body(h.body);
+      this.ctx.pop();
+      // like Python, the name of the exception is gone after the handler
+      if (h.name) { this.emit(OP.LOAD_CONST, this.constIdx(null), h); this.storeName(h.nameNode); this.del(h.nameNode); }
+      this.emit(OP.EXIT_HANDLER, 0, s);
+      ends.push(this.emit(OP.JUMP, 0, s));
+      if (next !== null) this.patch(next);
+    }
+    this.emit(OP.RERAISE, 0, s);
+    for (const j of ends) this.patch(j);
   }
 
   augAssign(s) {

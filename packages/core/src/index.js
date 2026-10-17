@@ -27,6 +27,7 @@ export function compile(source, opts = {}) {
     known: [...BUILTIN_NAMES, ...(opts.known ?? [])],
     modules: { ...MODULES, ...(opts.modules ?? {}) },
     removed: opts.removed,
+    strictNames: opts.strictNames,
   });
 }
 

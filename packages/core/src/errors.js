@@ -17,6 +17,7 @@ export const KINDS = {
   unpack: 'ValueError', attr: 'AttributeError', recursion: 'RecursionError', overflow: 'OverflowError',
   assertion: 'AssertionError', powFraction: 'ValueError', mathDomain: 'ValueError',
   importUnknown: 'ModuleNotFoundError', stopIteration: 'StopIteration', internal: 'RuntimeError', host: 'RuntimeError',
+  raised: 'RuntimeError', badExcept: 'SyntaxError',
 };
 
 export class ScriptError extends Error {
@@ -33,6 +34,8 @@ export class ScriptError extends Error {
     this.line = pos.line ?? 0;
     this.col = pos.col ?? 0;
     this.kind = KINDS[code] ?? 'RuntimeError';
+    /** Errors a program must not catch (budget used up, bugs of the interpreter itself) */
+    this.uncatchable = code === 'tooLong' || code === 'internal';
     /** @type {{name: string, line: number}[]} call stack, innermost frame last */
     this.traceback = [];
   }

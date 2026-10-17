@@ -164,6 +164,15 @@ export const de = {
   "err.script.value.lenNegative": "__len__ darf nicht negativ sein.",
   "err.script.attr.noSetter": "„{name}“ lässt sich nicht ändern (Eigenschaft ohne Setter).",
   "err.script.attr.noGetter": "„{name}“ lässt sich nicht lesen (Eigenschaft ohne Getter).",
+  "err.script.raised": "{message}",
+  "err.script.type.raiseType": "Mit raise lassen sich nur Fehler auslösen (Klassen oder Objekte von Exception), nichts anderes.",
+  "err.script.type.noActiveException": "Hier gibt es keinen Fehler, der erneut ausgelöst werden könnte. „raise“ ohne Angabe geht nur in einem „except“-Block.",
+  "err.script.type.catchType": "Hinter „except“ muss eine Fehlerart stehen (z. B. ValueError), keine andere Klasse oder Zahl.",
+  "err.script.notSupported.exceptStar": "except* gibt es nicht.",
+  "err.script.notSupported.exceptComma": "Mehrere Fehlerarten gehören in Klammern: except (ValueError, TypeError):",
+  "err.script.badExcept": "Hier stimmt etwas mit „except“ nicht.",
+  "err.script.badExcept.order": "Ein „except:“ ohne Fehlerart muss der letzte Block sein.",
+  "err.script.expected.exceptOrFinally": "Nach „try:“ fehlt „except“ oder „finally“ (gefunden: {got}).",
 };
 
 export const en = {
@@ -328,4 +337,13 @@ export const en = {
   "err.script.value.lenNegative": "__len__ must not be negative.",
   "err.script.attr.noSetter": "“{name}” cannot be changed (property without a setter).",
   "err.script.attr.noGetter": "“{name}” cannot be read (property without a getter).",
+  "err.script.raised": "{message}",
+  "err.script.type.raiseType": "raise can only raise errors (classes or objects of Exception), nothing else.",
+  "err.script.type.noActiveException": "There is no error to raise again here. A bare “raise” only works inside an “except” block.",
+  "err.script.type.catchType": "After “except” there must be an error type (e.g. ValueError), not another class or a number.",
+  "err.script.notSupported.exceptStar": "except* is not supported.",
+  "err.script.notSupported.exceptComma": "Several error types belong in parentheses: except (ValueError, TypeError):",
+  "err.script.badExcept": "Something is wrong with this “except”.",
+  "err.script.badExcept.order": "An “except:” without an error type must be the last block.",
+  "err.script.expected.exceptOrFinally": "After “try:” there must be “except” or “finally” (found: {got}).",
 };

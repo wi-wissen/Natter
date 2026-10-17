@@ -17,6 +17,8 @@ import {
   formatValue, typeName, keyOf, pushAll, lookupClass, TYPE_NAMES,
 } from './values.js';
 import { BUILTINS, CLASS_GLOBALS, METHODS, MODULES, moduleAttr } from './builtins.js';
+import { EXCEPTION_CLASSES, exceptionClassFor, isExceptionClass } from './exceptions.js';
+import { pyMessage } from './pymessages.js';
 
 /** Return value of a native: the task parks until the host resumes it. */
 export class Suspend {
@@ -253,10 +255,8 @@ export class VM {
       this.syncNesting--;
     }
     if (task.state === 'error') {
-      const e = new ScriptError(task.error.code.replace('err.script.', ''), task.error.params, task.error);
-      e.traceback = task.error.traceback;
+      const e = task.errorRaw;
       e.inner = true;
-      if (task.errorRaw?.pyexc) e.pyexc = task.errorRaw.pyexc;
       throw e;
     }
     if (task.state !== 'done') throw task.state === 'waiting' ? new ScriptError('type', { what: 'waitInSync' }) : new ScriptError('tooLong', {});
@@ -316,13 +316,17 @@ export class VM {
     return [...runs.slice(0, TRACE_HEAD), { name: '…', line: 0, skipped: runs.length - TRACE_HEAD - TRACE_TAIL }, ...runs.slice(-TRACE_TAIL)];
   }
 
-  fail(task, e, frame) {
-    if (!(e instanceof ScriptError)) {
-      // Internal error (programming error in a native): report as RuntimeError, do not crash
-      const se = new ScriptError('internal', { message: String(e?.message ?? e) });
-      se.stack = e?.stack;
-      e = se;
-    }
+  /** Make sure a thrown value is a ScriptError (anything else is a bug of the interpreter itself). */
+  toScriptError(e) {
+    if (e instanceof ScriptError) return e;
+    const se = new ScriptError('internal', { message: String(e?.message ?? e) });
+    se.stack = e?.stack;
+    return se;
+  }
+
+  /** Line and call stack of an error (once: errors that are caught and thrown again keep the first ones). */
+  annotate(task, e, frame) {
+    if (e.annotated) return;
     if (!e.inner) {
       if (frame) {
         const c = this.codes[frame.code];
@@ -336,9 +340,84 @@ export class VM {
       const c = this.codes[frame.code];
       e.line = c.lines[Math.max(0, frame.pc - 1)];
     }
+    e.annotated = true;
+  }
+
+  /** The task ends with this error. */
+  finish(task, e) {
     task.state = 'error';
     task.error = e.toJSON();
+    task.errorRaw = e;
     task.wait = null;
+  }
+
+  fail(task, e, frame) {
+    const se = this.toScriptError(e);
+    this.annotate(task, se, frame);
+    this.finish(task, se);
+  }
+
+  /**
+   * Hand an error to the innermost `try` that is still open in this task. Frames without one are left.
+   * @returns {boolean} found one (the frame stack and the program counter now point into its handler)
+   */
+  unwind(task, e) {
+    for (;;) {
+      const f = task.frames[task.frames.length - 1];
+      const blk = f.blocks?.pop();
+      if (blk) {
+        f.stack.length = blk.depth;
+        if (f.excs) f.excs.length = blk.excs;
+        f.stack.push(this.toPyException(e));
+        f.pc = blk.handler;
+        return true;
+      }
+      task.frames.pop();
+    }
+  }
+
+  /** The exception that the innermost running `except` clause is handling (for a bare `raise`). */
+  currentException(task) {
+    for (let i = task.frames.length - 1; i >= 0; i--) {
+      const ex = task.frames[i].excs;
+      if (ex && ex.length) return ex[ex.length - 1];
+    }
+    return null;
+  }
+
+  /** Python exception object for an error (made once; thrown again later it is the same object). */
+  toPyException(e) {
+    if (e.pyexc) return e.pyexc;
+    const inst = new PyInstance(exceptionClassFor(e.kind));
+    const args = e.arg !== undefined ? [e.arg] : e.short === 'assertion' && !e.params.message ? [] : e.short === 'stopIteration' ? [] : [pyMessage(e)];
+    inst.dict.set('args', new PyTuple(args));
+    inst.scriptError = e;
+    e.pyexc = inst;
+    return inst;
+  }
+
+  /** Exception object for `raise x`: a class is instantiated; anything that is not an exception is a TypeError. */
+  toException(task, v) {
+    if (isExceptionClass(v)) v = this.callSync(v, [], null, task);
+    if (!(v instanceof PyInstance) || !isExceptionClass(v.cls)) throw new ScriptError('type', { what: 'raiseType' });
+    return v;
+  }
+
+  /** The error to throw for an exception object (the same one again if it was caught before). */
+  errorOfException(inst) {
+    if (inst.scriptError) return inst.scriptError;
+    const e = new ScriptError('raised', { message: this.str(inst) });
+    e.kind = inst.cls.name;
+    e.pyexc = inst;
+    inst.scriptError = e;
+    return e;
+  }
+
+  /** Does an exception match the class (or tuple of classes) of an `except` clause? */
+  excMatches(exc, spec) {
+    if (spec instanceof PyTuple) return spec.items.some((x) => this.excMatches(exc, x));
+    if (!isExceptionClass(spec)) throw new ScriptError('type', { what: 'catchType' });
+    return exc.cls.mro.includes(spec);
   }
 
   /** Run the main loop with this VM and task as the context of callbacks. @returns {number} executed instructions */
@@ -581,14 +660,40 @@ export class VM {
             frame = nf; code = this.codes[nf.code]; stack = nf.stack;
             break;
           }
+          case OP.SETUP_TRY: (frame.blocks ??= []).push({ handler: arg, depth: stack.length, excs: frame.excs ? frame.excs.length : 0 }); break;
+          case OP.POP_BLOCK: frame.blocks.pop(); break;
+          case OP.EXC_MATCH: { const spec = stack.pop(), exc = stack.pop(); stack.push(this.excMatches(exc, spec)); break; }
+          case OP.ENTER_HANDLER: (frame.excs ??= []).push(stack.pop()); break;
+          case OP.EXIT_HANDLER: frame.excs.pop(); break;
+          case OP.LOAD_EXC: stack.push(frame.excs[frame.excs.length - 1]); break;
+          case OP.RERAISE: throw this.errorOfException(stack.pop());
+          case OP.RAISE: {
+            if (arg === 0) {
+              const cur = task.frames.length ? this.currentException(task) : null;
+              if (!cur) throw new ScriptError('type', { what: 'noActiveException' });
+              throw this.errorOfException(cur);
+            }
+            const cause = arg === 2 ? stack.pop() : undefined;
+            const inst = this.toException(task, stack.pop());
+            if (arg === 2) inst.dict.set('__cause__', cause === null ? null : this.toException(task, cause));
+            throw this.errorOfException(inst);
+          }
           case OP.ASSERT_FAIL: {
             const msg = stack.pop();
             throw new ScriptError('assertion', { message: msg === null ? '' : this.str(msg) });
           }
           default: throw new Error(`Unknown instruction ${op}`);
         }
-      } catch (e) {
-        this.fail(task, e, frame);
+      } catch (e0) {
+        const e = this.toScriptError(e0);
+        this.annotate(task, e, frame);
+        if (!e.uncatchable && task.frames.some((f) => f.blocks?.length) && this.unwind(task, e)) {
+          frame = task.frames[task.frames.length - 1];
+          code = this.codes[frame.code];
+          stack = frame.stack;
+          continue;
+        }
+        this.finish(task, e);
         break;
       }
     }
@@ -623,7 +728,10 @@ export class VM {
     const p = this.predef.get(name);
     if (p !== undefined) return p;
     if (MODULES[name]) return new PyModule(name);
-    throw new ScriptError('nameUnbound', { name, suggestion: suggest(name, [...this.globals.keys(), ...this.dynamic.keys(), ...this.predef.keys()]) });
+    const removed = this.program.removed?.[name];
+    // true/false/none: Python writes them with a capital letter
+    const constant = { true: 'True', false: 'False', none: 'None', null: 'None' }[name.toLowerCase()];
+    throw new ScriptError('nameUnbound', { name, ...(removed ?? {}), suggestion: removed?.suggestion ?? constant ?? suggest(name, [...this.globals.keys(), ...this.dynamic.keys(), ...this.predef.keys()]) });
   }
 
   importModule(name) {

@@ -1,5 +1,5 @@
 // Comparison with real Python: every program in packages/core/test/cases/*.py must produce exactly the
-// output in our VM that CPython produced (*.out). New cases: create the file, `python3 x.py > x.out`.
+// output in our VM that CPython produced (*.out). New cases: create the file, `python3 -I -W ignore x.py > x.out`.
 // If python3 is installed, it is additionally checked that the .out files still match CPython.
 
 import { describe, it, expect } from 'vitest';
@@ -28,7 +28,7 @@ describe('Python subset matches CPython', () => {
 
   it.skipIf(!python)('.out files match CPython', () => {
     for (const f of cases) {
-      const out = execFileSync(python, [join(dir, f)], { encoding: 'utf8' });
+      const out = execFileSync(python, ['-I', '-W', 'ignore', join(dir, f)], { encoding: 'utf8' });
       expect(out, f).toBe(readFileSync(join(dir, f.replace(/\.py$/, '.out')), 'utf8'));
     }
   });

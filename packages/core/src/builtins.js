@@ -5,11 +5,12 @@
 // not identical on all machines.
 
 import { ScriptError } from './errors.js';
+import { EXCEPTION_CLASSES } from './exceptions.js';
 import {
   PyFloat, PyList, PyTuple, PyDict, PyRange, PyBuiltin, PyIterator, PyView, PyFunction, PyPartial, PyBoundMethod,
   PyModule, PyHost, checkInt, isInt, isNum, num, typeName, truthy, eq, lt, iterItems, makeIter, iterNext, DONE, length,
   roundFloat, formatValue, binary, TYPE_NAMES, toIndex, keyOf, normBig, pow10, pushAll,
-  PyClass, PyInstance, PyMethod, PySuper, PyProperty, PyStaticMethod, PyClassMethod, OBJECT, NOT_IMPLEMENTED, NO_METHOD,
+  keyError, PyClass, PyInstance, PyMethod, PySuper, PyProperty, PyStaticMethod, PyClassMethod, OBJECT, NOT_IMPLEMENTED, NO_METHOD,
   callDunder, lookupClass, defaultRepr,
 } from './values.js';
 
@@ -336,6 +337,20 @@ export const BUILTINS = {
     const r = callDunder(args[0], '__eq__', [args[1]]);
     return r === NO_METHOD || r === NOT_IMPLEMENTED ? NOT_IMPLEMENTED : !truthy(r);
   },
+  'BaseException.__init__'(ctx, args) { args[0].dict.set('args', new PyTuple(args.slice(1))); return null; },
+  'BaseException.__str__'(ctx, args) {
+    const a = args[0].dict.get('args');
+    const items = a ? a.items : [];
+    return items.length === 0 ? '' : items.length === 1 ? ctx.vm.str(items[0]) : ctx.vm.str(a);
+  },
+  'BaseException.__repr__'(ctx, args) {
+    const a = args[0].dict.get('args');
+    return `${args[0].cls.name}(${(a ? a.items : []).map((x) => ctx.vm.repr(x)).join(', ')})`;
+  },
+  'KeyError.__str__'(ctx, args) {
+    const a = args[0].dict.get('args');
+    return a && a.items.length === 1 ? ctx.vm.repr(a.items[0]) : BUILTINS['BaseException.__str__'](ctx, args);
+  },
   'property.setter'(ctx, args) { return new PyProperty(args[0].fget, args[1], args[0].fdel); },
   'property.getter'(ctx, args) { return new PyProperty(args[1], args[0].fset, args[0].fdel); },
   'property.deleter'(ctx, args) { return new PyProperty(args[0].fget, args[0].fset, args[1]); },
@@ -502,7 +517,7 @@ function random53(vm) {
 }
 
 /** Names of classes and constants that every program knows. */
-export const CLASS_GLOBALS = { object: OBJECT, NotImplemented: NOT_IMPLEMENTED };
+export const CLASS_GLOBALS = { object: OBJECT, NotImplemented: NOT_IMPLEMENTED, ...EXCEPTION_CLASSES };
 
 // object's default methods (found by lookups in the class chain, so that super().__init__() and friends work)
 OBJECT.dict.set('__init__', new PyBuiltin('object.__init__'));
@@ -669,14 +684,14 @@ export const METHODS = {
     remove: (c, l, a, kw) => {
       const [x] = params('remove', a, kw, ['value']);
       const i = l.items.findIndex((y) => eq(y, x));
-      if (i < 0) throw err('value', { what: 'notInList' });
+      if (i < 0) throw err('value', { what: 'notInList', op: 'remove' });
       l.items.splice(i, 1);
       return null;
     },
     index: (c, l, a, kw) => {
       const [x] = params('index', a, kw, ['value']);
       const i = listOf(l).findIndex((y) => eq(y, x));
-      if (i < 0) throw err('value', { what: 'notInList' });
+      if (i < 0) throw err('value', { what: 'notInList', op: 'index', value: c.vm.repr(x) });
       return i;
     },
     count: (c, l, a, kw) => { const [x] = params('count', a, kw, ['value']); return l.items.filter((y) => eq(y, x)).length; },
@@ -708,7 +723,7 @@ export const METHODS = {
     pop: (c, d, a, kw) => {
       const [k, def] = params('pop', a, kw, ['key', '?default']);
       const v = d.get(k);
-      if (v === undefined) { if (a.length > 1 || 'default' in kw) return def; throw err('key', { key: c.vm.repr(k) }); }
+      if (v === undefined) { if (a.length > 1 || 'default' in kw) return def; throw keyError(k); }
       d.delete(k);
       return v;
     },
