@@ -3,7 +3,7 @@
 Gemeinsame Grundlage, um Natter-Programme in einer Webseite laufen zu lassen: ein **Runner** (Zeitscheiben, Warte-Handler, Host-Callbacks, Debugger), eine **Konsole**, die Zeichenflächen **turtle** und **kara**, **Formulare** (guizero) und **Plots** (matplotlib). Alle Module docken über dieselbe Schnittstelle an (`registerHost`, `registerWait`, `use`). Nutzt nur die öffentlichen Exporte von `@natter/core`.
 
 ```bash
-npm run web:build   # packages/web/dist/natter-web.js (ES-Modul, mit Kern) + Größe
+npm run web:build   # packages/web/dist/: natter-web.js (Start) und je ein Paket pro Modulgruppe (stdlib, numpy, pyplot, guizero, pgzero), geladen erst beim import
 npm run web:e2e     # bauen, dann Browsertests gegen demo/index.html (Chromium, headless)
 npx vitest run packages/web   # reine Logik (Koordinaten, Kara-Welt, http, Runner in Node)
 ```
@@ -120,3 +120,7 @@ Zeigt das SVG von `plt.show()` (Warteart `plot`, `docs/NUMPY-PLOT.md`) direkt in
 - `plot.show(svg, w, h, name)`, `plot.clear()`, `plot.saveSvg(i)`, `plot.savePng(i, scale)`, `plot.setDark('paper'|'invert')`, `plot.figures`. Hilfen: `downloadBlob(blob, name)`, `svgToPng(svg, w, h, scale)`.
 
 `detectModules(source)` meldet zusätzlich `forms` (Import von guizero) und `plot` (Import von matplotlib). Die Demo hat Beispiele für Zähler, Temperatur-Umrechner, Quiz, To-do-Liste, Uhr, Raster mit zweitem Fenster und Plots mit numpy.
+
+## Module nachladen
+
+Der Kern kommt hier als Browser-Variante (`@natter/core/browser`): ohne die in Python geschriebenen Module. `runner.run(source)` lädt vor dem Start genau die Pakete, die das Programm importiert (`import re`, `import numpy as np`, `from matplotlib import pyplot`, `open(` …; Pygame-Zero-Programme ohne `import` erkennt es an `def draw()`/`Actor(`). Das Bauen ordnet jedes Paket einer eigenen Datei in `dist/` zu. Wer die Dateien von einem anderen Ort lädt, muss den ganzen Ordner `dist/` mit ausliefern.

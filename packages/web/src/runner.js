@@ -2,7 +2,7 @@
 // wait handlers (sleep, input, http, turtle-event, ... and whatever other modules add), host callbacks and a thin
 // debugger passthrough. Uses only the public exports of the core.
 
-import { compile, VM, ScriptError } from '@natter/core';
+import { compile, VM, ScriptError, loadPyModules } from '@natter/core';
 import { httpWait } from './http.js';
 
 /**
@@ -118,34 +118,43 @@ export function createRunner(options = {}) {
       inputQueue.length = 0;
       inputQueue.push(...(opts.inputs ?? []));
       const done = new Promise((res) => { finishRun = res; });
-      const globals = { ...(options.globals ?? {}), ...(opts.globals ?? {}) };
-      let prog;
-      try {
-        prog = compile(src, { known: Object.keys(globals) });
-      } catch (e) {
-        if (!(e instanceof ScriptError)) throw e;
-        vm = null; main = null;
-        report(e.toJSON());
-        end('error', id);
-        return done;
-      }
-      const t0 = now();
-      const host = {
-        print: (t) => emit('output', t, 'out'),
-        printErr: (t) => emit('output', t, 'err'),
-        now: () => (now() - t0),
-        epoch: () => Date.now() / 1000,
-        tzOffset: () => -new Date().getTimezoneOffset() * 60,
-        fsChanged: (path, text) => emit('file', path, text),
-        ...(options.host ?? {}),
-        ...hostExtra,
+      // the browser build of the core loads the standard modules a program imports only now (a no-op in the full build)
+      const pgzero = /^\s*def\s+(draw|update|on_\w+)\s*\(|\bActor\s*\(|pgzrun/m.test(src);
+      const begin = () => {
+        const globals = { ...(options.globals ?? {}), ...(opts.globals ?? {}) };
+        let prog;
+        try {
+          prog = compile(src, { known: Object.keys(globals) });
+        } catch (e) {
+          if (!(e instanceof ScriptError)) throw e;
+          vm = null; main = null;
+          report(e.toJSON());
+          end('error', id);
+          return;
+        }
+        const t0 = now();
+        const host = {
+          print: (t) => emit('output', t, 'out'),
+          printErr: (t) => emit('output', t, 'err'),
+          now: () => (now() - t0),
+          epoch: () => Date.now() / 1000,
+          tzOffset: () => -new Date().getTimezoneOffset() * 60,
+          fsChanged: (path, text) => emit('file', path, text),
+          ...(options.host ?? {}),
+          ...hostExtra,
+        };
+        vm = new VM(prog, { host, globals, files: opts.files ?? {}, seed: opts.seed ?? ((Math.random() * 2 ** 31) | 0) });
+        const dbg = opts.debug || opts.breakpoints?.length ? { bps: opts.breakpoints ?? [] } : null;
+        main = vm.start(null, dbg);
+        for (const p of plugins) p.start?.({ vm, task: main, runner, source: src });
+        setState('running');
+        schedule(id);
       };
-      vm = new VM(prog, { host, globals, files: opts.files ?? {}, seed: opts.seed ?? ((Math.random() * 2 ** 31) | 0) });
-      const dbg = opts.debug || opts.breakpoints?.length ? { bps: opts.breakpoints ?? [] } : null;
-      main = vm.start(null, dbg);
-      for (const p of plugins) p.start?.({ vm, task: main, runner, source: src });
-      setState('running');
-      schedule(id);
+      loadPyModules(src, { pgzero }).then(() => { if (id === runId) begin(); }, (e) => {
+        vm = null; main = null;
+        report({ code: 'err.script.internal', kind: 'RuntimeError', params: { message: String(e?.message ?? e) } });
+        end('error', id);
+      });
       return done;
     },
 

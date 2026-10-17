@@ -100,3 +100,6 @@ export { formatTraceback } from './traceback.js';
 
 /** SVGs of the figures a program left open without plt.show() (a host may show them when the program ends). */
 export const renderOpenFigures = (vm) => HOOKS.renderOpenFigures?.(vm) ?? [];
+
+/** Load the packs a program needs (a no-op here: the full entry index.js has all of them; browser.js has the real one). */
+export const loadPyModules = () => Promise.resolve();
