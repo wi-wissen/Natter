@@ -1130,6 +1130,7 @@ function generalFormat(x, p, alt, upper) {
  * @param {any} v @param {string} spec e.g. '.2f', '>8', '05d', ',.1f'
  */
 export function formatValue(v, spec) {
+  if (v instanceof PyInstance && definesDunder(v.cls, '__format__')) return callDunder(v, '__format__', [spec]);
   if (!spec) return toStr(v);
   const m = SPEC.exec(spec);
   if (!m) throw err('value', { what: 'formatSpec', spec });

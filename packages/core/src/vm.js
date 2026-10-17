@@ -19,7 +19,7 @@ import {
 import { BUILTINS, CLASS_GLOBALS, METHODS, MODULES, moduleAttr } from './builtins.js';
 import { EXCEPTION_CLASSES, exceptionClassFor, isExceptionClass } from './exceptions.js';
 import { pyMessage } from './pymessages.js';
-import { PYMODULES } from './stdlib/index.js';
+import { PYMODULES } from './stdlib/py/index.js';
 import { compile as compileRaw } from './compiler.js';
 
 export { Suspend };
@@ -71,6 +71,8 @@ export class VM {
     /** @type {Map<string, PyModule>} modules imported so far */
     this.moduleCache = new Map();
     this.host = opts.host ?? {};
+    /** Virtual clock (ms): what time.time() shows and sleep() advances when the host has no clock */
+    this.virtualMs = 0;
     this.natives = { ...BUILTINS, ...(opts.natives ?? {}) };
     /** Predefined names (not saved – come back from the host API on loading) */
     this.predef = new Map(Object.entries(opts.globals ?? {}));
@@ -340,7 +342,10 @@ export class VM {
   /** Create an instance: run __init__ as a frame (its result is replaced by the instance) or native initialisers at once. */
   instantiate(task, cls, args, kw) {
     const inst = new PyInstance(cls);
-    if (cls.mro.some((c) => c.native === 'exception')) inst.dict.set('args', new PyTuple(args.slice()));
+    if (cls.mro.some((c) => c.native === 'exception')) {
+      inst.dict.set('args', new PyTuple(args.slice()));
+      if (cls.mro.some((c) => c.name === 'SystemExit')) inst.dict.set('code', args.length ? (args.length === 1 ? args[0] : new PyTuple(args.slice())) : null);
+    }
     const init = lookupClass(cls, '__init__');
     if (init instanceof PyFunction) {
       const frame = this.bindFrame(init, [inst, ...args], kw);
@@ -424,6 +429,15 @@ export class VM {
 
   /** The task ends with this error. */
   finish(task, e) {
+    if (e.kind === 'SystemExit' && !task.sync) {
+      // sys.exit(): the program ends quietly
+      task.state = 'done';
+      task.result = null;
+      task.exitCode = e.pyexc?.dict.get('code') ?? null;
+      task.frames = [];
+      task.wait = null;
+      return;
+    }
     task.state = 'error';
     task.error = e.toJSON();
     task.errorRaw = e;
@@ -1082,6 +1096,12 @@ export class VM {
   /** Output of print(). */
   print(text, task) {
     if (this.host.print) this.host.print(text, task);
+  }
+
+  /** Output to stderr (sys.stderr); hosts without a separate channel get it on print. */
+  printErr(text, task) {
+    if (this.host.printErr) this.host.printErr(text, task);
+    else this.print(text, task);
   }
 
   /** Random number 0 … 2^32-1 (sfc32, saved). */

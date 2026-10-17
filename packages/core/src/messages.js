@@ -182,6 +182,17 @@ export const de = {
   "err.script.value.factorialNegative": "factorial() gibt es nur für Zahlen ab 0.",
   "err.script.value.combNegative": "Hier sind nur Zahlen ab 0 erlaubt.",
   "err.script.value.isclose": "Die Toleranzen von isclose() dürfen nicht negativ sein.",
+  "err.script.type.jsonKey": "JSON-Schlüssel müssen Text, Zahlen, True, False oder None sein, nicht „{type}“.",
+  "err.script.type.jsonText": "json.loads() braucht Text, nicht „{type}“.",
+  "err.script.type.jsonType": "Ein Wert vom Typ „{type}“ lässt sich nicht als JSON schreiben.",
+  "err.script.value.circular": "Die Daten enthalten sich selbst und lassen sich nicht als JSON schreiben.",
+  "err.script.value.floatToInt": "NaN oder unendlich lässt sich nicht in eine ganze Zahl umwandeln.",
+  "err.script.value.randbits": "Die Bitzahl muss zwischen 0 und 53 liegen.",
+  "err.script.value.sampleSize": "Es sollen mehr Elemente gezogen werden, als vorhanden sind.",
+  "err.script.value.sleepNegative": "Die Wartezeit darf nicht negativ sein.",
+  "err.script.value.weightsLength": "Es muss genauso viele Gewichte wie Elemente geben.",
+  "err.script.value.weightsTotal": "Die Summe der Gewichte muss größer als 0 sein.",
+  "err.script.jsonDecode": "Das ist kein gültiges JSON: {msg} (Zeichen {pos}).",
 };
 
 export const en = {
@@ -364,4 +375,15 @@ export const en = {
   "err.script.value.factorialNegative": "factorial() is only defined for numbers from 0.",
   "err.script.value.combNegative": "Only numbers from 0 are allowed here.",
   "err.script.value.isclose": "The tolerances of isclose() must not be negative.",
+  "err.script.type.jsonKey": "JSON keys must be text, numbers, True, False or None, not “{type}”.",
+  "err.script.type.jsonText": "json.loads() needs text, not “{type}”.",
+  "err.script.type.jsonType": "A value of type “{type}” cannot be written as JSON.",
+  "err.script.value.circular": "The data contains itself and cannot be written as JSON.",
+  "err.script.value.floatToInt": "NaN or infinity cannot be turned into an integer.",
+  "err.script.value.randbits": "The number of bits must be between 0 and 53.",
+  "err.script.value.sampleSize": "More elements are asked for than there are.",
+  "err.script.value.sleepNegative": "The waiting time must not be negative.",
+  "err.script.value.weightsLength": "There must be as many weights as elements.",
+  "err.script.value.weightsTotal": "The weights must add up to more than 0.",
+  "err.script.jsonDecode": "This is not valid JSON: {msg} (character {pos}).",
 };

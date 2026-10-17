@@ -1,0 +1,31 @@
+{"name": "Ada", "age": 36, "langs": ["py", "js"], "ok": true, "none": null, "pi": 3.5, "nested": {"a": [1, 2, {"b": []}]}}
+{
+  "name": "Ada",
+  "age": 36,
+  "langs": [
+    "py",
+    "js"
+  ],
+  "ok": true,
+  "none": null,
+  "pi": 3.5,
+  "nested": {
+    "a": [
+      1,
+      2,
+      {
+        "b": []
+      }
+    ]
+  }
+}
+{"age":36,"langs":["py","js"],"name":"Ada","nested":{"a":[1,2,{"b":[]}]},"none":null,"ok":true,"pi":3.5}
+"ä\n\"x\"" "\u00e4\n" [1.0, 2, 1e+20, true]
+True [1, 2.5, 'x', None, True] {'a': {'b': 100.0}}
+ä
+ 12 -0.5
+JSONDecodeError Expecting property name enclosed in double quotes 1
+JSONDecodeError Illegal trailing comma before end of array 2
+JSONDecodeError Expecting value 0
+JSONDecodeError Expecting value 0
+TypeError Object of type set is not JSON serializable

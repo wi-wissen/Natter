@@ -4,6 +4,11 @@ import functools from './functools.js';
 import itertools from './itertools.js';
 import statistics from './statistics.js';
 import string from './string.js';
+import json from './json.js';
+import sys from './sys.js';
+import time from './time.js';
+import _calendar from './_calendar.js';
+import datetime from './datetime.js';
 
 /** @type {Record<string, string>} */
-export const PYMODULES = { collections, functools, itertools, statistics, string };
+export const PYMODULES = { collections, functools, itertools, statistics, string, json, sys, time, _calendar, datetime };

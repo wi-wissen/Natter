@@ -47,6 +47,12 @@ export function pyMessage(e) {
         case 'floatToInt': return 'cannot convert float NaN to integer';
         case 'factorialNegative': return 'factorial() not defined for negative values';
         case 'combNegative': return 'n must be a non-negative integer';
+        case 'circular': return 'Circular reference detected';
+        case 'sleepNegative': return 'sleep length must be non-negative';
+        case 'weightsLength': return 'The number of weights does not match the population';
+        case 'weightsTotal': return 'Total of weights must be greater than zero';
+        case 'sampleSize': return 'Sample larger than population or is negative';
+        case 'randbits': return 'number of bits must be non-negative';
         default: break;
       }
       break;
@@ -97,6 +103,9 @@ export function pyMessage(e) {
         case 'noArgsClass': return `${p.name}() takes no arguments`;
         case 'initReturn': return `__init__() should return None, not '${p.type}'`;
         case 'sumStr': return "sum() can't sum strings [use ''.join(seq) instead]";
+        case 'jsonType': return `Object of type ${p.type} is not JSON serializable`;
+        case 'jsonKey': return `keys must be str, int, float, bool or None, not ${p.type}`;
+        case 'jsonText': return `the JSON object must be str, bytes or bytearray, not ${p.type}`;
         case 'notIterator': return `'${p.type}' object is not an iterator`;
         default: break;
       }

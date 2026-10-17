@@ -7,6 +7,10 @@
 import { ScriptError } from './errors.js';
 import { err, params, noKw, needInt, anyInt, needNum, needStr } from './args.js';
 import { MATH_NATIVES, MATH_NAMES, MATH_CONSTS } from './stdlib/math.js';
+import { RANDOM_NATIVES, RANDOM_NAMES } from './stdlib/random.js';
+import { CLOCK_NATIVES, CLOCK_NAMES } from './stdlib/clock.js';
+import { JSON_NATIVES, JSON_NAMES } from './stdlib/json.js';
+import { COPY_NATIVES, COPY_NAMES } from './stdlib/copy.js';
 import { EXCEPTION_CLASSES } from './exceptions.js';
 import {
   PyFloat, PyList, PyTuple, PyDict, PyRange, PyBuiltin, PyIterator, PyView, PyFunction, PyPartial, PyBoundMethod,
@@ -111,11 +115,14 @@ function mappingItems(ctx, src) {
 const listIter = (items, label) => new PyIterator(new PyList(items), 0, label);
 
 export const BUILTINS = {
+  '_sys.write_err'(ctx, args) { ctx.vm.printErr(needStr(args[0], 'write'), ctx.task); return null; },
   print(ctx, args, kw) {
     const [sep = ' ', end = '\n'] = [kw.sep ?? undefined, kw.end ?? undefined];
-    for (const k of Object.keys(kw)) if (k !== 'sep' && k !== 'end' && k !== 'flush') throw err('argUnexpected', { name: 'print', arg: k });
+    for (const k of Object.keys(kw)) if (k !== 'sep' && k !== 'end' && k !== 'flush' && k !== 'file') throw err('argUnexpected', { name: 'print', arg: k });
     const s = sep === null ? ' ' : needStr(sep, 'sep'), e = end === null ? '\n' : needStr(end, 'end');
-    ctx.vm.print(args.map((a) => ctx.vm.str(a)).join(s) + e, ctx.task);
+    const text = args.map((a) => ctx.vm.str(a)).join(s) + e;
+    if (kw.file !== undefined && kw.file !== null) ctx.vm.callSync(ctx.vm.getattr(ctx.task, kw.file, 'write'), [text], null, ctx.task);
+    else ctx.vm.print(text, ctx.task);
     return null;
   },
   len(ctx, args, kw) { const [x] = params('len', args, kw, ['obj']); return length(x); },
@@ -170,6 +177,7 @@ export const BUILTINS = {
   },
   abs(ctx, args, kw) {
     const [x] = params('abs', args, kw, ['x']);
+    if (x instanceof PyInstance) { const r = callDunder(x, '__abs__'); if (r !== NO_METHOD) return r; }
     if (x instanceof PyFloat) return new PyFloat(Math.abs(x.v));
     const n = anyInt(x, 'abs');
     return typeof n === 'bigint' ? (n < 0n ? normBig(-n) : n) : Math.abs(n);
@@ -379,49 +387,10 @@ export const BUILTINS = {
 
   ...MATH_NATIVES,
 
-  // ---------- random (the VM's own randomness, saved along) ----------
-  'random.random'(ctx, args, kw) { params('random', args, kw, []); return new PyFloat(random53(ctx.vm)); },
-  'random.randint'(ctx, args, kw) {
-    const [a, b] = params('randint', args, kw, ['a', 'b']);
-    const lo = needInt(a, 'a'), hi = needInt(b, 'b');
-    if (hi < lo) throw err('value', { what: 'emptyRange' });
-    return lo + randBelow(ctx.vm, hi - lo + 1);
-  },
-  'random.randrange'(ctx, args, kw) {
-    const [a, b, s = 1] = params('randrange', args, kw, ['start', '?stop', '?step']);
-    const [start, stop] = b === undefined ? [0, needInt(a, 'stop')] : [needInt(a, 'start'), needInt(b, 'stop')];
-    const step = needInt(s, 'step');
-    if (step === 0) throw err('value', { what: 'rangeStep' });
-    const n = step > 0 ? Math.ceil((stop - start) / step) : Math.ceil((start - stop) / -step);
-    if (n <= 0) throw err('value', { what: 'emptyRange' });
-    return start + step * randBelow(ctx.vm, n);
-  },
-  'random.choice'(ctx, args, kw) {
-    const [seq] = params('choice', args, kw, ['seq']);
-    const items = iterItems(seq);
-    if (!items.length) throw err('index', { what: 'choiceEmpty' });
-    return items[randBelow(ctx.vm, items.length)];
-  },
-  'random.shuffle'(ctx, args, kw) {
-    const [lst] = params('shuffle', args, kw, ['x']);
-    if (!(lst instanceof PyList)) throw err('type', { what: 'listNeeded', type: typeName(lst) });
-    const a = lst.items;
-    for (let i = a.length - 1; i > 0; i--) { const j = randBelow(ctx.vm, i + 1); [a[i], a[j]] = [a[j], a[i]]; }
-    return null;
-  },
-  'random.uniform'(ctx, args, kw) {
-    const [a, b] = params('uniform', args, kw, ['a', 'b']);
-    const lo = needNum(a, 'a'), hi = needNum(b, 'b');
-    return new PyFloat(lo + (hi - lo) * random53(ctx.vm));
-  },
-  'random.seed'(ctx, args, kw) {
-    const [s = 0] = params('seed', args, kw, ['?a']);
-    const v = typeof s === 'string' ? [...s].reduce((h, c) => (Math.imul(h, 31) + c.charCodeAt(0)) | 0, 7) : needInt(s, 'seed');
-    const st = [0x9e3779b9, 0x243f6a88, 0xb7e15162, v >>> 0];
-    ctx.vm.rng.splice(0, 4, ...st);
-    for (let i = 0; i < 15; i++) ctx.vm.random32();
-    return null;
-  },
+  ...RANDOM_NATIVES,
+  ...CLOCK_NATIVES,
+  ...JSON_NATIVES,
+  ...COPY_NATIVES,
 };
 
 /**
@@ -462,22 +431,6 @@ function keyOfLoose(v) {
   try { return keyOf(v); } catch { return `u${typeName(v)}`; }
 }
 
-/** Uniformly distributed integer 0 … n-1 without bias (rejection). */
-function randBelow(vm, n) {
-  if (n <= 0) return 0;
-  if (n <= 0x100000000) {
-    const limit = Math.floor(0x100000000 / n) * n;
-    for (;;) { const r = vm.random32(); if (r < limit) return r % n; }
-  }
-  for (;;) { const r = random53(vm) * n; const k = Math.floor(r); if (k < n) return k; }
-}
-
-/** Float 0 ≤ x < 1 with 53 bits (like Python's random()). */
-function random53(vm) {
-  const a = vm.random32() >>> 5, b = vm.random32() >>> 6;
-  return (a * 67108864 + b) / 9007199254740992;
-}
-
 /** Names of classes and constants that every program knows. */
 export const CLASS_GLOBALS = { object: OBJECT, NotImplemented: NOT_IMPLEMENTED, ...EXCEPTION_CLASSES };
 
@@ -490,7 +443,11 @@ OBJECT.dict.set('__ne__', new PyBuiltin('object.__ne__'));
 
 export const MODULES = {
   math: MATH_NAMES,
-  random: ['random', 'randint', 'randrange', 'choice', 'shuffle', 'uniform', 'seed'],
+  random: RANDOM_NAMES,
+  _time: CLOCK_NAMES,
+  _json: JSON_NAMES,
+  _sys: ['write_err'],
+  copy: COPY_NAMES,
 };
 
 /** Values of module attributes that are not functions (constants, classes). */
