@@ -404,10 +404,11 @@ export const SECTIONS = [
   {
     id: 'bilder', title: 'Bildbibliothek', group: G_DRAW, source: 'assets',
     intro: [
-      'Rund 900 Bilder in einem einheitlichen Stil und kurze Klänge, frei verwendbar (CC0). Ein Programm nennt nur den Namen, ohne Dateien hochzuladen: `Actor("heroine_run_1")`, `screen.blit("pf_grass_mid", (0, 416))`, `sounds.coin.play()`. Kara und die Schildkröte von turtle nutzen dieselbe Bibliothek.',
+      'Rund {images} Bilder in einem einheitlichen Stil und kurze Klänge, frei verwendbar (CC0). Ein Programm nennt nur den Namen, ohne Dateien hochzuladen: `Actor("heroine_run_1")`, `screen.blit("pf_grass_mid", (0, 416))`, `sounds.coin.play()`. Kara und die Schildkröte von turtle nutzen dieselbe Bibliothek.',
       'Geladen wird nur, was im Programm vorkommt. Ein Text wie `"heroine_run_" + str(i)` lädt alle Bilder, deren Name so beginnt. Eine eigene Datei im Projektordner `images/` mit demselben Namen gewinnt. Alle Bilder mit Vorschau zeigt die [Galerie auf python.jetzt](https://python.jetzt/bilder.html); die Pakete stehen in `packages/assets` (`gametypes.json`, `catalog.json`).',
     ],
-    notes: ['Namen: klein, ASCII, eindeutig über alle Pakete. Animationen enden auf `_1`, `_2` … (`heroine_run_1` bis `heroine_run_8`), Figuren schauen nach rechts, außer der Name sagt `_left`.'],
+    notesTitle: 'Namen',
+    notes: ['Klein, ASCII, eindeutig über alle Pakete. Animationen enden auf `_1`, `_2` … (`heroine_run_1` bis `heroine_run_8`), Figuren schauen nach rechts, außer der Name sagt `_left`.'],
   },
 
   // ------------------------------------------------------------------ forms, data, net

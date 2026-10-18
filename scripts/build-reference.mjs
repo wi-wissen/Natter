@@ -428,7 +428,7 @@ function exampleBlock(sec) {
 
 function notesBlock(sec) {
   let h = '';
-  for (const [title, list] of [['Grenzen und Abweichungen von CPython', sec.notes], ['Im Browser', sec.host]]) {
+  for (const [title, list] of [[sec.notesTitle ?? 'Grenzen und Abweichungen von CPython', sec.notes], ['Im Browser', sec.host]]) {
     if (list?.length) h += `<div class="notes"><h3>${title}</h3><ul>${list.map((n) => `<li>${md(n)}</li>`).join('')}</ul></div>`;
   }
   return h;
@@ -493,7 +493,7 @@ function renderSection(sec, i) {
 <p class="kicker">${String(i + 1).padStart(2, '0')} &middot; ${esc(sec.group)}</p>
 <h2>${esc(sec.title)}</h2>
 <div class="rhead">${imp}${pack}</div>
-${(sec.intro ?? []).map((x) => `<p class="intro">${md(x)}</p>`).join('')}
+${(sec.intro ?? []).map((x) => `<p class="intro">${md(x.replace('{images}', String(Math.round(CATALOG.images.length / 100) * 100)))}</p>`).join('')}
 ${exampleBlock(sec)}
 ${notesBlock(sec)}
 ${renderBody(sec)}
@@ -515,25 +515,46 @@ const SCRIPT = `
   var input = document.getElementById('q'), count = document.getElementById('qn');
   var sections = [].slice.call(document.querySelectorAll('.rs'));
   var navLinks = [].slice.call(document.querySelectorAll('.side a'));
-  function apply() {
-    var q = input.value.trim().toLowerCase();
+  // a hit: the query starts a word of the entry (print, forward, screen.draw); with no such hit anywhere, any substring
+  function words(q) { return function (t) { return t.indexOf(q) === 0 || t.indexOf(' ' + q) >= 0 || t.indexOf('.' + q) >= 0 || t.indexOf('(' + q) >= 0; }; }
+  function inside(q) { return function (t) { return t.indexOf(q) >= 0; }; }
+  // does a heading have a visible hit before the next heading of its level or higher?
+  function headingHas(h) {
+    var level = +h.tagName[1];
+    for (var n = h.nextElementSibling; n; n = n.nextElementSibling) {
+      if (/^H[1-6]$/.test(n.tagName) && +n.tagName[1] <= level) return false;
+      if (n.matches('.re:not([hidden])') || n.querySelector('.re:not([hidden])')) return true;
+    }
+    return false;
+  }
+  function run(q, match) {
     var total = 0;
-    document.body.classList.toggle('searching', q.length > 0);
     sections.forEach(function (s) {
-      var hit = 0, title = s.getAttribute('data-title').indexOf(q) >= 0;
+      var hit = 0, title = match(s.getAttribute('data-title'));
       [].slice.call(s.querySelectorAll('.re')).forEach(function (e) {
-        var ok = !q || title || e.getAttribute('data-q').indexOf(q) >= 0;
+        var ok = !q || title || match(e.getAttribute('data-q'));
         e.hidden = !ok; if (ok && q) hit++;
       });
-      [].slice.call(s.querySelectorAll('.members, .chips, .rlist, h4, h5, .scroll, .errs')).forEach(function (b) {
-        b.classList.toggle('empty', !!q && !title && !b.querySelector('.re:not([hidden])'));
+      [].slice.call(s.querySelectorAll('.members, .chips, .rlist, h4, h5, .scroll, .errs, h3.part')).forEach(function (b) {
+        b.classList.toggle('empty', !!q && !title && !(/^H[1-6]$/.test(b.tagName) ? headingHas(b) : b.querySelector('.re:not([hidden])')));
       });
       s.hidden = !!q && !title && hit === 0;
       total += hit;
       var a = document.querySelector('.side a[href="#' + s.id + '"]');
       if (a) a.parentNode.hidden = s.hidden;
     });
+    return total;
+  }
+  function apply() {
+    var q = input.value.trim().toLowerCase();
+    document.body.classList.toggle('searching', q.length > 0);
+    var total = run(q, words(q));
+    if (q && !total) total = run(q, inside(q));
     count.textContent = q ? (total + ' Treffer') : '';
+    [].slice.call(document.querySelectorAll('.side .sg')).forEach(function (g) {
+      var list = g.nextElementSibling;
+      g.hidden = !!list && !list.querySelector('li:not([hidden])');
+    });
   }
   input.addEventListener('input', apply);
   document.addEventListener('keydown', function (e) {
@@ -560,7 +581,7 @@ function render(sections) {
 <title>Natter-Referenz</title>
 <meta name="description" content="${esc(PAGE.description)}">
 <meta name="color-scheme" content="light dark">
-<link rel="icon" href="../natter.svg" type="image/svg+xml">
+<link rel="icon" href="../natter-small.svg" type="image/svg+xml">
 <link rel="stylesheet" href="../style.css">
 <link rel="stylesheet" href="reference.css">
 </head>
@@ -569,7 +590,7 @@ function render(sections) {
 <a class="skip" href="#inhalt">Zum Inhalt</a>
 <header class="ref-top">
   <div class="wrap topbar">
-    <a class="brand" href="../index.html" aria-label="Natter, Startseite"><img src="../natter.svg" width="32" height="32" alt="">Natter</a>
+    <a class="brand" href="../index.html" aria-label="Natter, Startseite"><img src="../natter-small.svg" width="32" height="32" alt="">Natter</a>
     <a class="gh-small" href="https://github.com/wi-wissen/Natter">GitHub</a>
   </div>
   <div class="wrap ref-hero">

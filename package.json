@@ -11,7 +11,8 @@
     "size": "node scripts/size.mjs",
     "web:build": "node packages/web/build.mjs",
     "web:e2e": "node packages/web/e2e/run.mjs && node packages/web/e2e/forms.mjs && node packages/web/e2e/pgzero.mjs",
-    "assets:catalog": "node scripts/build-asset-catalog.mjs"
+    "assets:catalog": "node scripts/build-asset-catalog.mjs",
+    "reference": "node scripts/build-reference.mjs"
   },
   "devDependencies": {
     "esbuild": "^0.21.5",
