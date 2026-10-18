@@ -78,6 +78,8 @@ Drei Pakete auf npm, eine Version für alle:
 | [`@natterjs/web`](https://www.npmjs.com/package/@natterjs/web) | Browser-Host als fertiger Build `dist/natter-web.js` mit nachgeladenen Teilen (Kern eingebaut) |
 | [`@natterjs/assets`](https://www.npmjs.com/package/@natterjs/assets) | Bilder, Klänge, `catalog.json` (CC0, siehe `packages/assets/LICENSE-ASSETS.md`) |
 
+Die `README.md` jedes Pakets ist seine englische Seite auf npm. Die ausführliche (deutsche) Entwicklerdokumentation steht in [`packages/web/DEVELOPMENT.md`](packages/web/DEVELOPMENT.md) (Runner, Konsole, Turtle, Kara, Pygame Zero, Formulare, Plots) und [`packages/assets/DEVELOPMENT.md`](packages/assets/DEVELOPMENT.md) (Pakete, Katalog, Spielarten, neue Pakete); sie wird nicht mit veröffentlicht.
+
 **Mit npm und Bundler** (Vite, esbuild, webpack):
 
 ```bash
