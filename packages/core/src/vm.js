@@ -840,6 +840,7 @@ export class VM {
 
   /** Should the debugger stop before this instruction? */
   debugStop(task, frame, code, pc) {
+    if (code.lib) return false;
     const d = task.debug;
     const depth = task.frames.length;
     if (d.skip) {
@@ -925,6 +926,8 @@ export class VM {
   /** Compile a module and run its code in a namespace of its own (the module object is cached before it runs). */
   loadModule(name, src, task) {
     const prog = compileRaw(src, { known: [...this.predef.keys(), ...Object.keys(CLASS_GLOBALS)], modules: MODULES, codeBase: this.codes.length });
+    // standard modules written in Python (turtle, statistics ...): the debugger steps over them like over built-in functions
+    if (PYMODULES[name] !== undefined && PYMODULES[name] === src) for (const c of prog.codes) c.lib = true;
     this.codes.push(...prog.codes);
     const ns = new Map([['__name__', name]]);
     const mod = new PyModule(name, ns);

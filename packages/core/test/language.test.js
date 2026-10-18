@@ -195,6 +195,24 @@ describe('Debugger', () => {
   });
 });
 
+describe('Debugger and standard modules', () => {
+  it('steps over code of standard modules written in Python, but into the own modules of a project', () => {
+    const src = 'import statistics\nimport helper\nm = statistics.mean([1, 2, 3])\nh = helper.twice(m)\nprint(m, h)';
+    const { vm, out } = makeVm(src, { host: { readModule: (n) => (n === 'helper' ? 'def twice(x):\n    y = x * 2\n    return y\n' : undefined) } });
+    const task = vm.start(null, { mode: 'step', kind: 'into' });
+    vm.run(task);
+    const seen = [vm.lineOf(task)];
+    for (let k = 0; k < 30 && task.state === 'paused'; k++) {
+      vm.debugCommand(task, 'into');
+      vm.run(task);
+      if (task.state === 'paused') seen.push(vm.lineOf(task));
+    }
+    expect(task.state).toBe('done');
+    expect(seen).toEqual([1, 2, 3, 4, 2, 3, 5]);
+    expect(out.join('')).toBe('2 4\n');
+  });
+});
+
 describe('Determinism and helpers', () => {
   it('random is repeatable per seed', () => {
     const src = 'import random\nprint([random.randint(1, 100) for _ in range(5)], random.random(), random.choice("abc"))';
