@@ -11,7 +11,7 @@ rmSync(outdir, { recursive: true, force: true });
 // the core comes as its browser build: a small start, one chunk per module pack, loaded when a program imports from it
 await build({
   entryPoints: { 'natter-web': join(here, 'src/index.js') }, bundle: true, minify: true, format: 'esm', target: 'es2022', splitting: true,
-  alias: { '@natter/core': join(here, '../core/src/browser.js') },
+  alias: { '@natterjs/core': join(here, '../core/src/browser.js') },
   loader: { '.svg': 'text' }, sourcemap: true, outdir, legalComments: 'none',
 });
 const kb = (n) => (n / 1024).toFixed(1) + ' KB';

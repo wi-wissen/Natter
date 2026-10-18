@@ -1,6 +1,6 @@
-# @natter/web – Natter im Browser
+# @natterjs/web – Natter im Browser
 
-Gemeinsame Grundlage, um Natter-Programme in einer Webseite laufen zu lassen: ein **Runner** (Zeitscheiben, Warte-Handler, Host-Callbacks, Debugger), eine **Konsole**, die Zeichenflächen **turtle** und **kara**, **Formulare** (guizero) und **Plots** (matplotlib). Alle Module docken über dieselbe Schnittstelle an (`registerHost`, `registerWait`, `use`). Nutzt nur die öffentlichen Exporte von `@natter/core`.
+Gemeinsame Grundlage, um Natter-Programme in einer Webseite laufen zu lassen: ein **Runner** (Zeitscheiben, Warte-Handler, Host-Callbacks, Debugger), eine **Konsole**, die Zeichenflächen **turtle** und **kara**, **Formulare** (guizero) und **Plots** (matplotlib). Alle Module docken über dieselbe Schnittstelle an (`registerHost`, `registerWait`, `use`). Nutzt nur die öffentlichen Exporte von `@natterjs/core`.
 
 ```bash
 npm run web:build   # packages/web/dist/: natter-web.js (Start) und je ein Paket pro Modulgruppe (stdlib, numpy, pyplot, guizero, pgzero), geladen erst beim import
@@ -128,4 +128,4 @@ Zeigt das SVG von `plt.show()` (Warteart `plot`, `docs/NUMPY-PLOT.md`) direkt in
 
 ## Module nachladen
 
-Der Kern kommt hier als Browser-Variante (`@natter/core/browser`): ohne die in Python geschriebenen Module. `runner.run(source)` lädt vor dem Start genau die Pakete, die das Programm importiert (`import re`, `import numpy as np`, `from matplotlib import pyplot`, `open(` …; Pygame-Zero-Programme ohne `import` erkennt es an `def draw()`/`Actor(`). Das Bauen ordnet jedes Paket einer eigenen Datei in `dist/` zu. Wer die Dateien von einem anderen Ort lädt, muss den ganzen Ordner `dist/` mit ausliefern.
+Der Kern kommt hier als Browser-Variante (`@natterjs/core/browser`): ohne die in Python geschriebenen Module. `runner.run(source)` lädt vor dem Start genau die Pakete, die das Programm importiert (`import re`, `import numpy as np`, `from matplotlib import pyplot`, `open(` …; Pygame-Zero-Programme ohne `import` erkennt es an `def draw()`/`Actor(`). Das Bauen ordnet jedes Paket einer eigenen Datei in `dist/` zu. Wer die Dateien von einem anderen Ort lädt, muss den ganzen Ordner `dist/` mit ausliefern.

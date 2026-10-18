@@ -2,7 +2,7 @@
 // wait handlers (sleep, input, http, turtle-event, ... and whatever other modules add), host callbacks and a thin
 // debugger passthrough. Uses only the public exports of the core.
 
-import { compile, VM, ScriptError, loadPyModules } from '@natter/core';
+import { compile, VM, ScriptError, loadPyModules } from '@natterjs/core';
 import { httpWait } from './http.js';
 
 /**

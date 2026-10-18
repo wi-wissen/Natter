@@ -581,6 +581,7 @@ function render(sections) {
 <title>Natter Reference</title>
 <meta name="description" content="${esc(PAGE.description)}">
 <meta name="color-scheme" content="light dark">
+<link rel="canonical" href="https://natter.wi7.net/reference/">
 <link rel="icon" href="../natter-small.svg" type="image/svg+xml">
 <link rel="stylesheet" href="../style.css">
 <link rel="stylesheet" href="reference.css">

@@ -4,7 +4,7 @@
 // Layout "auto" follows Tk pack (nested flex "cavities"), "grid" is a CSS grid whose rows and columns grow with their
 // content. Page events go into a queue and reach the program through the forms-event wait; timers run on real time.
 
-import { formsEvent } from '@natter/core';
+import { formsEvent } from '@natterjs/core';
 import { ensureFormsStyles } from './formsStyles.js';
 import { isDefaultBg, contrastInk, packParams, gridPlacement, tkKey, projectImage, EventQueue, TK_TEXT, TK_GRAY } from './formsLogic.js';
 

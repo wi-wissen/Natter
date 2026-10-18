@@ -1,0 +1,44 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      # the example programs are also compared with CPython (their .out files come from 3.12)
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: npm ci
+      - run: npx vitest run
+      - name: Build the web host
+        run: npm run web:build
+      - name: Size report
+        run: |
+          {
+            echo '### Bundle sizes'
+            echo '```'
+            npm run --silent size
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+      - name: Package contents
+        run: |
+          for ws in assets core web; do
+            npm pack --dry-run --workspace "packages/$ws" 2>&1 | grep -E 'name:|package size|unpacked size|total files'
+          done

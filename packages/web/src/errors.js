@@ -1,6 +1,6 @@
 // Friendly text of a VM error for the page: title (kind and line), message in the learner's language, Python traceback.
 
-import { scriptErrorText, formatTraceback } from '@natter/core';
+import { scriptErrorText, formatTraceback } from '@natterjs/core';
 
 /**
  * @param {{ code: string, kind: string, params?: object, line?: number, file?: string, traceback?: {name: string, line: number, file?: string}[] }} error  task.error of the VM

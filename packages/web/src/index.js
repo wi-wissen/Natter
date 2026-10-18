@@ -12,7 +12,7 @@ export { askDialog } from './dialog.js';
 export { describeError, UI_TEXT } from './errors.js';
 export { doHttp, httpWait } from './http.js';
 export { ensureStyles } from './styles.js';
-export { karaGlobals, KARA_NAMES } from '@natter/core';
+export { karaGlobals, KARA_NAMES } from '@natterjs/core';
 import { pgzMode } from './pgzeroMath.js';
 
 /** Which modules a program needs: 'turtle', 'kara', 'pgzero', 'forms' (guizero), 'plot' (matplotlib) or none (a simple look at its imports and calls). */

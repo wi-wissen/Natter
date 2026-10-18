@@ -245,6 +245,8 @@ p.tag { margin: 4px 0 0; }
 .embed { display: grid; gap: 16px 48px; grid-template-columns: minmax(0, 1fr); align-items: start; }
 @media (min-width: 880px) { .embed { grid-template-columns: minmax(0, .7fr) minmax(0, 1.3fr); } .embed > div { padding-top: 8px; } }
 .codeblock { margin: 0 8px 8px 0; background: var(--term-bg); color: var(--term-fg); border: var(--b) solid var(--s-ink); padding: 18px 20px; overflow-x: auto; font: 14.5px/1.65 var(--mono); box-shadow: 8px 8px 0 var(--drop); }
+.embed .codeblock + .codeblock { margin-top: 20px; }
+.embed .codeblock + p { margin-top: 20px; }
 @media (prefers-color-scheme: dark) { .codeblock { border-color: var(--frame); } }
 .codeblock code, .term code { background: none; padding: 0; font-size: inherit; overflow-wrap: normal; }
 

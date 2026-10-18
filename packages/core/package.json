@@ -1,12 +1,54 @@
 {
-  "name": "@natter/core",
-  "version": "0.0.0",
+  "name": "@natterjs/core",
+  "version": "0.1.0",
   "description": "Python interpreter core for teaching: lexer, parser, compiler and a bytecode VM with budget, suspend and debugger hooks",
-  "private": true,
+  "license": "MIT",
+  "author": "Natter contributors",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/wi-wissen/Natter.git",
+    "directory": "packages/core"
+  },
+  "homepage": "https://natter.wi7.net/",
+  "bugs": "https://github.com/wi-wissen/Natter/issues",
+  "keywords": [
+    "python",
+    "interpreter",
+    "education",
+    "teaching",
+    "bytecode",
+    "vm",
+    "debugger",
+    "turtle",
+    "browser"
+  ],
   "type": "module",
-  "main": "src/index.js",
+  "main": "./src/index.js",
+  "module": "./src/index.js",
   "exports": {
-    ".": "./src/index.js",
-    "./browser": "./src/browser.js"
+    ".": {
+      "import": "./src/index.js",
+      "default": "./src/index.js"
+    },
+    "./browser": {
+      "import": "./src/browser.js",
+      "default": "./src/browser.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "src/",
+    "README.md",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "prepack": "node ../../scripts/copy-license.mjs"
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
   }
 }

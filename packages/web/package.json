@@ -1,10 +1,56 @@
 {
-  "name": "@natter/web",
-  "version": "0.0.0",
-  "description": "Browser host for Natter: runner with time slices, console, turtle and kara canvas",
-  "private": true,
+  "name": "@natterjs/web",
+  "version": "0.1.0",
+  "description": "Browser host for Natter, a Python interpreter for teaching: runner with time slices, console, turtle, kara, Pygame Zero, forms and plots",
+  "license": "MIT",
+  "author": "Natter contributors",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/wi-wissen/Natter.git",
+    "directory": "packages/web"
+  },
+  "homepage": "https://natter.wi7.net/",
+  "bugs": "https://github.com/wi-wissen/Natter/issues",
+  "keywords": [
+    "python",
+    "interpreter",
+    "browser",
+    "education",
+    "teaching",
+    "turtle",
+    "pygame-zero",
+    "guizero",
+    "matplotlib",
+    "kara"
+  ],
   "type": "module",
-  "main": "src/index.js",
-  "exports": { ".": "./src/index.js" },
-  "dependencies": { "@natter/core": "*" }
+  "main": "./dist/natter-web.js",
+  "module": "./dist/natter-web.js",
+  "browser": "./dist/natter-web.js",
+  "exports": {
+    ".": {
+      "browser": "./dist/natter-web.js",
+      "import": "./dist/natter-web.js",
+      "default": "./dist/natter-web.js"
+    },
+    "./dist/*": "./dist/*",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist/*.js",
+    "dist/*.js.map",
+    "README.md",
+    "LICENSE"
+  ],
+  "dependencies": {
+    "@natterjs/core": "0.1.0"
+  },
+  "scripts": {
+    "build": "node build.mjs",
+    "prepack": "node build.mjs && node ../../scripts/copy-license.mjs"
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  }
 }

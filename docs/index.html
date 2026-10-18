@@ -6,6 +6,7 @@
 <title>Natter</title>
 <meta name="description" content="Natter is a small Python interpreter written in JavaScript for teaching: fast to load, built-in debugger, never freezes the page.">
 <meta name="color-scheme" content="light dark">
+<link rel="canonical" href="https://natter.wi7.net/">
 <link rel="icon" href="natter-small.svg" type="image/svg+xml">
 <link rel="stylesheet" href="style.css">
 </head>
@@ -28,7 +29,7 @@
         <a class="btn" href="reference/">Reference</a>
       </div>
       <div class="notice" role="note">
-        <p><b>Status: nearly complete.</b> The language, the standard library and the browser hosts (console, turtle, Kara, Pygame Zero, forms, numpy and plots, with an image library of about 900 sprites) work and are tested against CPython and the real libraries. Still open: the packaged release for embedding. Everything on this page is marked as
+        <p><b>Status: nearly complete.</b> The language, the standard library and the browser hosts (console, turtle, Kara, Pygame Zero, forms, numpy and plots, with an image library of about 900 sprites) work and are tested against CPython and the real libraries. Packaged for embedding as <code>@natterjs/core</code>, <code>@natterjs/web</code> and <code>@natterjs/assets</code> on npm, MIT licensed. Everything on this page is marked as
         <span class="tag t-have">in the base</span> <span class="tag t-plan">planned</span> or <span class="tag t-no">not planned</span>.</p>
       </div>
     </div>
@@ -168,10 +169,17 @@ Hi Grace!
   <div>
     <p class="kicker">06 &middot; Embedding</p>
     <h2>Embedding</h2>
-    <p>The browser host in <code>packages/web</code> runs a program in a page: time slices so a loop never freezes it, console, turtle, Kara, forms, plots and the debugger. Heavy parts load only when imported.</p>
+    <p>The browser host <code>@natterjs/web</code> runs a program in a page: time slices so a loop never freezes it, console, turtle, Kara, Pygame Zero, forms, plots and the debugger. Heavy parts load only when imported. The core alone is <code>@natterjs/core</code> (Node and browser), the images and sounds are <code>@natterjs/assets</code> (CC0).</p>
     <p class="tag t-have">in the base</p>
   </div>
-<pre class="codeblock" tabindex="0" aria-label="Embedding API"><code><span class="k">import</span> { createRunner, createConsole } <span class="k">from</span> <span class="s">"./natter-web.js"</span>;
+<div>
+<pre class="codeblock" tabindex="0" aria-label="Install"><code><span class="c"># with a bundler (Vite, esbuild, webpack)</span>
+npm install @natterjs/web
+<span class="c"># optional: the image and sound library</span>
+npm install @natterjs/assets</code></pre>
+<pre class="codeblock" tabindex="0" aria-label="Embedding API"><code><span class="k">import</span> { createRunner, createConsole } <span class="k">from</span> <span class="s">"@natterjs/web"</span>;
+<span class="c">// no build step? Import the same from jsDelivr:</span>
+<span class="c">// "https://cdn.jsdelivr.net/npm/@natterjs/web@0.1.0/dist/natter-web.js"</span>
 
 <span class="k">const</span> runner = createRunner();
 createConsole(document.querySelector(<span class="s">"#console"</span>)).connect(runner);
@@ -181,6 +189,11 @@ for i in range(3):
     print("Hello", i)
 `</span>, { seed: 42 });
 <span class="c">// runner.pause(), runner.step("over"), runner.inspect(), runner.stop()</span></code></pre>
+<pre class="codeblock" tabindex="0" aria-label="Node"><code><span class="c">// Node 18+: npm install @natterjs/core</span>
+<span class="k">import</span> { runToEnd } <span class="k">from</span> <span class="s">"@natterjs/core"</span>;
+console.log(runToEnd(<span class="s">"print(1 + 1)"</span>).output);   <span class="c">// 2</span></code></pre>
+<p>Images for Pygame Zero and Kara: <code>createPgzero(el, { assets: { baseUrl: "https://cdn.jsdelivr.net/npm/@natterjs/assets@0.1.0/", catalog: "catalog.json" } })</code>. Self-hosting: copy the whole <code>dist/</code> folder (the start file loads its chunks from next to itself). Each <a href="https://github.com/wi-wissen/Natter/releases">GitHub release</a> also has <code>natter-web-&lt;version&gt;.zip</code> with checksums.</p>
+</div>
 </section>
 
 <section id="roadmap" class="wrap">

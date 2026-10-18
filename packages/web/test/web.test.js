@@ -137,7 +137,7 @@ describe('runner', () => {
     const { runner } = collect();
     const events = [];
     runner.use({ host: { kara: (kind, args) => { events.push(kind); return 0; } }, start: () => events.push('start'), end: (s) => events.push('end:' + s) });
-    const { karaGlobals } = await import('@natter/core');
+    const { karaGlobals } = await import('@natterjs/core');
     expect(await runner.run('world("""\n#@ #\n""")\nmove()\n', { globals: karaGlobals() })).toBe('done');
     expect(events).toEqual(['start', 'world', 'move', 'end:done']);
   });

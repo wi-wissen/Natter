@@ -1,7 +1,7 @@
 // requests in the browser: the wait { kind: 'http', method, url, headers, body, timeout } done with fetch.
 // A fetch that fails with TypeError is in a browser almost always CORS (the server does not allow web pages to read it).
 
-import { httpResult } from '@natter/core';
+import { httpResult } from '@natterjs/core';
 
 /**
  * Do the request and return the plain result object (see docs/HOST-TURTLE-KARA.md, requests).

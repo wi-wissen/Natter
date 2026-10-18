@@ -6,7 +6,7 @@
 // offscreen cache canvas as it comes; the visible canvas shows background + cache + the move in progress + the turtles.
 // A resize, clear() or clearstamp() replays the list.
 
-import { turtleEvent, PyFloat } from '@natter/core';
+import { turtleEvent, PyFloat } from '@natterjs/core';
 import { createStage } from './stage.js';
 import { askDialog } from './dialog.js';
 import { makeView, moveSeconds, turnSeconds, angleDiff, shapePolygon, headingDir, cssFont, keysym } from './turtleMath.js';

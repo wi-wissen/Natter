@@ -2,7 +2,7 @@
 // the area, with "save as SVG / PNG" (download through a Blob link). Several figures are stacked or shown as tabs.
 // In dark mode the white figure stays a sheet of paper; option dark: 'invert' (or the button on each figure) inverts it.
 
-import { renderOpenFigures } from '@natter/core';
+import { renderOpenFigures } from '@natterjs/core';
 import { ensureFormsStyles } from './formsStyles.js';
 
 const TEXT = {

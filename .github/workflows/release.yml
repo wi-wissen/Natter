@@ -1,0 +1,109 @@
+# Publish @natterjs/assets, @natterjs/core and @natterjs/web to npm and create a GitHub release.
+# Start: push a tag `v<version>` (the version in packages/*/package.json), or run the workflow by hand with that version.
+# Auth: npm Trusted Publishing (OIDC, no secret) once it is set up per package on npmjs.com; until then, or for a
+# package that does not exist yet, the repository secret NPM_TOKEN is used. See README, "Veröffentlichen (Release)".
+name: Release
+
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to release (x.y.z), must equal the version in packages/*/package.json; the tag v<version> is created on the selected branch if missing'
+        required: true
+
+permissions:
+  contents: write   # create the GitHub release (and the tag on a manual run)
+  id-token: write   # npm Trusted Publishing and provenance
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    env:
+      VERSION: ${{ github.event_name == 'workflow_dispatch' && inputs.version || '' }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Version from the tag
+        if: github.event_name == 'push'
+        run: echo "VERSION=${GITHUB_REF_NAME#v}" >> "$GITHUB_ENV"
+
+      - name: LICENSE must name the copyright holder
+        run: |
+          if grep -q COPYRIGHT_HOLDER LICENSE; then
+            echo "::error file=LICENSE::LICENSE still contains the placeholder COPYRIGHT_HOLDER. Put in the name before releasing."
+            exit 1
+          fi
+
+      - name: Tag and package versions must match
+        run: node scripts/release-check.mjs "$VERSION"
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          registry-url: https://registry.npmjs.org
+          cache: npm
+      # Trusted Publishing needs npm 11.5.1 or newer (Node 22 ships npm 10)
+      - run: npm install -g npm@11
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - run: npm ci
+      - run: npx vitest run
+      - name: Build the web host
+        run: npm run web:build
+      - name: Size report
+        run: |
+          {
+            echo "### Natter $VERSION: bundle sizes"
+            echo '```'
+            npm run --silent size
+            node packages/web/build.mjs
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Pack
+        run: |
+          mkdir -p release
+          for ws in assets core web; do
+            npm pack --workspace "packages/$ws" --pack-destination release
+          done
+          ls -l release
+
+      # Order matters: assets and core before web (web depends on core). A version that is already on npm is
+      # skipped, so a failed run can simply be started again.
+      - name: Publish to npm
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          if [ -n "$NODE_AUTH_TOKEN" ]; then echo "Using NPM_TOKEN (Trusted Publishing is tried first where configured)."; else echo "No NPM_TOKEN: Trusted Publishing (OIDC) only."; fi
+          for ws in assets core web; do
+            name="@natterjs/$ws"
+            if npm view "$name@$VERSION" version >/dev/null 2>&1; then
+              echo "$name@$VERSION is already on npm, skipped"
+              continue
+            fi
+            npm publish "release/natterjs-$ws-$VERSION.tgz" --access public --provenance
+          done
+
+      - name: Release files
+        run: |
+          (cd packages/web/dist && zip -qr "../../../release/natter-web-$VERSION.zip" .)
+          (cd release && sha256sum natter-web-*.zip natterjs-*.tgz > SHA256SUMS.txt && cat SHA256SUMS.txt)
+
+      - name: GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if gh release view "v$VERSION" >/dev/null 2>&1; then
+            gh release upload "v$VERSION" release/* --clobber
+          else
+            gh release create "v$VERSION" release/* --target "$GITHUB_SHA" --title "v$VERSION" --generate-notes \
+              --notes "npm: \`npm install @natterjs/web@$VERSION\` · jsDelivr: https://cdn.jsdelivr.net/npm/@natterjs/web@$VERSION/dist/natter-web.js"
+          fi

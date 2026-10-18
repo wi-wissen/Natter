@@ -3,7 +3,7 @@
 // game ended. Uses only the public exports of the core (the same steps as installPgzero/pgzStart/pgzFrame of
 // packages/core/src/stdlib/pgzero.js).
 
-import { ScriptError, PyList, PyTuple, PyFloat, PyDict } from '@natter/core';
+import { ScriptError, PyList, PyTuple, PyFloat, PyDict } from '@natterjs/core';
 import { createStepper } from './pgzeroMath.js';
 
 /** Names a Pygame Zero program knows without `import pgzrun` (PGZ_BUILTIN_NAMES of the core; a test keeps them equal). */
@@ -45,7 +45,7 @@ export function systemExit() {
 }
 
 /**
- * @param {import('@natter/core').VM} vm
+ * @param {import('@natterjs/core').VM} vm
  * @param {{
  *   step?: number,          ms per game frame (1000/60); dt of every frame is exactly step / 1000
  *   maxSteps?: number,      frames to catch up at most per tick (4)
