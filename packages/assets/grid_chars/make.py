@@ -106,7 +106,7 @@ REDO = {
                    'figure 1 but with the eyes closed (blinking); 3 very happy, cheering with both paws raised HIGH above the head, big open smile; '
                    '4 dizzy, still facing the viewer: spiral eyes, a wobbly mouth, three small yellow stars circling close around the top of its head. '),
 }
-# robo: the happy pose comes from a second extra sheet; maus: idle and blink from a first try that missed the happy pose
+# robo: happy and dizzy come from a second extra sheet; maus: idle and blink from a first try that missed the happy pose
 EXTRA_SHEETS = {'robo_extra2': ('robo', EXTRA_ROW.format(arms='arms')), 'maus_extra_a': ('maus', EXTRA)}
 
 SHEETS = {}
@@ -284,42 +284,54 @@ def tilt(im, deg):
     return c.crop(c.getbbox())
 
 
-def anchor_x(im, ref_h):
+def feet_y(im):
+    """The feet line of a figure: the lowest row that is at least 20 % as wide as the figure
+    (a thin tail hanging below the feet does not count)."""
+    a = np.asarray(im)[..., 3] > 128
+    w = a.sum(1)
+    rows = np.where(w >= 0.2 * w.max())[0]
+    return rows.max() + 1
+
+
+def anchor_x(im, ay, ref_h):
     """Horizontal anchor: centre of mass of the head part (the upper part of a standing-high box above the feet)."""
     a = np.asarray(im)[..., 3].astype(np.float32)
-    top = max(0, im.height - ref_h)
+    top = max(0, int(ay - ref_h))
     part = a[top: top + int(ref_h * 0.55)]
     if part.sum() == 0:
         part = a
     return (part.sum(0) * np.arange(a.shape[1])).sum() / part.sum()
 
 
-def place(frames, ref_h, centre=False, margin=1):
-    """All frames of one character on one CANVAS x CANVAS canvas at one scale: feet on one line, head centred
-    (centre=True: centred on the middle of the canvas both ways, for figures seen straight from above)."""
+def place(frames, ref_h, align=None, centre=False, margin=1):
+    """All frames of one character on one CANVAS x CANVAS canvas at one scale, head centred.
+    align[k] None: the feet of frame k sit on the common feet line; an index j: frame k's top is level with frame j's top
+    (step frames: the head stays put while a foot is lifted). centre=True: centred both ways (figures seen from above)."""
+    align = align or [None] * len(frames)
     ext = []
-    for im in frames:
+    for k, im in enumerate(frames):
         if centre:
             ax, ay = im.width / 2, im.height / 2
-            ext.append((ax, im.width - ax, ay, im.height - ay))
         else:
-            ax = anchor_x(im, ref_h)
-            ext.append((ax, im.width - ax, im.height, 0))
+            j = align[k]
+            ay = feet_y(im) if j is None else feet_y(frames[j])
+            ax = anchor_x(im, ay, ref_h)
+        ext.append((ax, im.width - ax, ay, im.height - ay))
     half = CANVAS / 2 - margin
+    s = min(half / max(l, r) for l, r, t, b in ext)
     if centre:
-        s = min(min(half / max(l, r), half / max(t, b)) for l, r, t, b in ext)
-        foot = None
+        s = min(s, min(half / max(t, b) for l, r, t, b in ext))
+        ly = CANVAS / 2
     else:
-        s = min(min(half / max(l, r), (CANVAS - 2 * margin - 1) / t) for l, r, t, b in ext)
-        foot = CANVAS - margin - 1
+        up, down = max(t for l, r, t, b in ext), max(b for l, r, t, b in ext)
+        s = min(s, (CANVAS - 2 * margin) / (up + down))
+        ly = margin + up * s
     out = []
     for im, (l, r, t, b) in zip(frames, ext):
         w, h = max(1, round(im.width * s)), max(1, round(im.height * s))
         im2 = im.resize((w, h), Image.LANCZOS)
         c = Image.new('RGBA', (CANVAS, CANVAS), (0, 0, 0, 0))
-        x = round(CANVAS / 2 - l * s)
-        y = round(CANVAS / 2 - t * s) if centre else foot + 1 - h
-        c.paste(im2, (x, y), im2)
+        c.paste(im2, (round(CANVAS / 2 - l * s), round(ly - t * s)), im2)
         a = np.asarray(c).copy()
         a[..., :3][a[..., 3] == 0] = 0
         out.append(Image.fromarray(a, 'RGBA'))
@@ -336,7 +348,7 @@ def player(c):
     r = figs(f'{c}_side', 3, 1)
     if c == 'robo':
         e = figs('robo_extra', 4)
-        e = e[:2] + [figs('robo_extra2', 3)[1], e[3]]
+        e = e[:2] + figs('robo_extra2', 3)[1:]  # cheering with raised arms, dizzy with bright yellow spiral eyes
     elif c == 'maus':
         e = figs('maus_extra_a', 3)[:2] + figs('maus_extra', 4)[2:]
     else:
@@ -352,7 +364,13 @@ def player(c):
         for i, im in enumerate(fr, 1):
             out[f'{c}_{name}_{i}'] = im
     out[f'{c}_idle_1'], out[f'{c}_idle_2'], out[f'{c}_happy'], out[f'{c}_dizzy'] = e
-    return out
+    keys = list(out)
+    align = [None] * len(keys)
+    if c != 'pinguin':  # step frames keep the head of the standing frame (the penguin's tilted frames stand on their feet)
+        for k, n in enumerate(keys):
+            if n[-2:] in ('_1', '_3') and '_idle_' not in n:
+                align[k] = keys.index(n[:-2] + '_2')
+    return out, align
 
 
 LEG = (82, 98, 140)
@@ -444,15 +462,15 @@ def save(im, name):
 
 def cut():
     for c in CHARS:
-        imgs = player(c)
-        placed, s = place(list(imgs.values()), H)
+        imgs, align = player(c)
+        placed, s = place(list(imgs.values()), H, align)
         for n, im in zip(imgs, placed):
             save(im, n)
         print(c, 'scale', round(s * H, 1), 'px standing height')
     for f in FOES:
         imgs = foe(f)
         if f == 'bug':
-            placed, s = place(list(imgs.values()), 0, centre=True)
+            placed, s = place(list(imgs.values()), 0, centre=True, margin=2)
         else:
             placed, s = place(list(imgs.values()), max(i.height for i in imgs.values()))
         for n, im in zip(imgs, placed):
