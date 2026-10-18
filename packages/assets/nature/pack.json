@@ -339,8 +339,8 @@
         "weather",
         "winter"
       ],
-      "de": "Schneemann mit Mütze (nach rechts)",
-      "en": "Snowman with a hat (facing right)"
+      "de": "Schneemann mit Hut und Schal",
+      "en": "Snowman with a hat and scarf"
     },
     {
       "name": "nat_moon",
@@ -492,8 +492,8 @@
         "sky",
         "weather"
       ],
-      "de": "Regenbogen",
-      "en": "Rainbow"
+      "de": "Regenbogen (Halbbogen)",
+      "en": "Rainbow (half circle arc)"
     },
     {
       "name": "nat_rain_cloud",

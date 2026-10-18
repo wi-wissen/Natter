@@ -278,7 +278,8 @@ def build():
     sizes = {'ui_dpad': 156, 'ui_joystick': 96, 'ui_gamepad_button_a': 64, 'ui_gamepad_button_b': 64,
              'ui_cursor_hand': 40, 'ui_cursor_arrow': 32, 'ui_crosshair': 48, 'ui_slider_knob': 32}
     for n, im in zip(NAMES['controls'], expect('controls', comps(keyed('controls')), 8)):
-        put(n, padded(fit(im, sizes[n])))
+        im = padded(fit(im, sizes[n]))
+        put(n, on_canvas(im, 160, 160) if n == 'ui_dpad' else im)
 
     sp, th, rb = expect('bubbles', comps(keyed('bubbles'), dil=16), 3)
     put('ui_speech_bubble', padded(fit(sp, 188, 124)))
@@ -329,12 +330,96 @@ def arrows():
 
 # ---------------------------------------------------------------- pack.json
 
-DESC = {}
+DIGIT_DE = ['Null', 'Eins', 'Zwei', 'Drei', 'Vier', 'Fünf', 'Sechs', 'Sieben', 'Acht', 'Neun']
+DIGIT_EN = ['zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine']
+DESC = {f'ui_{i}': (['digit', 'ui'], f'Ziffer {i} ({DIGIT_DE[i]}), dicke gelbe Zahl, 48x64 wie alle Ziffern',
+                    f'Digit {i} ({DIGIT_EN[i]}), chunky yellow number, 48x64 like all digits') for i in range(10)}
+DESC.update({
+    'ui_colon': (['digit', 'ui'], 'Doppelpunkt für Uhrzeiten, passt zu den Ziffern (24x64)', 'Colon for times, matches the digits (24x64)'),
+    'ui_dot': (['digit', 'ui'], 'Punkt, passt zu den Ziffern (24x64)', 'Dot, matches the digits (24x64)'),
+    'ui_minus': (['digit', 'ui'], 'Minuszeichen, passt zu den Ziffern (48x64)', 'Minus sign, matches the digits (48x64)'),
+    'ui_plus': (['digit', 'ui'], 'Pluszeichen, passt zu den Ziffern (48x64)', 'Plus sign, matches the digits (48x64)'),
+    'ui_x': (['digit', 'ui'], 'Malzeichen x, passt zu den Ziffern (48x64)', 'Times sign x, matches the digits (48x64)'),
+    'ui_heart_full': (['icon', 'ui', 'life'], 'Volles rotes Herz (Leben)', 'Full red heart (life)'),
+    'ui_heart_half': (['icon', 'ui', 'life'], 'Halbes Herz: links rot, rechts grau', 'Half heart: left red, right grey'),
+    'ui_heart_empty': (['icon', 'ui', 'life'], 'Leeres graues Herz (verlorenes Leben)', 'Empty grey heart (lost life)'),
+    'ui_star_full': (['icon', 'ui'], 'Goldener Stern (Bewertung)', 'Golden star (rating)'),
+    'ui_star_empty': (['icon', 'ui'], 'Leerer grauer Stern (Bewertung)', 'Empty grey star (rating)'),
+    'ui_coin': (['icon', 'ui', 'item'], 'Goldmünze', 'Gold coin'),
+    'ui_gem': (['icon', 'ui', 'item'], 'Blauer Edelstein', 'Blue gemstone'),
+    'ui_key': (['icon', 'ui', 'item'], 'Goldener Schlüssel', 'Golden key'),
+    'ui_lightning': (['icon', 'ui'], 'Gelber Blitz (Energie)', 'Yellow lightning bolt (energy)'),
+    'ui_clock': (['icon', 'ui'], 'Uhr (Zeit)', 'Clock (time)'),
+    'ui_trophy': (['icon', 'ui', 'award'], 'Goldener Pokal', 'Golden trophy'),
+    'ui_medal_gold': (['icon', 'ui', 'award'], 'Goldmedaille am Band', 'Gold medal on a ribbon'),
+    'ui_medal_silver': (['icon', 'ui', 'award'], 'Silbermedaille am Band', 'Silver medal on a ribbon'),
+    'ui_medal_bronze': (['icon', 'ui', 'award'], 'Bronzemedaille am Band', 'Bronze medal on a ribbon'),
+    'ui_flag': (['icon', 'ui'], 'Rote Fahne (Ziel), weht nach rechts', 'Red flag (goal), waving to the right'),
+    'ui_skull_friendly': (['icon', 'ui', 'life'], 'Freundliches rundes Gespenst (Leben verloren), nicht gruselig', 'Friendly round ghost (life lost), not scary'),
+    'ui_check': (['icon', 'ui'], 'Grüner Haken (richtig)', 'Green tick (correct)'),
+    'ui_cross': (['icon', 'ui'], 'Rotes Kreuz (falsch)', 'Red cross (wrong)'),
+    'ui_question': (['icon', 'ui'], 'Blaues rundes Schild mit Fragezeichen', 'Blue round badge with a question mark'),
+    'ui_exclamation': (['icon', 'ui'], 'Oranges rundes Schild mit Ausrufezeichen', 'Orange round badge with an exclamation mark'),
+    'ui_info': (['icon', 'ui'], 'Blaues rundes Schild mit i (Info)', 'Blue round badge with an i (info)'),
+    'ui_lock': (['icon', 'ui'], 'Geschlossenes Schloss (gesperrt)', 'Closed padlock (locked)'),
+    'ui_unlock': (['icon', 'ui'], 'Offenes Schloss (freigeschaltet)', 'Open padlock (unlocked)'),
+    'ui_music_on': (['icon', 'ui', 'button'], 'Runder Knopf: Musik an (Noten)', 'Round button: music on (notes)'),
+    'ui_music_off': (['icon', 'ui', 'button'], 'Runder Knopf: Musik aus (durchgestrichene Noten)', 'Round button: music off (crossed-out notes)'),
+    'ui_sound_on': (['icon', 'ui', 'button'], 'Runder Knopf: Ton an (Lautsprecher)', 'Round button: sound on (speaker)'),
+    'ui_sound_off': (['icon', 'ui', 'button'], 'Runder Knopf: Ton aus (durchgestrichener Lautsprecher)', 'Round button: sound off (crossed-out speaker)'),
+    'ui_play': (['icon', 'ui', 'button'], 'Runder Knopf: Start (Dreieck)', 'Round button: play (triangle)'),
+    'ui_pause': (['icon', 'ui', 'button'], 'Runder Knopf: Pause (zwei Balken)', 'Round button: pause (two bars)'),
+    'ui_stop': (['icon', 'ui', 'button'], 'Runder Knopf: Stopp (Quadrat)', 'Round button: stop (square)'),
+    'ui_restart': (['icon', 'ui', 'button'], 'Runder Knopf: Neustart (Kreispfeil)', 'Round button: restart (circular arrow)'),
+    'ui_home': (['icon', 'ui', 'button'], 'Runder Knopf: Startseite (Haus)', 'Round button: home (house)'),
+    'ui_settings': (['icon', 'ui'], 'Graues Zahnrad (Einstellungen)', 'Grey gear (settings)'),
+    'ui_arrow_up': (['icon', 'ui', 'button'], 'Runder Knopf mit Pfeil nach oben', 'Round button with an arrow pointing up'),
+    'ui_arrow_down': (['icon', 'ui', 'button'], 'Runder Knopf mit Pfeil nach unten', 'Round button with an arrow pointing down'),
+    'ui_arrow_left': (['icon', 'ui', 'button'], 'Runder Knopf mit Pfeil nach links', 'Round button with an arrow pointing left'),
+    'ui_arrow_right': (['icon', 'ui', 'button'], 'Runder Knopf mit Pfeil nach rechts', 'Round button with an arrow pointing right'),
+    'ui_plus_button': (['icon', 'ui', 'button'], 'Runder Knopf mit Plus', 'Round button with a plus'),
+    'ui_minus_button': (['icon', 'ui', 'button'], 'Runder Knopf mit Minus', 'Round button with a minus'),
+    'ui_button_blue': (['button', 'ui'], 'Blauer Knopf ohne Schrift, 160x56', 'Blue button without text, 160x56'),
+    'ui_button_green': (['button', 'ui'], 'Grüner Knopf ohne Schrift, 160x56', 'Green button without text, 160x56'),
+    'ui_button_red': (['button', 'ui'], 'Roter Knopf ohne Schrift, 160x56', 'Red button without text, 160x56'),
+    'ui_button_grey': (['button', 'ui'], 'Grauer Knopf ohne Schrift (inaktiv), 160x56', 'Grey button without text (disabled), 160x56'),
+    'ui_button_blue_pressed': (['button', 'ui'], 'Blauer Knopf gedrückt, 160x56 (Gegenstück zu ui_button_blue)', 'Blue button pressed, 160x56 (pairs with ui_button_blue)'),
+    'ui_button_green_pressed': (['button', 'ui'], 'Grüner Knopf gedrückt, 160x56 (Gegenstück zu ui_button_green)', 'Green button pressed, 160x56 (pairs with ui_button_green)'),
+    'ui_panel': (['panel', 'ui'], 'Helle abgerundete Tafel für Text, 256x192', 'Light rounded panel for text, 256x192'),
+    'ui_panel_dark': (['panel', 'ui'], 'Dunkle abgerundete Tafel für Text, 256x192', 'Dark rounded panel for text, 256x192'),
+    'ui_speech_bubble': (['panel', 'ui'], 'Weiße Sprechblase, Spitze unten links, 192x128', 'White speech bubble, tail at bottom left, 192x128'),
+    'ui_thought_bubble': (['panel', 'ui'], 'Weiße Denkblase (Wolke), Bläschen unten links', 'White thought bubble (cloud), little bubbles at bottom left'),
+    'ui_bar_frame': (['bar', 'ui'], 'Rahmen einer Lebens-/Fortschrittsleiste, 192x24; Füllung bei +4,+4 darüberlegen', 'Frame of a health/progress bar, 192x24; draw a fill on top at +4,+4'),
+    'ui_bar_green': (['bar', 'ui'], 'Grüne Füllung für ui_bar_frame, 184x16', 'Green fill for ui_bar_frame, 184x16'),
+    'ui_bar_red': (['bar', 'ui'], 'Rote Füllung für ui_bar_frame, 184x16', 'Red fill for ui_bar_frame, 184x16'),
+    'ui_bar_blue': (['bar', 'ui'], 'Blaue Füllung für ui_bar_frame, 184x16', 'Blue fill for ui_bar_frame, 184x16'),
+    'ui_slider_knob': (['control', 'ui'], 'Runder weißer Schieberegler-Knopf', 'Round white slider knob'),
+    'ui_dpad': (['control', 'ui'], 'Steuerkreuz von oben, 160x160', 'Direction pad seen from the top, 160x160'),
+    'ui_joystick': (['control', 'ui'], 'Daumen-Joystick von oben', 'Thumb joystick seen from the top'),
+    'ui_gamepad_button_a': (['control', 'ui'], 'Grüner runder Aktionsknopf A', 'Green round action button A'),
+    'ui_gamepad_button_b': (['control', 'ui'], 'Roter runder Aktionsknopf B', 'Red round action button B'),
+    'ui_cursor_hand': (['cursor', 'ui'], 'Zeigehand als Mauszeiger, Finger nach oben', 'Pointing hand cursor, finger up'),
+    'ui_cursor_arrow': (['cursor', 'ui'], 'Mauspfeil, Spitze oben links', 'Mouse arrow, tip at top left'),
+    'ui_crosshair': (['cursor', 'ui'], 'Rotes Fadenkreuz zum Zielen', 'Red aiming crosshair'),
+    'ui_ribbon': (['decoration', 'ui'], 'Rotes Spruchband ohne Schrift, 256x64', 'Red banner ribbon without text, 256x64'),
+    'ui_confetti': (['decoration', 'ui'], 'Bunte Konfetti-Wolke', 'Colourful confetti burst'),
+})
+for k in (1, 2, 3):
+    DESC[f'ui_sparkle_{k}'] = (['decoration', 'ui', 'animation'], f'Funkeln, Bild {k} von 3 (klein bis groß)', f'Sparkle, frame {k} of 3 (small to large)')
 
 
 def write_json():
-    pass
-
+    names = sorted(f[:-4] for f in os.listdir(HERE) if f.endswith('.png'))
+    missing = set(DESC) - set(names)
+    extra = set(names) - set(DESC)
+    if missing or extra:
+        raise ValueError(f'missing {sorted(missing)} extra {sorted(extra)}')
+    pack = {'pack': 'ui', 'title': {'de': 'Spieloberfläche', 'en': 'Game interface'}, 'format': 'png',
+            'assets': [{'name': n, 'file': n + '.png', 'tags': DESC[n][0], 'de': DESC[n][1], 'en': DESC[n][2]} for n in DESC]}
+    with open(os.path.join(HERE, 'pack.json'), 'w', encoding='utf-8') as fh:
+        json.dump(pack, fh, ensure_ascii=False, indent=2)
+        fh.write('\n')
+    print(len(pack['assets']), 'entries')
 
 if __name__ == '__main__':
     cmd = sys.argv[1] if len(sys.argv) > 1 else ''

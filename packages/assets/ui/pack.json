@@ -1,0 +1,849 @@
+{
+  "pack": "ui",
+  "title": {
+    "de": "Spieloberfläche",
+    "en": "Game interface"
+  },
+  "format": "png",
+  "assets": [
+    {
+      "name": "ui_0",
+      "file": "ui_0.png",
+      "tags": [
+        "digit",
+        "ui"
+      ],
+      "de": "Ziffer 0 (Null), dicke gelbe Zahl, 48x64 wie alle Ziffern",
+      "en": "Digit 0 (zero), chunky yellow number, 48x64 like all digits"
+    },
+    {
+      "name": "ui_1",
+      "file": "ui_1.png",
+      "tags": [
+        "digit",
+        "ui"
+      ],
+      "de": "Ziffer 1 (Eins), dicke gelbe Zahl, 48x64 wie alle Ziffern",
+      "en": "Digit 1 (one), chunky yellow number, 48x64 like all digits"
+    },
+    {
+      "name": "ui_2",
+      "file": "ui_2.png",
+      "tags": [
+        "digit",
+        "ui"
+      ],
+      "de": "Ziffer 2 (Zwei), dicke gelbe Zahl, 48x64 wie alle Ziffern",
+      "en": "Digit 2 (two), chunky yellow number, 48x64 like all digits"
+    },
+    {
+      "name": "ui_3",
+      "file": "ui_3.png",
+      "tags": [
+        "digit",
+        "ui"
+      ],
+      "de": "Ziffer 3 (Drei), dicke gelbe Zahl, 48x64 wie alle Ziffern",
+      "en": "Digit 3 (three), chunky yellow number, 48x64 like all digits"
+    },
+    {
+      "name": "ui_4",
+      "file": "ui_4.png",
+      "tags": [
+        "digit",
+        "ui"
+      ],
+      "de": "Ziffer 4 (Vier), dicke gelbe Zahl, 48x64 wie alle Ziffern",
+      "en": "Digit 4 (four), chunky yellow number, 48x64 like all digits"
+    },
+    {
+      "name": "ui_5",
+      "file": "ui_5.png",
+      "tags": [
+        "digit",
+        "ui"
+      ],
+      "de": "Ziffer 5 (Fünf), dicke gelbe Zahl, 48x64 wie alle Ziffern",
+      "en": "Digit 5 (five), chunky yellow number, 48x64 like all digits"
+    },
+    {
+      "name": "ui_6",
+      "file": "ui_6.png",
+      "tags": [
+        "digit",
+        "ui"
+      ],
+      "de": "Ziffer 6 (Sechs), dicke gelbe Zahl, 48x64 wie alle Ziffern",
+      "en": "Digit 6 (six), chunky yellow number, 48x64 like all digits"
+    },
+    {
+      "name": "ui_7",
+      "file": "ui_7.png",
+      "tags": [
+        "digit",
+        "ui"
+      ],
+      "de": "Ziffer 7 (Sieben), dicke gelbe Zahl, 48x64 wie alle Ziffern",
+      "en": "Digit 7 (seven), chunky yellow number, 48x64 like all digits"
+    },
+    {
+      "name": "ui_8",
+      "file": "ui_8.png",
+      "tags": [
+        "digit",
+        "ui"
+      ],
+      "de": "Ziffer 8 (Acht), dicke gelbe Zahl, 48x64 wie alle Ziffern",
+      "en": "Digit 8 (eight), chunky yellow number, 48x64 like all digits"
+    },
+    {
+      "name": "ui_9",
+      "file": "ui_9.png",
+      "tags": [
+        "digit",
+        "ui"
+      ],
+      "de": "Ziffer 9 (Neun), dicke gelbe Zahl, 48x64 wie alle Ziffern",
+      "en": "Digit 9 (nine), chunky yellow number, 48x64 like all digits"
+    },
+    {
+      "name": "ui_colon",
+      "file": "ui_colon.png",
+      "tags": [
+        "digit",
+        "ui"
+      ],
+      "de": "Doppelpunkt für Uhrzeiten, passt zu den Ziffern (24x64)",
+      "en": "Colon for times, matches the digits (24x64)"
+    },
+    {
+      "name": "ui_dot",
+      "file": "ui_dot.png",
+      "tags": [
+        "digit",
+        "ui"
+      ],
+      "de": "Punkt, passt zu den Ziffern (24x64)",
+      "en": "Dot, matches the digits (24x64)"
+    },
+    {
+      "name": "ui_minus",
+      "file": "ui_minus.png",
+      "tags": [
+        "digit",
+        "ui"
+      ],
+      "de": "Minuszeichen, passt zu den Ziffern (48x64)",
+      "en": "Minus sign, matches the digits (48x64)"
+    },
+    {
+      "name": "ui_plus",
+      "file": "ui_plus.png",
+      "tags": [
+        "digit",
+        "ui"
+      ],
+      "de": "Pluszeichen, passt zu den Ziffern (48x64)",
+      "en": "Plus sign, matches the digits (48x64)"
+    },
+    {
+      "name": "ui_x",
+      "file": "ui_x.png",
+      "tags": [
+        "digit",
+        "ui"
+      ],
+      "de": "Malzeichen x, passt zu den Ziffern (48x64)",
+      "en": "Times sign x, matches the digits (48x64)"
+    },
+    {
+      "name": "ui_heart_full",
+      "file": "ui_heart_full.png",
+      "tags": [
+        "icon",
+        "ui",
+        "life"
+      ],
+      "de": "Volles rotes Herz (Leben)",
+      "en": "Full red heart (life)"
+    },
+    {
+      "name": "ui_heart_half",
+      "file": "ui_heart_half.png",
+      "tags": [
+        "icon",
+        "ui",
+        "life"
+      ],
+      "de": "Halbes Herz: links rot, rechts grau",
+      "en": "Half heart: left red, right grey"
+    },
+    {
+      "name": "ui_heart_empty",
+      "file": "ui_heart_empty.png",
+      "tags": [
+        "icon",
+        "ui",
+        "life"
+      ],
+      "de": "Leeres graues Herz (verlorenes Leben)",
+      "en": "Empty grey heart (lost life)"
+    },
+    {
+      "name": "ui_star_full",
+      "file": "ui_star_full.png",
+      "tags": [
+        "icon",
+        "ui"
+      ],
+      "de": "Goldener Stern (Bewertung)",
+      "en": "Golden star (rating)"
+    },
+    {
+      "name": "ui_star_empty",
+      "file": "ui_star_empty.png",
+      "tags": [
+        "icon",
+        "ui"
+      ],
+      "de": "Leerer grauer Stern (Bewertung)",
+      "en": "Empty grey star (rating)"
+    },
+    {
+      "name": "ui_coin",
+      "file": "ui_coin.png",
+      "tags": [
+        "icon",
+        "ui",
+        "item"
+      ],
+      "de": "Goldmünze",
+      "en": "Gold coin"
+    },
+    {
+      "name": "ui_gem",
+      "file": "ui_gem.png",
+      "tags": [
+        "icon",
+        "ui",
+        "item"
+      ],
+      "de": "Blauer Edelstein",
+      "en": "Blue gemstone"
+    },
+    {
+      "name": "ui_key",
+      "file": "ui_key.png",
+      "tags": [
+        "icon",
+        "ui",
+        "item"
+      ],
+      "de": "Goldener Schlüssel",
+      "en": "Golden key"
+    },
+    {
+      "name": "ui_lightning",
+      "file": "ui_lightning.png",
+      "tags": [
+        "icon",
+        "ui"
+      ],
+      "de": "Gelber Blitz (Energie)",
+      "en": "Yellow lightning bolt (energy)"
+    },
+    {
+      "name": "ui_clock",
+      "file": "ui_clock.png",
+      "tags": [
+        "icon",
+        "ui"
+      ],
+      "de": "Uhr (Zeit)",
+      "en": "Clock (time)"
+    },
+    {
+      "name": "ui_trophy",
+      "file": "ui_trophy.png",
+      "tags": [
+        "icon",
+        "ui",
+        "award"
+      ],
+      "de": "Goldener Pokal",
+      "en": "Golden trophy"
+    },
+    {
+      "name": "ui_medal_gold",
+      "file": "ui_medal_gold.png",
+      "tags": [
+        "icon",
+        "ui",
+        "award"
+      ],
+      "de": "Goldmedaille am Band",
+      "en": "Gold medal on a ribbon"
+    },
+    {
+      "name": "ui_medal_silver",
+      "file": "ui_medal_silver.png",
+      "tags": [
+        "icon",
+        "ui",
+        "award"
+      ],
+      "de": "Silbermedaille am Band",
+      "en": "Silver medal on a ribbon"
+    },
+    {
+      "name": "ui_medal_bronze",
+      "file": "ui_medal_bronze.png",
+      "tags": [
+        "icon",
+        "ui",
+        "award"
+      ],
+      "de": "Bronzemedaille am Band",
+      "en": "Bronze medal on a ribbon"
+    },
+    {
+      "name": "ui_flag",
+      "file": "ui_flag.png",
+      "tags": [
+        "icon",
+        "ui"
+      ],
+      "de": "Rote Fahne (Ziel), weht nach rechts",
+      "en": "Red flag (goal), waving to the right"
+    },
+    {
+      "name": "ui_skull_friendly",
+      "file": "ui_skull_friendly.png",
+      "tags": [
+        "icon",
+        "ui",
+        "life"
+      ],
+      "de": "Freundliches rundes Gespenst (Leben verloren), nicht gruselig",
+      "en": "Friendly round ghost (life lost), not scary"
+    },
+    {
+      "name": "ui_check",
+      "file": "ui_check.png",
+      "tags": [
+        "icon",
+        "ui"
+      ],
+      "de": "Grüner Haken (richtig)",
+      "en": "Green tick (correct)"
+    },
+    {
+      "name": "ui_cross",
+      "file": "ui_cross.png",
+      "tags": [
+        "icon",
+        "ui"
+      ],
+      "de": "Rotes Kreuz (falsch)",
+      "en": "Red cross (wrong)"
+    },
+    {
+      "name": "ui_question",
+      "file": "ui_question.png",
+      "tags": [
+        "icon",
+        "ui"
+      ],
+      "de": "Blaues rundes Schild mit Fragezeichen",
+      "en": "Blue round badge with a question mark"
+    },
+    {
+      "name": "ui_exclamation",
+      "file": "ui_exclamation.png",
+      "tags": [
+        "icon",
+        "ui"
+      ],
+      "de": "Oranges rundes Schild mit Ausrufezeichen",
+      "en": "Orange round badge with an exclamation mark"
+    },
+    {
+      "name": "ui_info",
+      "file": "ui_info.png",
+      "tags": [
+        "icon",
+        "ui"
+      ],
+      "de": "Blaues rundes Schild mit i (Info)",
+      "en": "Blue round badge with an i (info)"
+    },
+    {
+      "name": "ui_lock",
+      "file": "ui_lock.png",
+      "tags": [
+        "icon",
+        "ui"
+      ],
+      "de": "Geschlossenes Schloss (gesperrt)",
+      "en": "Closed padlock (locked)"
+    },
+    {
+      "name": "ui_unlock",
+      "file": "ui_unlock.png",
+      "tags": [
+        "icon",
+        "ui"
+      ],
+      "de": "Offenes Schloss (freigeschaltet)",
+      "en": "Open padlock (unlocked)"
+    },
+    {
+      "name": "ui_music_on",
+      "file": "ui_music_on.png",
+      "tags": [
+        "icon",
+        "ui",
+        "button"
+      ],
+      "de": "Runder Knopf: Musik an (Noten)",
+      "en": "Round button: music on (notes)"
+    },
+    {
+      "name": "ui_music_off",
+      "file": "ui_music_off.png",
+      "tags": [
+        "icon",
+        "ui",
+        "button"
+      ],
+      "de": "Runder Knopf: Musik aus (durchgestrichene Noten)",
+      "en": "Round button: music off (crossed-out notes)"
+    },
+    {
+      "name": "ui_sound_on",
+      "file": "ui_sound_on.png",
+      "tags": [
+        "icon",
+        "ui",
+        "button"
+      ],
+      "de": "Runder Knopf: Ton an (Lautsprecher)",
+      "en": "Round button: sound on (speaker)"
+    },
+    {
+      "name": "ui_sound_off",
+      "file": "ui_sound_off.png",
+      "tags": [
+        "icon",
+        "ui",
+        "button"
+      ],
+      "de": "Runder Knopf: Ton aus (durchgestrichener Lautsprecher)",
+      "en": "Round button: sound off (crossed-out speaker)"
+    },
+    {
+      "name": "ui_play",
+      "file": "ui_play.png",
+      "tags": [
+        "icon",
+        "ui",
+        "button"
+      ],
+      "de": "Runder Knopf: Start (Dreieck)",
+      "en": "Round button: play (triangle)"
+    },
+    {
+      "name": "ui_pause",
+      "file": "ui_pause.png",
+      "tags": [
+        "icon",
+        "ui",
+        "button"
+      ],
+      "de": "Runder Knopf: Pause (zwei Balken)",
+      "en": "Round button: pause (two bars)"
+    },
+    {
+      "name": "ui_stop",
+      "file": "ui_stop.png",
+      "tags": [
+        "icon",
+        "ui",
+        "button"
+      ],
+      "de": "Runder Knopf: Stopp (Quadrat)",
+      "en": "Round button: stop (square)"
+    },
+    {
+      "name": "ui_restart",
+      "file": "ui_restart.png",
+      "tags": [
+        "icon",
+        "ui",
+        "button"
+      ],
+      "de": "Runder Knopf: Neustart (Kreispfeil)",
+      "en": "Round button: restart (circular arrow)"
+    },
+    {
+      "name": "ui_home",
+      "file": "ui_home.png",
+      "tags": [
+        "icon",
+        "ui",
+        "button"
+      ],
+      "de": "Runder Knopf: Startseite (Haus)",
+      "en": "Round button: home (house)"
+    },
+    {
+      "name": "ui_settings",
+      "file": "ui_settings.png",
+      "tags": [
+        "icon",
+        "ui"
+      ],
+      "de": "Graues Zahnrad (Einstellungen)",
+      "en": "Grey gear (settings)"
+    },
+    {
+      "name": "ui_arrow_up",
+      "file": "ui_arrow_up.png",
+      "tags": [
+        "icon",
+        "ui",
+        "button"
+      ],
+      "de": "Runder Knopf mit Pfeil nach oben",
+      "en": "Round button with an arrow pointing up"
+    },
+    {
+      "name": "ui_arrow_down",
+      "file": "ui_arrow_down.png",
+      "tags": [
+        "icon",
+        "ui",
+        "button"
+      ],
+      "de": "Runder Knopf mit Pfeil nach unten",
+      "en": "Round button with an arrow pointing down"
+    },
+    {
+      "name": "ui_arrow_left",
+      "file": "ui_arrow_left.png",
+      "tags": [
+        "icon",
+        "ui",
+        "button"
+      ],
+      "de": "Runder Knopf mit Pfeil nach links",
+      "en": "Round button with an arrow pointing left"
+    },
+    {
+      "name": "ui_arrow_right",
+      "file": "ui_arrow_right.png",
+      "tags": [
+        "icon",
+        "ui",
+        "button"
+      ],
+      "de": "Runder Knopf mit Pfeil nach rechts",
+      "en": "Round button with an arrow pointing right"
+    },
+    {
+      "name": "ui_plus_button",
+      "file": "ui_plus_button.png",
+      "tags": [
+        "icon",
+        "ui",
+        "button"
+      ],
+      "de": "Runder Knopf mit Plus",
+      "en": "Round button with a plus"
+    },
+    {
+      "name": "ui_minus_button",
+      "file": "ui_minus_button.png",
+      "tags": [
+        "icon",
+        "ui",
+        "button"
+      ],
+      "de": "Runder Knopf mit Minus",
+      "en": "Round button with a minus"
+    },
+    {
+      "name": "ui_button_blue",
+      "file": "ui_button_blue.png",
+      "tags": [
+        "button",
+        "ui"
+      ],
+      "de": "Blauer Knopf ohne Schrift, 160x56",
+      "en": "Blue button without text, 160x56"
+    },
+    {
+      "name": "ui_button_green",
+      "file": "ui_button_green.png",
+      "tags": [
+        "button",
+        "ui"
+      ],
+      "de": "Grüner Knopf ohne Schrift, 160x56",
+      "en": "Green button without text, 160x56"
+    },
+    {
+      "name": "ui_button_red",
+      "file": "ui_button_red.png",
+      "tags": [
+        "button",
+        "ui"
+      ],
+      "de": "Roter Knopf ohne Schrift, 160x56",
+      "en": "Red button without text, 160x56"
+    },
+    {
+      "name": "ui_button_grey",
+      "file": "ui_button_grey.png",
+      "tags": [
+        "button",
+        "ui"
+      ],
+      "de": "Grauer Knopf ohne Schrift (inaktiv), 160x56",
+      "en": "Grey button without text (disabled), 160x56"
+    },
+    {
+      "name": "ui_button_blue_pressed",
+      "file": "ui_button_blue_pressed.png",
+      "tags": [
+        "button",
+        "ui"
+      ],
+      "de": "Blauer Knopf gedrückt, 160x56 (Gegenstück zu ui_button_blue)",
+      "en": "Blue button pressed, 160x56 (pairs with ui_button_blue)"
+    },
+    {
+      "name": "ui_button_green_pressed",
+      "file": "ui_button_green_pressed.png",
+      "tags": [
+        "button",
+        "ui"
+      ],
+      "de": "Grüner Knopf gedrückt, 160x56 (Gegenstück zu ui_button_green)",
+      "en": "Green button pressed, 160x56 (pairs with ui_button_green)"
+    },
+    {
+      "name": "ui_panel",
+      "file": "ui_panel.png",
+      "tags": [
+        "panel",
+        "ui"
+      ],
+      "de": "Helle abgerundete Tafel für Text, 256x192",
+      "en": "Light rounded panel for text, 256x192"
+    },
+    {
+      "name": "ui_panel_dark",
+      "file": "ui_panel_dark.png",
+      "tags": [
+        "panel",
+        "ui"
+      ],
+      "de": "Dunkle abgerundete Tafel für Text, 256x192",
+      "en": "Dark rounded panel for text, 256x192"
+    },
+    {
+      "name": "ui_speech_bubble",
+      "file": "ui_speech_bubble.png",
+      "tags": [
+        "panel",
+        "ui"
+      ],
+      "de": "Weiße Sprechblase, Spitze unten links, 192x128",
+      "en": "White speech bubble, tail at bottom left, 192x128"
+    },
+    {
+      "name": "ui_thought_bubble",
+      "file": "ui_thought_bubble.png",
+      "tags": [
+        "panel",
+        "ui"
+      ],
+      "de": "Weiße Denkblase (Wolke), Bläschen unten links",
+      "en": "White thought bubble (cloud), little bubbles at bottom left"
+    },
+    {
+      "name": "ui_bar_frame",
+      "file": "ui_bar_frame.png",
+      "tags": [
+        "bar",
+        "ui"
+      ],
+      "de": "Rahmen einer Lebens-/Fortschrittsleiste, 192x24; Füllung bei +4,+4 darüberlegen",
+      "en": "Frame of a health/progress bar, 192x24; draw a fill on top at +4,+4"
+    },
+    {
+      "name": "ui_bar_green",
+      "file": "ui_bar_green.png",
+      "tags": [
+        "bar",
+        "ui"
+      ],
+      "de": "Grüne Füllung für ui_bar_frame, 184x16",
+      "en": "Green fill for ui_bar_frame, 184x16"
+    },
+    {
+      "name": "ui_bar_red",
+      "file": "ui_bar_red.png",
+      "tags": [
+        "bar",
+        "ui"
+      ],
+      "de": "Rote Füllung für ui_bar_frame, 184x16",
+      "en": "Red fill for ui_bar_frame, 184x16"
+    },
+    {
+      "name": "ui_bar_blue",
+      "file": "ui_bar_blue.png",
+      "tags": [
+        "bar",
+        "ui"
+      ],
+      "de": "Blaue Füllung für ui_bar_frame, 184x16",
+      "en": "Blue fill for ui_bar_frame, 184x16"
+    },
+    {
+      "name": "ui_slider_knob",
+      "file": "ui_slider_knob.png",
+      "tags": [
+        "control",
+        "ui"
+      ],
+      "de": "Runder weißer Schieberegler-Knopf",
+      "en": "Round white slider knob"
+    },
+    {
+      "name": "ui_dpad",
+      "file": "ui_dpad.png",
+      "tags": [
+        "control",
+        "ui"
+      ],
+      "de": "Steuerkreuz von oben, 160x160",
+      "en": "Direction pad seen from the top, 160x160"
+    },
+    {
+      "name": "ui_joystick",
+      "file": "ui_joystick.png",
+      "tags": [
+        "control",
+        "ui"
+      ],
+      "de": "Daumen-Joystick von oben",
+      "en": "Thumb joystick seen from the top"
+    },
+    {
+      "name": "ui_gamepad_button_a",
+      "file": "ui_gamepad_button_a.png",
+      "tags": [
+        "control",
+        "ui"
+      ],
+      "de": "Grüner runder Aktionsknopf A",
+      "en": "Green round action button A"
+    },
+    {
+      "name": "ui_gamepad_button_b",
+      "file": "ui_gamepad_button_b.png",
+      "tags": [
+        "control",
+        "ui"
+      ],
+      "de": "Roter runder Aktionsknopf B",
+      "en": "Red round action button B"
+    },
+    {
+      "name": "ui_cursor_hand",
+      "file": "ui_cursor_hand.png",
+      "tags": [
+        "cursor",
+        "ui"
+      ],
+      "de": "Zeigehand als Mauszeiger, Finger nach oben",
+      "en": "Pointing hand cursor, finger up"
+    },
+    {
+      "name": "ui_cursor_arrow",
+      "file": "ui_cursor_arrow.png",
+      "tags": [
+        "cursor",
+        "ui"
+      ],
+      "de": "Mauspfeil, Spitze oben links",
+      "en": "Mouse arrow, tip at top left"
+    },
+    {
+      "name": "ui_crosshair",
+      "file": "ui_crosshair.png",
+      "tags": [
+        "cursor",
+        "ui"
+      ],
+      "de": "Rotes Fadenkreuz zum Zielen",
+      "en": "Red aiming crosshair"
+    },
+    {
+      "name": "ui_ribbon",
+      "file": "ui_ribbon.png",
+      "tags": [
+        "decoration",
+        "ui"
+      ],
+      "de": "Rotes Spruchband ohne Schrift, 256x64",
+      "en": "Red banner ribbon without text, 256x64"
+    },
+    {
+      "name": "ui_confetti",
+      "file": "ui_confetti.png",
+      "tags": [
+        "decoration",
+        "ui"
+      ],
+      "de": "Bunte Konfetti-Wolke",
+      "en": "Colourful confetti burst"
+    },
+    {
+      "name": "ui_sparkle_1",
+      "file": "ui_sparkle_1.png",
+      "tags": [
+        "decoration",
+        "ui",
+        "animation"
+      ],
+      "de": "Funkeln, Bild 1 von 3 (klein bis groß)",
+      "en": "Sparkle, frame 1 of 3 (small to large)"
+    },
+    {
+      "name": "ui_sparkle_2",
+      "file": "ui_sparkle_2.png",
+      "tags": [
+        "decoration",
+        "ui",
+        "animation"
+      ],
+      "de": "Funkeln, Bild 2 von 3 (klein bis groß)",
+      "en": "Sparkle, frame 2 of 3 (small to large)"
+    },
+    {
+      "name": "ui_sparkle_3",
+      "file": "ui_sparkle_3.png",
+      "tags": [
+        "decoration",
+        "ui",
+        "animation"
+      ],
+      "de": "Funkeln, Bild 3 von 3 (klein bis groß)",
+      "en": "Sparkle, frame 3 of 3 (small to large)"
+    }
+  ]
+}

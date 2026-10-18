@@ -4,8 +4,10 @@ WORK=<scratch dir> python3 packages/assets/nature/make.py gen [sheet ...]   # dr
 WORK=<scratch dir> python3 packages/assets/nature/make.py cut [sheet ...]   # key, cut and scale into this folder
 python3 packages/assets/nature/make.py json                                # write pack.json
 
-Every sheet is a grid of 4 columns x 2 rows. Cutting goes by grid cell: all opaque parts in one cell form one
-object (rain streaks, sun rays, rainbow bands stay together). Cells marked None are spares and are dropped.
+The model asks for N objects in a grid but tends to fill the 16:9 sheet with extra objects. So every sheet records the
+prompted names and the grid it actually came out in (`cells`, reading order, None = an extra object that is dropped).
+After a redraw, look at the sheet and fix `cells` before cutting. Cutting goes by grid cell: all opaque parts in one
+cell form one object (rain streaks, sun rays stay together).
 """
 import os, sys, json, tempfile
 from concurrent.futures import ThreadPoolExecutor
@@ -21,14 +23,13 @@ from keyslice import key  # noqa: E402
 
 REF = os.path.join(ROOT, 'scripts', 'asset-gen', 'style-emoji.png')
 WORK = os.environ.get('WORK', os.path.join(tempfile.gettempdir(), 'assets-work', 'nature'))
-COLS, ROWS = 4, 2
 
 STYLE = ('Draw in exactly the same flat emoji style as the reference image: clear flat shapes without outlines, '
          'very few colours per object, rounded friendly forms, no hard shading, no gradients. '
          'Do not draw the characters of the reference. ')
-BG = ('Each object is centred in its own grid cell and fully separated from the others by wide empty space, none touching '
-      'or overlapping, nothing crossing into a neighbouring cell. Background: one flat solid pure magenta colour #FF00FF '
-      'everywhere, no shadows, no ground, no grass under objects, no text, no labels, no numbers, no grid lines, no frames.')
+BG = ('Every object stands alone, fully separated from the others by wide empty space, none touching or overlapping. '
+      'Background: one flat solid pure magenta colour #FF00FF everywhere, no shadows, no ground, no grass under objects, '
+      'no text, no labels, no numbers, no grid lines, no frames.')
 
 P = ['nature', 'plant']
 FRUIT = ['nature', 'fruit', 'item']
@@ -123,28 +124,51 @@ ITEMS = {
     'nat_lightning': (48, 'Blitz', 'Lightning bolt', ['nature', 'weather'], 'a yellow zigzag lightning bolt'),
 }
 
-# sheet -> 8 cells in reading order: an item name, or (None, prompt) for a spare cell that is not kept
+_ = None
+# sheet -> (grid asked for, names asked for in order, (cols, rows) of the result, cells of the result in reading order)
 SHEETS = {
-    'trees': ['nat_oak', 'nat_pine', 'nat_palm', 'nat_apple_tree', 'nat_birch', 'nat_dead_tree', 'nat_bush', 'nat_stump'],
-    'plants': ['nat_fern', 'nat_cactus', 'nat_sunflower', 'nat_tulip', 'nat_daisy', 'nat_rose', 'nat_grass_tuft', 'nat_tall_grass'],
-    'forest': ['nat_vine', 'nat_mushroom_brown', 'nat_mushroom_blue', 'nat_log', 'nat_rock_1', 'nat_rock_2', 'nat_rock_3', 'nat_leaf'],
-    'garden': ['nat_carrot', 'nat_tomato', 'nat_pumpkin', 'nat_corn', 'nat_seedling', 'nat_flowerpot', 'nat_snowman', 'nat_moon'],
-    'fruits': ['fruit_apple', 'fruit_cherry', 'fruit_orange', 'fruit_banana',
-               'fruit_strawberry', 'fruit_grapes', 'fruit_watermelon', 'fruit_pear'],
-    'sky': ['nat_cloud_1', 'nat_cloud_2', 'nat_cloud_3', 'nat_sun', 'nat_rainbow', 'nat_rain_cloud', 'fruit_lemon', 'fruit_pineapple'],
-    'weather': ['nat_raindrop', 'nat_snowflake', 'nat_lightning', (None, 'a small blue snowflake'),
-                (None, 'a white cloud'), (None, 'a yellow star'), (None, 'a green leaf'), (None, 'a blue raindrop')],
+    'trees': ('3 columns and 2 rows',
+              ['nat_oak', 'nat_pine', 'nat_palm', 'nat_apple_tree', 'nat_birch', 'nat_dead_tree'],
+              (4, 2), ['nat_oak', 'nat_pine', 'nat_palm', _, 'nat_apple_tree', 'nat_birch', _, 'nat_dead_tree']),
+    'plants': ('3 columns and 3 rows',
+               ['nat_bush', 'nat_fern', 'nat_cactus', 'nat_sunflower', 'nat_tulip', 'nat_daisy', 'nat_rose',
+                'nat_grass_tuft', 'nat_tall_grass'],
+               (4, 3), ['nat_bush', 'nat_fern', 'nat_cactus', 'nat_sunflower', _, 'nat_tulip', 'nat_daisy', _,
+                        'nat_rose', 'nat_grass_tuft', _, 'nat_tall_grass']),
+    'forest': ('4 columns and 2 rows',
+               ['nat_vine', 'nat_mushroom_brown', 'nat_mushroom_blue', 'nat_log', 'nat_rock_1', 'nat_rock_2', 'nat_rock_3',
+                'nat_stump'], (4, 2), None),
+    'garden': ('3 columns and 2 rows',
+               ['nat_carrot', 'nat_tomato', 'nat_pumpkin', 'nat_corn', 'nat_seedling', 'nat_flowerpot'],
+               (4, 2), ['nat_carrot', 'nat_tomato', 'nat_pumpkin', _, 'nat_corn', 'nat_seedling', _, 'nat_flowerpot']),
+    'fruits': ('5 columns and 2 rows',
+               ['fruit_apple', 'fruit_cherry', 'fruit_orange', 'fruit_banana', 'fruit_strawberry', 'fruit_grapes',
+                'fruit_watermelon', 'fruit_pear', 'fruit_lemon', 'fruit_pineapple'], (5, 2), None),
+    'sky': ('4 columns and 2 rows',
+            ['nat_cloud_1', 'nat_cloud_2', 'nat_cloud_3', 'nat_sun', 'nat_moon', 'nat_rainbow', 'nat_rain_cloud', 'nat_snowman'],
+            (4, 2), None),
+    'weather': ('4 columns and 1 row', ['nat_raindrop', 'nat_snowflake', 'nat_lightning', 'nat_leaf'],
+                (4, 2), ['nat_raindrop', 'nat_snowflake', 'nat_lightning', 'nat_leaf', _, _, _, _]),
 }
 
 
-def cell_prompt(c):
-    return c[1] if isinstance(c, tuple) else ITEMS[c][4]
-
-
 def prompt(sheet):
-    lst = ' '.join(f'({i + 1}) {cell_prompt(c)}.' for i, c in enumerate(SHEETS[sheet]))
-    return (STYLE + f'Draw a sprite sheet of exactly {COLS * ROWS} separate objects in a grid of {COLS} columns and {ROWS} rows, '
+    grid, names = SHEETS[sheet][:2]
+    lst = ' '.join(f'({i + 1}) {ITEMS[n][4]}.' for i, n in enumerate(names))
+    return (STYLE + f'Draw a sprite sheet of exactly {len(names)} separate objects arranged in a grid of {grid}, '
             f'in reading order left to right, top to bottom: {lst} ' + BG)
+
+
+def full_rainbow(im):
+    """The model drew a quarter arc (left half, cut straight at the top right); mirror it into a full arch."""
+    a = np.asarray(im)
+    full = (a[..., 3] > 250).sum(0)
+    cols = np.nonzero(full >= 0.9 * full.max())[0]  # the straight cut end is the last fully opaque column
+    a = a[:, :cols.max() + 1]
+    return Image.fromarray(np.concatenate([a, a[:, ::-1]], 1), 'RGBA')
+
+
+FIX = {'nat_rainbow': full_rainbow}
 
 
 def do_gen(sheet):
@@ -152,7 +176,7 @@ def do_gen(sheet):
     return sheet, gen(os.path.join(WORK, sheet), prompt(sheet), REF)
 
 
-def cells(path):
+def cells(path, COLS, ROWS):
     """Key the sheet and return one RGBA crop per grid cell (all opaque parts whose centre lies in that cell)."""
     rgba = key(Image.open(path))
     H, W = rgba.shape[:2]
@@ -176,10 +200,23 @@ def cells(path):
     return out
 
 
+def bleed(im):
+    """Give semi-transparent edge pixels the colour of the nearest opaque pixel (no magenta or pink fringe)."""
+    a = np.asarray(im).copy()
+    solid = a[..., 3] > 250
+    if solid.any():
+        iy, ix = ndimage.distance_transform_edt(~solid, return_distances=False, return_indices=True)
+        a[..., :3] = a[iy, ix, :3]
+    return Image.fromarray(a, 'RGBA')
+
+
 def do_cut(sheet):
+    _, names, (cols, rows), cl = SHEETS[sheet]
     kept = 0
-    for c, im in zip(SHEETS[sheet], cells(os.path.join(WORK, sheet + '.png'))):
-        if isinstance(c, tuple): continue
+    for c, im in zip(cl or names, cells(os.path.join(WORK, sheet + '.png'), cols, rows)):
+        if c is None: continue
+        im = bleed(im)
+        if c in FIX: im = FIX[c](im)
         size = ITEMS[c][0]
         s = size / max(im.size)
         im = im.resize((max(1, round(im.width * s)), max(1, round(im.height * s))), Image.LANCZOS)
@@ -191,7 +228,7 @@ def do_cut(sheet):
 
 
 def write_json():
-    names = [c for cs in SHEETS.values() for c in cs if not isinstance(c, tuple)]
+    names = [n for sh in SHEETS.values() for n in sh[1]]
     assets = [{'name': n, 'file': n + '.png', 'tags': ITEMS[n][3], 'de': ITEMS[n][1], 'en': ITEMS[n][2]}
               for n in ITEMS if n in names]
     pack = {'pack': 'nature', 'title': {'de': 'Natur und Wetter', 'en': 'Nature and weather'}, 'format': 'png', 'assets': assets}
