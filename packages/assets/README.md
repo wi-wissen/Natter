@@ -1,92 +1,79 @@
-# Bildbibliothek für Spiele
+# @natterjs/assets
 
-Bilder und Klänge für Pygame-Zero-Spiele in Natter und in [CodeNatter](https://codenatter.de), alle zu sehen in der [Sprite-Galerie](https://natter.wi7.net/sprites/): rund 920 PNG-Sprites in einem einheitlichen flachen Emoji-Stil, zwei SVG-Schildkröten und 14 kurze Klänge. Schülerinnen und Schüler schreiben nur den Namen, ohne Dateien hochzuladen:
+Images and sounds for Python games in [Natter](https://natter.wi7.net/) and [CodeNatter](https://codenatter.de): more than 900 PNG sprites in one consistent flat emoji style, two SVG turtle shapes and 14 short sounds, sorted into packs (platformer, space, sea, animals, puzzles, adventure, user interface …) and described in one `catalog.json`. Students write only a name, without uploading files:
 
 ```python
-heldin = Actor("heroine_run_1")
+heroine = Actor("heroine_run_1")
 screen.blit("pf_grass_mid", (0, 416))
 sounds.coin.play()
 ```
 
-## Inhalt
+Browse every image and sound in the [sprite gallery](https://natter.wi7.net/sprites/).
 
-| Paket | Titel | Dateien | Größe | Beispiele |
-|---|---|---|---|---|
-| `adventure` | Abenteuer | 82 | 369 KB | `hero_girl_down_1`, `tile_grass`, `adv_chest_closed`, `mon_slime_1` |
-| `animals` | Tiere | 46 | 330 KB | `an_bear`, `an_cat_walk_1`, `pet_cat_happy` |
-| `arcade` | Spielhalle | 71 | 312 KB | `snake_head_right`, `brick_red`, `memory_cat`, `dice_1`, `car_red` |
-| `book` | Teich-Spiel aus dem Buch | 18 | 79 KB | `ente`, `kueken`, `boot`, `seerose`, `teich_hintergrund` |
-| `characters` | Figuren | 38 | 326 KB | `heroine_run_1` … `_8`, `heroine_idle_1`, `boy_run_1`, `enemy_walk_1` |
-| `flyer` | Flieger und Fallendes | 39 | 401 KB | `fl_bird_1`, `fl_pillar_top`, `fall_apple`, `fl_bg_day` |
-| `grid_action` | Raster-Action | 98 | 381 KB | `bomb_1`, `bomb_blast_center`, `td_tower_arrow_1`, `td_road_h`, `farm_carrot_1` … `_4`, `cross_frog_up`, `gem_blue` |
-| `grid_chars` | Rasterfiguren (von oben) | 96 | 274 KB | `robo_down_1`, `fuchs_down_1`, `maus_happy`, `pinguin_idle_1` |
-| `grid_puzzle` | Raster-Rätsel und Brettspiele | 81 | 209 KB | `gp_crate`, `ms_flag`, `pipe_corner_ne`, `chess_king_w`, `num_tile_2048` |
-| `grid_tiles` | Rasterkacheln | 50 | 125 KB | `gt_ice`, `gt_key_red`, `gt_conveyor_up`, `gt_goal` |
-| `kara` | Kara der Marienkäfer | 17 | 75 KB | `kara`, `kara_tree`, `kara_mushroom`, `turtle_top` |
-| `nature` | Natur und Wetter | 51 | 237 KB | `nat_oak`, `nat_cloud_1`, `fruit_apple` |
-| `platformer` | Jump and Run | 89 | 531 KB | `pf_grass_mid`, `pf_coin_1`, `pf_gem_blue_1`, `slug_walk_1`, `pf_bg_day` |
-| `sea` | Meer | 36 | 417 KB | `sea_sailboat`, `sea_fish_1`, `sea_bg` |
-| `space` | Weltraum | 41 | 293 KB | `sp_ship`, `sp_enemy_1`, `sp_explosion_1`, `sp_bg_space` |
-| `turtle` | Turtle (SVG) | 2 | 3 KB | `turtle`, `turtle_side` |
-| `ui` | Spieloberfläche | 81 | 291 KB | `ui_0` … `ui_9`, `ui_heart_full`, `ui_button_blue` |
-| `sounds` | Klänge (WAV) | 14 | 213 KB | `platsch`, `coin`, `jump`, `hit`, `explosion`, `laser`, `win` |
-
-Zusammen etwa 4,5 MB. Jedes Paket hat eine `pack.json` (Name, Datei, Schlagwörter, deutsche und englische Beschreibung), die Klänge eine `sounds/sounds.json`.
-
-## Katalog
-
-`catalog.json` fasst alles in einer Datei zusammen: alle Bilder (Name, Paket, Pfad, Breite × Höhe aus dem PNG-Kopf bzw. dem SVG, Bytes, Schlagwörter, de/en), alle Klänge (mit Länge in Sekunden) und die Bildgruppen, erkannt an der Endung `_<n>`: `animation`, wenn die Beschreibungen von Bildern einer Animation sprechen (`heroine_run`, 8 Bilder), sonst `series` (Varianten wie `dice_1` … `dice_6`).
+## Install
 
 ```bash
-npm run assets:catalog    # catalog.json neu schreiben (nach jeder Änderung an einem Paket)
+npm install @natterjs/assets
 ```
 
-Ein Test (`test/catalog.test.js`) schlägt fehl, wenn die eingecheckte Datei nicht mehr stimmt. Der Pygame-Zero-Host liest den Katalog mit einer Anfrage (`assets: { baseUrl, catalog: 'catalog.json' }`, siehe `packages/web/README.md`) und lädt danach nur die Bilder, die ein Programm nennt; die [Sprite-Galerie](https://natter.wi7.net/sprites/) (`npm run sprites`) und CodeNatter bauen darauf auf.
+## Usage
 
-## Spielarten
+The package is meant to be served as it is (from jsDelivr, unpkg or a copy of the folder on your own server). `index.js` gives the URLs relative to itself:
 
-`gametypes.json` ordnet die Bibliothek nach Spielart, so zeigt sie die [Sprite-Galerie](https://natter.wi7.net/sprites/) (`docs/sprites/`, `npm run sprites`): zuerst je Spielart eine kleine, von Hand ausgesuchte **Startauswahl** (8 bis 16 Bilder), darunter „Mehr aus den Paketen“ mit allem Übrigen. Jede Spielart hat `id`, `de`, `en`, `hint` (ein Satz de/en), `packs` (die Pakete dahinter, ein Paket darf in mehreren stehen) und `starter` (Bildnamen; ein Animationsbild wie `heroine_run_1` steht für die ganze Animation).
+```js
+import { assetsOption, baseUrl, catalogUrl, gametypesUrl } from '@natterjs/assets';
 
-| `id` | Spielart | Pakete |
-|---|---|---|
-| `platformer` | Plattformspiel | `platformer`, `characters` |
-| `space` | Weltraum | `space` |
-| `sea` | Meer | `sea` |
-| `nature` | Natur & Garten | `nature` |
-| `animals` | Tiere | `animals` |
-| `flyer` | Flieger & Fallendes | `flyer` |
-| `arcade` | Arcade | `arcade` |
-| `puzzle` | Rätsel & Brettspiele | `grid_puzzle`, `arcade` |
-| `grid` | Von oben & im Gitter (Kisten schieben, Bomben, Turmverteidigung, Farm, Frosch, Minen, Rohre) | `grid_chars`, `grid_tiles`, `grid_action`, `grid_puzzle` |
-| `adventure` | Abenteuer | `adventure` |
-| `book` | Ente, Kara & Turtle | `book`, `kara`, `turtle` |
-| `ui` | Oberfläche | `ui` |
+assetsOption();          // { baseUrl, catalog: 'catalog.json' }: the whole library
+assetsOption(['space']); // { baseUrl, catalog: 'catalog.json', packs: ['space'] }: only these packs
+baseUrl;                 // folder of the library, ends with '/'; an image is at baseUrl + 'space/sp_ship.png'
+```
 
-`npm run assets:catalog` übernimmt die Spielarten als `gametypes` in `catalog.json`. `test/gametypes.test.js` prüft: jeder Startname existiert und liegt in einem Paket der Spielart, 8 bis 16 je Spielart, jedes Bildpaket gehört zu mindestens einer Spielart.
+Pass `assetsOption()` as the `assets` option of `createPgzero` or `createKara` from [`@natterjs/web`](https://www.npmjs.com/package/@natterjs/web):
 
-## Wie die Bilder entstanden sind
+```js
+import { createRunner, createPgzero } from 'https://cdn.jsdelivr.net/npm/@natterjs/web@0.1.0/dist/natter-web.js';
+import { assetsOption } from 'https://cdn.jsdelivr.net/npm/@natterjs/assets@0.1.0/index.js';
 
-- Gezeichnet von einem Bildmodell (`google/gemini-3.1-flash-image` über OpenRouter) nach eigenen Texten, mit `scripts/asset-gen/style-emoji.png` als Stil- und Figurenvorlage, damit alle Pakete zusammenpassen.
-- Jedes Blatt entsteht auf einer einfarbigen Magenta-Fläche (`#FF00FF`) ohne Schatten, Boden und Text; `scripts/asset-gen/keyslice.py` stanzt das Magenta zu Transparenz aus, schneidet das Blatt in einzelne, benannte Dateien und richtet Animationsbilder auf eine gemeinsame Leinwand aus (Füße auf gleicher Höhe). Hintergründe (`background`) entstehen ohne Magenta und werden auf 800 × 480 gebracht.
-- Die Texte und Namen jedes Pakets stehen in `<paket>/make.py`, damit es sich neu zeichnen lässt. Jedes Ergebnis wurde auf hellem und dunklem Grund angesehen (Ränder, Stil, Ähnlichkeit zu bekannten Figuren).
-- Die Klänge sind synthetisch (`scripts/gen-sounds.py`, deterministisch).
+const runner = createRunner();
+const pgz = createPgzero(document.querySelector('#game'), { assets: assetsOption() });
+runner.use(pgz);
+await pgz.run(runner, 'ship = Actor("sp_ship", (400, 300))\n\ndef draw():\n    screen.clear()\n    ship.draw()');
+```
 
-## Lizenz
+When a bundler copies the package files elsewhere, serve the folder yourself and pass its address instead: `{ baseUrl: 'https://example.org/assets/', catalog: 'catalog.json' }`. Without a bundler or npm, use the jsDelivr folder directly as `baseUrl`: `https://cdn.jsdelivr.net/npm/@natterjs/assets@0.1.0/` (always pin a version).
 
-Gedacht als **CC0** (gemeinfrei): frei verwendbar, veränderbar und weitergebbar, auch ohne Namensnennung. Alle Bilder sind eigene Erzeugnisse aus eigenen Texten; keines soll eine bestehende Spiel-, Film- oder Markenfigur nachahmen.
+### How names map to files
 
-## Namen
+- Every image and sound has a unique name across all packs (`^[a-z][a-z0-9_]*$`). The catalog lists it with its pack and file: `heroine_run_1` → `characters/heroine_run_1.png`, `coin` → `sounds/coin.wav`.
+- **Pygame Zero:** `Actor("name")`, `screen.blit("name", …)`, `images.name` and `sounds.name` look the name up in the catalog. The host reads the catalog once and then loads only the files a program names; a string like `"heroine_run_" + str(i)` loads all names starting with `heroine_run_`. A file of the same name in the project's `images/` or `sounds/` folder always wins.
+- **Kara:** the world is drawn with the images of the `kara` pack (`kara`, `kara_up`, `kara_left`, `kara_down`, `kara_tree`, `kara_blueberry`, `kara_mushroom`, `kara_grass` …). Replacing an image of that name in the catalog changes Kara's look; without assets Kara draws vector shapes.
+- **Animations:** frames end in `_<n>`, counted from 1 (`heroine_run_1` … `heroine_run_8`), all frames of one animation have the same size. Characters face right unless the name says `_left`.
 
-- Klein, ASCII, Ziffern und `_`, mit einem Buchstaben vorn (`^[a-z][a-z0-9_]*$`), **eindeutig über alle Pakete**.
-- Animationsbilder: `<ding>_<aktion>_<n>`, ab 1 gezählt (`heroine_run_1` … `heroine_run_8`), alle Bilder einer Animation gleich groß.
-- Allgemeine Wörter bekommen ein Paketwort davor (`pf_coin_1`, `sea_cloud`, `nat_oak`), damit Pakete sich nicht in die Quere kommen.
-- Figuren schauen nach rechts, außer der Name sagt `_left`/`_links`. Im Buch-Paket sind die Namen deutsch (`ente`, `kueken`, `boot`), weil das Buch sie so nennt.
+### Files
 
-## Ein Paket hinzufügen
+| File | Content |
+|---|---|
+| `catalog.json` | All images (name, pack, path, width × height, bytes, tags, English and German description), all sounds (with length in seconds), the animation groups and the game types |
+| `gametypes.json` | The library sorted by kind of game, with a hand-picked starter set for each |
+| `<pack>/pack.json` | One pack: title, files, tags, descriptions |
+| `<pack>/*.png`, `turtle/*.svg`, `sounds/*.wav` | The images and sounds (about 4.5 MB in total) |
 
-1. `CONVENTIONS.md` und `BRIEF.md` lesen (Stil, Größen, Grenzen: höchstens 80 KB je Bild, 300 KB je Hintergrund, 3 MB je Paket, längste Seite 1024).
-2. Ordner `packages/assets/<paket>/` anlegen, Bilder mit `scripts/asset-gen` erzeugen (siehe dessen README), Prompts in `make.py` festhalten.
-3. `pack.json` schreiben (`pack`, `title.de/en`, `format: "png"`, `assets` mit `name`, `file`, `tags`, `de`, `en`).
-4. Das Paket in `gametypes.json` einer Spielart zuordnen (oder eine neue anlegen, mit Startauswahl).
-5. `npm run assets:catalog`, dann `npx vitest run packages/assets` (prüft Namen, Dateien, Größen, Alphakanal, Katalog, Spielarten).
-6. `npm run sprites` ausführen: das Paket erscheint in der Sprite-Galerie (`docs/sprites/index.html`). CodeNatter übernimmt es mit der nächsten Version von `@natterjs/assets`.
+Packs: `adventure`, `animals`, `arcade`, `book` (pond game with German names such as `ente`, `kueken`), `characters`, `flyer`, `grid_action`, `grid_chars`, `grid_puzzle`, `grid_tiles`, `kara`, `nature`, `platformer`, `sea`, `space`, `turtle`, `ui`, `sounds`.
+
+## Features
+
+- One style for everything, so packs fit together in one game.
+- Animation frames of the same size and aligned (feet at the same height).
+- Every image is listed with size, tags and an English and German description, ready for search and pickers.
+- Loads lazily: hosts fetch the catalog once and only the files a program uses.
+
+## Links
+
+- Sprite gallery: <https://natter.wi7.net/sprites/>
+- Website: <https://natter.wi7.net/>, command reference: <https://natter.wi7.net/reference/>
+- Source and issues: <https://github.com/wi-wissen/Natter>
+- [CodeNatter](https://codenatter.de): a browser IDE for learning Python in school, built on Natter.
+
+## License
+
+Images, sounds and the JSON lists are intended as **CC0 1.0** (public domain dedication): free to use, change and share, also commercially and without attribution. They are original work drawn from the project's own prompts and do not imitate existing game, film or brand characters; the sounds are synthesised. Details and origin: `LICENSE-ASSETS.md`. The small `index.js` is code under the MIT license (`LICENSE`).

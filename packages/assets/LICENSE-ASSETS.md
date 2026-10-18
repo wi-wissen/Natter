@@ -8,7 +8,7 @@ code and falls under the MIT license in `LICENSE`.
 
 The library is meant to be **CC0 1.0 Universal** (public domain dedication,
 <https://creativecommons.org/publicdomain/zero/1.0/>): free to use, change and pass on, also commercially and
-without attribution. This is how `README.md` („Gedacht als CC0“) and `CONVENTIONS.md` of this package describe it.
+without attribution. This is how `README.md`, `CONVENTIONS.md` and the developer notes (`DEVELOPMENT.md`, „Gedacht als CC0“, in the repository) of this package describe it.
 
 ## Origin
 
