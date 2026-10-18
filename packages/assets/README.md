@@ -59,7 +59,7 @@ Ein Test (`test/catalog.test.js`) schlägt fehl, wenn die eingecheckte Datei nic
 | `puzzle` | Rätsel & Brettspiele | `grid_puzzle`, `arcade` |
 | `grid` | Von oben & im Gitter (Kisten schieben, Bomben, Turmverteidigung, Farm, Frosch, Minen, Rohre) | `grid_chars`, `grid_tiles`, `grid_action`, `grid_puzzle` |
 | `adventure` | Abenteuer | `adventure` |
-| `book` | Buch, Kara & Turtle | `book`, `kara`, `turtle` |
+| `book` | Ente, Kara & Turtle | `book`, `kara`, `turtle` |
 | `ui` | Oberfläche | `ui` |
 
 `npm run assets:catalog` übernimmt die Spielarten als `gametypes` in `catalog.json`. `test/gametypes.test.js` prüft: jeder Startname existiert und liegt in einem Paket der Spielart, 8 bis 16 je Spielart, jedes Bildpaket gehört zu mindestens einer Spielart.

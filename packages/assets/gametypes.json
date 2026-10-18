@@ -73,8 +73,8 @@
     },
     {
       "id": "book",
-      "de": "Buch, Kara & Turtle", "en": "Book, Kara & turtle",
-      "hint": { "de": "Ente, Küken und Boot aus dem Buch, Kara der Marienkäfer, die Turtle", "en": "Duck, chick and boat of the book, Kara the ladybug, the turtle" },
+      "de": "Ente, Kara & Turtle", "en": "Duck, Kara & turtle",
+      "hint": { "de": "Ente, Küken und Boot vom Teich, Kara der Marienkäfer, die Turtle", "en": "Duck, chick and boat of the book, Kara the ladybug, the turtle" },
       "packs": ["book", "kara", "turtle"],
       "starter": ["ente", "ente_links", "kueken", "boot", "seerose", "frosch", "fisch_1", "teich_hintergrund", "kara", "kara_blueberry", "kara_tree", "kara_mushroom", "turtle"]
     },
