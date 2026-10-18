@@ -50,7 +50,7 @@ Example programs are in `packages/core/test/cases/*.py` with the output of CPyth
 
 ## Website
 
-A static overview page lives in [`docs/`](docs/), published with GitHub Pages (source: `main`, folder `/docs`) at <https://natter.wi7.net/> (`docs/CNAME`).
+A static overview page lives in [`docs/`](docs/), published with GitHub Pages (source: `main`, folder `/docs`) at <https://natter.wi7.net/> (custom domain `natter.wi7.net`, set in the repository's Pages settings).
 
 The **command reference** ([`docs/reference/index.html`](docs/reference/index.html)) lists the language, the builtins, every standard module, `turtle`, `kara` (commands and world format), Pygame Zero (hooks, `screen`, `Actor`, `keyboard`, sounds, music, `clock`, images from the asset library), `guizero`, numpy, pyplot, `requests` with CORS, files and the asset library, each with a runnable example. It is generated from the interpreter: `scripts/build-reference.mjs` reads the module registries, builtins, stdlib, messages and `packages/assets` and adds the English text from `scripts/reference/content.mjs`. Every example and every language snippet runs while building. After changing a module, run
 
