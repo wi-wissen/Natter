@@ -1,0 +1,744 @@
+{
+  "pack": "arcade",
+  "title": {
+    "de": "Spielhalle",
+    "en": "Arcade"
+  },
+  "format": "png",
+  "assets": [
+    {
+      "name": "snake_head_right",
+      "file": "snake_head_right.png",
+      "tags": [
+        "arcade",
+        "snake"
+      ],
+      "de": "Schlangenkopf von oben, schaut nach rechts",
+      "en": "Snake head from above, facing right"
+    },
+    {
+      "name": "snake_head_up",
+      "file": "snake_head_up.png",
+      "tags": [
+        "arcade",
+        "snake"
+      ],
+      "de": "Schlangenkopf von oben, schaut nach oben",
+      "en": "Snake head from above, facing up"
+    },
+    {
+      "name": "snake_head_left",
+      "file": "snake_head_left.png",
+      "tags": [
+        "arcade",
+        "snake"
+      ],
+      "de": "Schlangenkopf von oben, schaut nach links",
+      "en": "Snake head from above, facing left"
+    },
+    {
+      "name": "snake_head_down",
+      "file": "snake_head_down.png",
+      "tags": [
+        "arcade",
+        "snake"
+      ],
+      "de": "Schlangenkopf von oben, schaut nach unten",
+      "en": "Snake head from above, facing down"
+    },
+    {
+      "name": "snake_body",
+      "file": "snake_body.png",
+      "tags": [
+        "arcade",
+        "snake"
+      ],
+      "de": "Körperglied der Schlange (32x32)",
+      "en": "Snake body segment (32x32)"
+    },
+    {
+      "name": "snake_tail",
+      "file": "snake_tail.png",
+      "tags": [
+        "arcade",
+        "snake"
+      ],
+      "de": "Schwanzende der Schlange, Spitze nach links",
+      "en": "Snake tail, tip pointing left"
+    },
+    {
+      "name": "snake_apple",
+      "file": "snake_apple.png",
+      "tags": [
+        "arcade",
+        "snake"
+      ],
+      "de": "Roter Apfel als Futter",
+      "en": "Red apple to eat"
+    },
+    {
+      "name": "snake_mouse",
+      "file": "snake_mouse.png",
+      "tags": [
+        "arcade",
+        "snake"
+      ],
+      "de": "Graue Maus als Futter, schaut nach rechts",
+      "en": "Grey mouse to eat, facing right"
+    },
+    {
+      "name": "pong_paddle",
+      "file": "pong_paddle.png",
+      "tags": [
+        "arcade",
+        "pong"
+      ],
+      "de": "Senkrechter Schläger für Pong (24x96)",
+      "en": "Upright pong paddle (24x96)"
+    },
+    {
+      "name": "pong_ball",
+      "file": "pong_ball.png",
+      "tags": [
+        "arcade",
+        "pong"
+      ],
+      "de": "Weißer Ball für Pong",
+      "en": "White pong ball"
+    },
+    {
+      "name": "breakout_paddle",
+      "file": "breakout_paddle.png",
+      "tags": [
+        "arcade",
+        "breakout"
+      ],
+      "de": "Waagrechter Schläger zum Mauernzerschlagen (96x20)",
+      "en": "Flat breakout paddle (96x20)"
+    },
+    {
+      "name": "breakout_ball",
+      "file": "breakout_ball.png",
+      "tags": [
+        "arcade",
+        "breakout"
+      ],
+      "de": "Kleiner Ball zum Mauernzerschlagen",
+      "en": "Small breakout ball"
+    },
+    {
+      "name": "brick_red",
+      "file": "brick_red.png",
+      "tags": [
+        "arcade",
+        "breakout",
+        "tile"
+      ],
+      "de": "Mauerstein, rot (64x28)",
+      "en": "Wall brick, red (64x28)"
+    },
+    {
+      "name": "brick_orange",
+      "file": "brick_orange.png",
+      "tags": [
+        "arcade",
+        "breakout",
+        "tile"
+      ],
+      "de": "Mauerstein, orange (64x28)",
+      "en": "Wall brick, orange (64x28)"
+    },
+    {
+      "name": "brick_yellow",
+      "file": "brick_yellow.png",
+      "tags": [
+        "arcade",
+        "breakout",
+        "tile"
+      ],
+      "de": "Mauerstein, gelb (64x28)",
+      "en": "Wall brick, yellow (64x28)"
+    },
+    {
+      "name": "brick_green",
+      "file": "brick_green.png",
+      "tags": [
+        "arcade",
+        "breakout",
+        "tile"
+      ],
+      "de": "Mauerstein, grün (64x28)",
+      "en": "Wall brick, green (64x28)"
+    },
+    {
+      "name": "brick_blue",
+      "file": "brick_blue.png",
+      "tags": [
+        "arcade",
+        "breakout",
+        "tile"
+      ],
+      "de": "Mauerstein, blau (64x28)",
+      "en": "Wall brick, blue (64x28)"
+    },
+    {
+      "name": "brick_purple",
+      "file": "brick_purple.png",
+      "tags": [
+        "arcade",
+        "breakout",
+        "tile"
+      ],
+      "de": "Mauerstein, lila (64x28)",
+      "en": "Wall brick, purple (64x28)"
+    },
+    {
+      "name": "block_red",
+      "file": "block_red.png",
+      "tags": [
+        "arcade",
+        "blocks",
+        "tile"
+      ],
+      "de": "Fallender Block, rot (32x32)",
+      "en": "Falling block, red (32x32)"
+    },
+    {
+      "name": "block_orange",
+      "file": "block_orange.png",
+      "tags": [
+        "arcade",
+        "blocks",
+        "tile"
+      ],
+      "de": "Fallender Block, orange (32x32)",
+      "en": "Falling block, orange (32x32)"
+    },
+    {
+      "name": "block_yellow",
+      "file": "block_yellow.png",
+      "tags": [
+        "arcade",
+        "blocks",
+        "tile"
+      ],
+      "de": "Fallender Block, gelb (32x32)",
+      "en": "Falling block, yellow (32x32)"
+    },
+    {
+      "name": "block_green",
+      "file": "block_green.png",
+      "tags": [
+        "arcade",
+        "blocks",
+        "tile"
+      ],
+      "de": "Fallender Block, grün (32x32)",
+      "en": "Falling block, green (32x32)"
+    },
+    {
+      "name": "block_cyan",
+      "file": "block_cyan.png",
+      "tags": [
+        "arcade",
+        "blocks",
+        "tile"
+      ],
+      "de": "Fallender Block, türkis (32x32)",
+      "en": "Falling block, cyan (32x32)"
+    },
+    {
+      "name": "block_blue",
+      "file": "block_blue.png",
+      "tags": [
+        "arcade",
+        "blocks",
+        "tile"
+      ],
+      "de": "Fallender Block, blau (32x32)",
+      "en": "Falling block, blue (32x32)"
+    },
+    {
+      "name": "block_purple",
+      "file": "block_purple.png",
+      "tags": [
+        "arcade",
+        "blocks",
+        "tile"
+      ],
+      "de": "Fallender Block, lila (32x32)",
+      "en": "Falling block, purple (32x32)"
+    },
+    {
+      "name": "car_red",
+      "file": "car_red.png",
+      "tags": [
+        "arcade",
+        "racing",
+        "vehicle"
+      ],
+      "de": "Auto von oben, rot, fährt nach oben",
+      "en": "Car from above, red, pointing up"
+    },
+    {
+      "name": "car_blue",
+      "file": "car_blue.png",
+      "tags": [
+        "arcade",
+        "racing",
+        "vehicle"
+      ],
+      "de": "Auto von oben, blau, fährt nach oben",
+      "en": "Car from above, blue, pointing up"
+    },
+    {
+      "name": "car_yellow",
+      "file": "car_yellow.png",
+      "tags": [
+        "arcade",
+        "racing",
+        "vehicle"
+      ],
+      "de": "Auto von oben, gelb, fährt nach oben",
+      "en": "Car from above, yellow, pointing up"
+    },
+    {
+      "name": "car_green",
+      "file": "car_green.png",
+      "tags": [
+        "arcade",
+        "racing",
+        "vehicle"
+      ],
+      "de": "Auto von oben, grün, fährt nach oben",
+      "en": "Car from above, green, pointing up"
+    },
+    {
+      "name": "car_police",
+      "file": "car_police.png",
+      "tags": [
+        "arcade",
+        "racing",
+        "vehicle"
+      ],
+      "de": "Schwarz-weißes Polizeiauto von oben, fährt nach oben",
+      "en": "Black and white police car from above, pointing up"
+    },
+    {
+      "name": "car_truck",
+      "file": "car_truck.png",
+      "tags": [
+        "arcade",
+        "racing",
+        "vehicle"
+      ],
+      "de": "Lastwagen von oben, fährt nach oben",
+      "en": "Truck from above, pointing up"
+    },
+    {
+      "name": "cone",
+      "file": "cone.png",
+      "tags": [
+        "arcade",
+        "racing",
+        "obstacle"
+      ],
+      "de": "Leitkegel",
+      "en": "Traffic cone"
+    },
+    {
+      "name": "oil",
+      "file": "oil.png",
+      "tags": [
+        "arcade",
+        "racing",
+        "obstacle"
+      ],
+      "de": "Ölfleck auf der Straße",
+      "en": "Oil puddle on the road"
+    },
+    {
+      "name": "finish_flag",
+      "file": "finish_flag.png",
+      "tags": [
+        "arcade",
+        "racing"
+      ],
+      "de": "Karierte Zielflagge",
+      "en": "Chequered finish flag"
+    },
+    {
+      "name": "dice_1",
+      "file": "dice_1.png",
+      "tags": [
+        "arcade",
+        "dice"
+      ],
+      "de": "Würfel mit 1 Augen",
+      "en": "Die showing 1"
+    },
+    {
+      "name": "dice_2",
+      "file": "dice_2.png",
+      "tags": [
+        "arcade",
+        "dice"
+      ],
+      "de": "Würfel mit 2 Augen",
+      "en": "Die showing 2"
+    },
+    {
+      "name": "dice_3",
+      "file": "dice_3.png",
+      "tags": [
+        "arcade",
+        "dice"
+      ],
+      "de": "Würfel mit 3 Augen",
+      "en": "Die showing 3"
+    },
+    {
+      "name": "dice_4",
+      "file": "dice_4.png",
+      "tags": [
+        "arcade",
+        "dice"
+      ],
+      "de": "Würfel mit 4 Augen",
+      "en": "Die showing 4"
+    },
+    {
+      "name": "dice_5",
+      "file": "dice_5.png",
+      "tags": [
+        "arcade",
+        "dice"
+      ],
+      "de": "Würfel mit 5 Augen",
+      "en": "Die showing 5"
+    },
+    {
+      "name": "dice_6",
+      "file": "dice_6.png",
+      "tags": [
+        "arcade",
+        "dice"
+      ],
+      "de": "Würfel mit 6 Augen",
+      "en": "Die showing 6"
+    },
+    {
+      "name": "ttt_x",
+      "file": "ttt_x.png",
+      "tags": [
+        "arcade",
+        "board"
+      ],
+      "de": "Kreuz für Tic-Tac-Toe",
+      "en": "Cross for tic-tac-toe"
+    },
+    {
+      "name": "ttt_o",
+      "file": "ttt_o.png",
+      "tags": [
+        "arcade",
+        "board"
+      ],
+      "de": "Kreis für Tic-Tac-Toe",
+      "en": "Ring for tic-tac-toe"
+    },
+    {
+      "name": "c4_red",
+      "file": "c4_red.png",
+      "tags": [
+        "arcade",
+        "board"
+      ],
+      "de": "Roter Spielstein für Vier gewinnt",
+      "en": "Red disc for four in a row"
+    },
+    {
+      "name": "c4_yellow",
+      "file": "c4_yellow.png",
+      "tags": [
+        "arcade",
+        "board"
+      ],
+      "de": "Gelber Spielstein für Vier gewinnt",
+      "en": "Yellow disc for four in a row"
+    },
+    {
+      "name": "c4_empty",
+      "file": "c4_empty.png",
+      "tags": [
+        "arcade",
+        "board"
+      ],
+      "de": "Leeres Loch für Vier gewinnt",
+      "en": "Empty slot for four in a row"
+    },
+    {
+      "name": "memory_back",
+      "file": "memory_back.png",
+      "tags": [
+        "arcade",
+        "card"
+      ],
+      "de": "Rückseite einer Memory-Karte",
+      "en": "Back of a memory card"
+    },
+    {
+      "name": "memory_cat",
+      "file": "memory_cat.png",
+      "tags": [
+        "arcade",
+        "card"
+      ],
+      "de": "Memory-Karte: Katze",
+      "en": "Memory card: cat"
+    },
+    {
+      "name": "memory_star",
+      "file": "memory_star.png",
+      "tags": [
+        "arcade",
+        "card"
+      ],
+      "de": "Memory-Karte: Stern",
+      "en": "Memory card: star"
+    },
+    {
+      "name": "memory_moon",
+      "file": "memory_moon.png",
+      "tags": [
+        "arcade",
+        "card"
+      ],
+      "de": "Memory-Karte: Mond",
+      "en": "Memory card: moon"
+    },
+    {
+      "name": "memory_heart",
+      "file": "memory_heart.png",
+      "tags": [
+        "arcade",
+        "card"
+      ],
+      "de": "Memory-Karte: Herz",
+      "en": "Memory card: heart"
+    },
+    {
+      "name": "memory_sun",
+      "file": "memory_sun.png",
+      "tags": [
+        "arcade",
+        "card"
+      ],
+      "de": "Memory-Karte: Sonne",
+      "en": "Memory card: sun"
+    },
+    {
+      "name": "memory_fish",
+      "file": "memory_fish.png",
+      "tags": [
+        "arcade",
+        "card"
+      ],
+      "de": "Memory-Karte: Fisch",
+      "en": "Memory card: fish"
+    },
+    {
+      "name": "memory_flower",
+      "file": "memory_flower.png",
+      "tags": [
+        "arcade",
+        "card"
+      ],
+      "de": "Memory-Karte: Blume",
+      "en": "Memory card: flower"
+    },
+    {
+      "name": "memory_rocket",
+      "file": "memory_rocket.png",
+      "tags": [
+        "arcade",
+        "card"
+      ],
+      "de": "Memory-Karte: Rakete",
+      "en": "Memory card: rocket"
+    },
+    {
+      "name": "balloon_red",
+      "file": "balloon_red.png",
+      "tags": [
+        "arcade",
+        "balloon"
+      ],
+      "de": "Luftballon, rot",
+      "en": "Balloon, red"
+    },
+    {
+      "name": "balloon_blue",
+      "file": "balloon_blue.png",
+      "tags": [
+        "arcade",
+        "balloon"
+      ],
+      "de": "Luftballon, blau",
+      "en": "Balloon, blue"
+    },
+    {
+      "name": "balloon_yellow",
+      "file": "balloon_yellow.png",
+      "tags": [
+        "arcade",
+        "balloon"
+      ],
+      "de": "Luftballon, gelb",
+      "en": "Balloon, yellow"
+    },
+    {
+      "name": "balloon_pop",
+      "file": "balloon_pop.png",
+      "tags": [
+        "arcade",
+        "balloon"
+      ],
+      "de": "Platzender Luftballon",
+      "en": "Balloon popping"
+    },
+    {
+      "name": "target",
+      "file": "target.png",
+      "tags": [
+        "arcade",
+        "shooting"
+      ],
+      "de": "Zielscheibe",
+      "en": "Target board"
+    },
+    {
+      "name": "dart",
+      "file": "dart.png",
+      "tags": [
+        "arcade",
+        "shooting"
+      ],
+      "de": "Wurfpfeil, zeigt nach rechts",
+      "en": "Dart, pointing right"
+    },
+    {
+      "name": "cannon",
+      "file": "cannon.png",
+      "tags": [
+        "arcade",
+        "shooting"
+      ],
+      "de": "Kanone, zielt nach rechts",
+      "en": "Cannon, aiming right"
+    },
+    {
+      "name": "cannonball",
+      "file": "cannonball.png",
+      "tags": [
+        "arcade",
+        "shooting"
+      ],
+      "de": "Kanonenkugel",
+      "en": "Cannonball"
+    },
+    {
+      "name": "maze_goal",
+      "file": "maze_goal.png",
+      "tags": [
+        "arcade",
+        "maze"
+      ],
+      "de": "Pokal als Ziel im Labyrinth",
+      "en": "Trophy as the maze goal"
+    },
+    {
+      "name": "maze_player",
+      "file": "maze_player.png",
+      "tags": [
+        "arcade",
+        "maze"
+      ],
+      "de": "Runde Spielfigur fürs Labyrinth",
+      "en": "Round maze player character"
+    },
+    {
+      "name": "road_straight",
+      "file": "road_straight.png",
+      "tags": [
+        "arcade",
+        "racing",
+        "tile"
+      ],
+      "de": "Gerade Straße, senkrecht (Kachel 128x128)",
+      "en": "Straight road, vertical (tile 128x128)"
+    },
+    {
+      "name": "road_curve",
+      "file": "road_curve.png",
+      "tags": [
+        "arcade",
+        "racing",
+        "tile"
+      ],
+      "de": "Straßenkurve von unten nach rechts (Kachel 128x128)",
+      "en": "Road curve from bottom to right (tile 128x128)"
+    },
+    {
+      "name": "road_grass",
+      "file": "road_grass.png",
+      "tags": [
+        "arcade",
+        "racing",
+        "tile"
+      ],
+      "de": "Wiese neben der Straße (Kachel 128x128)",
+      "en": "Grass beside the road (tile 128x128)"
+    },
+    {
+      "name": "ttt_board",
+      "file": "ttt_board.png",
+      "tags": [
+        "arcade",
+        "board"
+      ],
+      "de": "Spielfeld für Tic-Tac-Toe, drei mal drei Felder (192x192)",
+      "en": "Tic-tac-toe board, three by three cells (192x192)"
+    },
+    {
+      "name": "c4_board_cell",
+      "file": "c4_board_cell.png",
+      "tags": [
+        "arcade",
+        "board"
+      ],
+      "de": "Ein Feld des Vier-gewinnt-Gitters mit Loch (64x64)",
+      "en": "One cell of the four-in-a-row frame with a hole (64x64)"
+    },
+    {
+      "name": "maze_wall",
+      "file": "maze_wall.png",
+      "tags": [
+        "arcade",
+        "maze"
+      ],
+      "de": "Mauerstück fürs Labyrinth (Kachel 32x32)",
+      "en": "Maze wall (tile 32x32)"
+    },
+    {
+      "name": "maze_floor",
+      "file": "maze_floor.png",
+      "tags": [
+        "arcade",
+        "maze"
+      ],
+      "de": "Boden im Labyrinth (Kachel 32x32)",
+      "en": "Maze floor (tile 32x32)"
+    }
+  ]
+}
