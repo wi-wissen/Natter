@@ -1,0 +1,920 @@
+{
+  "pack": "grid_puzzle",
+  "title": {
+    "de": "Raster-Rätsel und Brettspiele",
+    "en": "Grid puzzles and board games"
+  },
+  "format": "png",
+  "assets": [
+    {
+      "name": "gp_floor",
+      "file": "gp_floor.png",
+      "tags": [
+        "puzzle",
+        "sokoban",
+        "tile"
+      ],
+      "de": "Sokoban: Boden (Kachel 64x64, nahtlos)",
+      "en": "Sokoban: floor (tile 64x64, seamless)"
+    },
+    {
+      "name": "gp_wall",
+      "file": "gp_wall.png",
+      "tags": [
+        "puzzle",
+        "sokoban",
+        "tile",
+        "wall"
+      ],
+      "de": "Sokoban: Mauerblock (Kachel 64x64, nahtlos)",
+      "en": "Sokoban: wall block (tile 64x64, seamless)"
+    },
+    {
+      "name": "gp_target",
+      "file": "gp_target.png",
+      "tags": [
+        "puzzle",
+        "sokoban",
+        "tile"
+      ],
+      "de": "Sokoban: Zielfeld mit rotem X auf dem Boden (64x64)",
+      "en": "Sokoban: target, floor with a red X marker (64x64)"
+    },
+    {
+      "name": "gp_crate",
+      "file": "gp_crate.png",
+      "tags": [
+        "puzzle",
+        "sokoban"
+      ],
+      "de": "Sokoban: Holzkiste von oben (64x64, Rand durchsichtig)",
+      "en": "Sokoban: wooden crate from above (64x64, transparent margin)"
+    },
+    {
+      "name": "gp_crate_on_target",
+      "file": "gp_crate_on_target.png",
+      "tags": [
+        "puzzle",
+        "sokoban",
+        "tile"
+      ],
+      "de": "Sokoban: grüne Kiste auf dem Zielfeld (fertig)",
+      "en": "Sokoban: green crate on the target (done)"
+    },
+    {
+      "name": "ms_hidden",
+      "file": "ms_hidden.png",
+      "tags": [
+        "puzzle",
+        "minesweeper",
+        "tile"
+      ],
+      "de": "Minensuche: verdecktes, erhabenes Feld (64x64)",
+      "en": "Minesweeper: hidden raised tile (64x64)"
+    },
+    {
+      "name": "ms_empty",
+      "file": "ms_empty.png",
+      "tags": [
+        "puzzle",
+        "minesweeper",
+        "tile"
+      ],
+      "de": "Minensuche: aufgedecktes leeres Feld (64x64)",
+      "en": "Minesweeper: opened empty tile (64x64)"
+    },
+    {
+      "name": "ms_1",
+      "file": "ms_1.png",
+      "tags": [
+        "puzzle",
+        "minesweeper",
+        "tile",
+        "number"
+      ],
+      "de": "Minensuche: aufgedecktes Feld mit 1 (blau): 1 Minen daneben",
+      "en": "Minesweeper: opened tile with 1 (blue): 1 mines around"
+    },
+    {
+      "name": "ms_2",
+      "file": "ms_2.png",
+      "tags": [
+        "puzzle",
+        "minesweeper",
+        "tile",
+        "number"
+      ],
+      "de": "Minensuche: aufgedecktes Feld mit 2 (grün): 2 Minen daneben",
+      "en": "Minesweeper: opened tile with 2 (green): 2 mines around"
+    },
+    {
+      "name": "ms_3",
+      "file": "ms_3.png",
+      "tags": [
+        "puzzle",
+        "minesweeper",
+        "tile",
+        "number"
+      ],
+      "de": "Minensuche: aufgedecktes Feld mit 3 (rot): 3 Minen daneben",
+      "en": "Minesweeper: opened tile with 3 (red): 3 mines around"
+    },
+    {
+      "name": "ms_4",
+      "file": "ms_4.png",
+      "tags": [
+        "puzzle",
+        "minesweeper",
+        "tile",
+        "number"
+      ],
+      "de": "Minensuche: aufgedecktes Feld mit 4 (dunkelblau): 4 Minen daneben",
+      "en": "Minesweeper: opened tile with 4 (dark blue): 4 mines around"
+    },
+    {
+      "name": "ms_5",
+      "file": "ms_5.png",
+      "tags": [
+        "puzzle",
+        "minesweeper",
+        "tile",
+        "number"
+      ],
+      "de": "Minensuche: aufgedecktes Feld mit 5 (dunkelrot): 5 Minen daneben",
+      "en": "Minesweeper: opened tile with 5 (dark red): 5 mines around"
+    },
+    {
+      "name": "ms_6",
+      "file": "ms_6.png",
+      "tags": [
+        "puzzle",
+        "minesweeper",
+        "tile",
+        "number"
+      ],
+      "de": "Minensuche: aufgedecktes Feld mit 6 (türkis): 6 Minen daneben",
+      "en": "Minesweeper: opened tile with 6 (teal): 6 mines around"
+    },
+    {
+      "name": "ms_7",
+      "file": "ms_7.png",
+      "tags": [
+        "puzzle",
+        "minesweeper",
+        "tile",
+        "number"
+      ],
+      "de": "Minensuche: aufgedecktes Feld mit 7 (schwarz): 7 Minen daneben",
+      "en": "Minesweeper: opened tile with 7 (black): 7 mines around"
+    },
+    {
+      "name": "ms_8",
+      "file": "ms_8.png",
+      "tags": [
+        "puzzle",
+        "minesweeper",
+        "tile",
+        "number"
+      ],
+      "de": "Minensuche: aufgedecktes Feld mit 8 (grau): 8 Minen daneben",
+      "en": "Minesweeper: opened tile with 8 (grey): 8 mines around"
+    },
+    {
+      "name": "ms_flag",
+      "file": "ms_flag.png",
+      "tags": [
+        "puzzle",
+        "minesweeper",
+        "tile"
+      ],
+      "de": "Minensuche: verdecktes Feld mit roter Fahne",
+      "en": "Minesweeper: hidden tile with a red flag"
+    },
+    {
+      "name": "ms_mine",
+      "file": "ms_mine.png",
+      "tags": [
+        "puzzle",
+        "minesweeper",
+        "tile"
+      ],
+      "de": "Minensuche: aufgedecktes Feld mit Mine",
+      "en": "Minesweeper: opened tile with a mine"
+    },
+    {
+      "name": "ms_mine_hit",
+      "file": "ms_mine_hit.png",
+      "tags": [
+        "puzzle",
+        "minesweeper",
+        "tile"
+      ],
+      "de": "Minensuche: getroffene Mine auf rotem Feld",
+      "en": "Minesweeper: the mine that was hit, red tile"
+    },
+    {
+      "name": "ms_wrong_flag",
+      "file": "ms_wrong_flag.png",
+      "tags": [
+        "puzzle",
+        "minesweeper",
+        "tile"
+      ],
+      "de": "Minensuche: falsch markiert, Mine rot durchgestrichen",
+      "en": "Minesweeper: wrong flag, mine crossed out in red"
+    },
+    {
+      "name": "pipe_straight_h",
+      "file": "pipe_straight_h.png",
+      "tags": [
+        "puzzle",
+        "pipes",
+        "tile"
+      ],
+      "de": "Rohr-Puzzle: Gerades Rohr waagrecht (offen nach Westen und Osten), leer; mit angle drehen",
+      "en": "Pipe puzzle: Straight pipe, horizontal (open to west and east), empty; rotate with angle"
+    },
+    {
+      "name": "pipe_straight_h_wet",
+      "file": "pipe_straight_h_wet.png",
+      "tags": [
+        "puzzle",
+        "pipes",
+        "tile"
+      ],
+      "de": "Rohr-Puzzle: Gerades Rohr waagrecht (offen nach Westen und Osten), mit Wasser gefüllt",
+      "en": "Pipe puzzle: Straight pipe, horizontal (open to west and east), filled with water"
+    },
+    {
+      "name": "pipe_corner_ne",
+      "file": "pipe_corner_ne.png",
+      "tags": [
+        "puzzle",
+        "pipes",
+        "tile"
+      ],
+      "de": "Rohr-Puzzle: Rohr-Ecke, offen nach Norden und Osten, leer; mit angle drehen",
+      "en": "Pipe puzzle: Pipe corner, open to north and east, empty; rotate with angle"
+    },
+    {
+      "name": "pipe_corner_ne_wet",
+      "file": "pipe_corner_ne_wet.png",
+      "tags": [
+        "puzzle",
+        "pipes",
+        "tile"
+      ],
+      "de": "Rohr-Puzzle: Rohr-Ecke, offen nach Norden und Osten, mit Wasser gefüllt",
+      "en": "Pipe puzzle: Pipe corner, open to north and east, filled with water"
+    },
+    {
+      "name": "pipe_t_n",
+      "file": "pipe_t_n.png",
+      "tags": [
+        "puzzle",
+        "pipes",
+        "tile"
+      ],
+      "de": "Rohr-Puzzle: T-Stück, offen nach Westen, Norden und Osten (Süden zu), leer; mit angle drehen",
+      "en": "Pipe puzzle: T piece, open to west, north and east (south closed), empty; rotate with angle"
+    },
+    {
+      "name": "pipe_t_n_wet",
+      "file": "pipe_t_n_wet.png",
+      "tags": [
+        "puzzle",
+        "pipes",
+        "tile"
+      ],
+      "de": "Rohr-Puzzle: T-Stück, offen nach Westen, Norden und Osten (Süden zu), mit Wasser gefüllt",
+      "en": "Pipe puzzle: T piece, open to west, north and east (south closed), filled with water"
+    },
+    {
+      "name": "pipe_cross",
+      "file": "pipe_cross.png",
+      "tags": [
+        "puzzle",
+        "pipes",
+        "tile"
+      ],
+      "de": "Rohr-Puzzle: Kreuzung, offen nach allen vier Seiten, leer; mit angle drehen",
+      "en": "Pipe puzzle: Cross, open to all four sides, empty; rotate with angle"
+    },
+    {
+      "name": "pipe_cross_wet",
+      "file": "pipe_cross_wet.png",
+      "tags": [
+        "puzzle",
+        "pipes",
+        "tile"
+      ],
+      "de": "Rohr-Puzzle: Kreuzung, offen nach allen vier Seiten, mit Wasser gefüllt",
+      "en": "Pipe puzzle: Cross, open to all four sides, filled with water"
+    },
+    {
+      "name": "pipe_end_n",
+      "file": "pipe_end_n.png",
+      "tags": [
+        "puzzle",
+        "pipes",
+        "tile"
+      ],
+      "de": "Rohr-Puzzle: Rohrende mit Kappe, offen nur nach Norden, leer; mit angle drehen",
+      "en": "Pipe puzzle: Pipe end with a cap, open to the north only, empty; rotate with angle"
+    },
+    {
+      "name": "pipe_end_n_wet",
+      "file": "pipe_end_n_wet.png",
+      "tags": [
+        "puzzle",
+        "pipes",
+        "tile"
+      ],
+      "de": "Rohr-Puzzle: Rohrende mit Kappe, offen nur nach Norden, mit Wasser gefüllt",
+      "en": "Pipe puzzle: Pipe end with a cap, open to the north only, filled with water"
+    },
+    {
+      "name": "pipe_empty",
+      "file": "pipe_empty.png",
+      "tags": [
+        "puzzle",
+        "pipes",
+        "tile"
+      ],
+      "de": "Rohr-Puzzle: leeres Feld ohne Rohr",
+      "en": "Pipe puzzle: empty tile without a pipe"
+    },
+    {
+      "name": "pipe_source",
+      "file": "pipe_source.png",
+      "tags": [
+        "puzzle",
+        "pipes",
+        "tile"
+      ],
+      "de": "Rohr-Puzzle: Wasserquelle (Tank), Rohr nach Norden",
+      "en": "Pipe puzzle: water source (tank), pipe to the north"
+    },
+    {
+      "name": "pipe_drain",
+      "file": "pipe_drain.png",
+      "tags": [
+        "puzzle",
+        "pipes",
+        "tile"
+      ],
+      "de": "Rohr-Puzzle: Abfluss (Gitter), Rohr von Norden",
+      "en": "Pipe puzzle: drain (grate), pipe from the north"
+    },
+    {
+      "name": "chess_pawn_w",
+      "file": "chess_pawn_w.png",
+      "tags": [
+        "puzzle",
+        "chess",
+        "piece"
+      ],
+      "de": "Schach: weißer Bauer",
+      "en": "Chess: white pawn"
+    },
+    {
+      "name": "chess_pawn_b",
+      "file": "chess_pawn_b.png",
+      "tags": [
+        "puzzle",
+        "chess",
+        "piece"
+      ],
+      "de": "Schach: schwarzer Bauer (dunkles Holz)",
+      "en": "Chess: black pawn (dark wood)"
+    },
+    {
+      "name": "chess_rook_w",
+      "file": "chess_rook_w.png",
+      "tags": [
+        "puzzle",
+        "chess",
+        "piece"
+      ],
+      "de": "Schach: weißer Turm",
+      "en": "Chess: white rook"
+    },
+    {
+      "name": "chess_rook_b",
+      "file": "chess_rook_b.png",
+      "tags": [
+        "puzzle",
+        "chess",
+        "piece"
+      ],
+      "de": "Schach: schwarzer Turm (dunkles Holz)",
+      "en": "Chess: black rook (dark wood)"
+    },
+    {
+      "name": "chess_knight_w",
+      "file": "chess_knight_w.png",
+      "tags": [
+        "puzzle",
+        "chess",
+        "piece"
+      ],
+      "de": "Schach: weißer Springer",
+      "en": "Chess: white knight"
+    },
+    {
+      "name": "chess_knight_b",
+      "file": "chess_knight_b.png",
+      "tags": [
+        "puzzle",
+        "chess",
+        "piece"
+      ],
+      "de": "Schach: schwarzer Springer (dunkles Holz)",
+      "en": "Chess: black knight (dark wood)"
+    },
+    {
+      "name": "chess_bishop_w",
+      "file": "chess_bishop_w.png",
+      "tags": [
+        "puzzle",
+        "chess",
+        "piece"
+      ],
+      "de": "Schach: weißer Läufer",
+      "en": "Chess: white bishop"
+    },
+    {
+      "name": "chess_bishop_b",
+      "file": "chess_bishop_b.png",
+      "tags": [
+        "puzzle",
+        "chess",
+        "piece"
+      ],
+      "de": "Schach: schwarzer Läufer (dunkles Holz)",
+      "en": "Chess: black bishop (dark wood)"
+    },
+    {
+      "name": "chess_queen_w",
+      "file": "chess_queen_w.png",
+      "tags": [
+        "puzzle",
+        "chess",
+        "piece"
+      ],
+      "de": "Schach: weiße Dame",
+      "en": "Chess: white queen"
+    },
+    {
+      "name": "chess_queen_b",
+      "file": "chess_queen_b.png",
+      "tags": [
+        "puzzle",
+        "chess",
+        "piece"
+      ],
+      "de": "Schach: schwarze Dame (dunkles Holz)",
+      "en": "Chess: black queen (dark wood)"
+    },
+    {
+      "name": "chess_king_w",
+      "file": "chess_king_w.png",
+      "tags": [
+        "puzzle",
+        "chess",
+        "piece"
+      ],
+      "de": "Schach: weißer König",
+      "en": "Chess: white king"
+    },
+    {
+      "name": "chess_king_b",
+      "file": "chess_king_b.png",
+      "tags": [
+        "puzzle",
+        "chess",
+        "piece"
+      ],
+      "de": "Schach: schwarzer König (dunkles Holz)",
+      "en": "Chess: black king (dark wood)"
+    },
+    {
+      "name": "chess_square_light",
+      "file": "chess_square_light.png",
+      "tags": [
+        "puzzle",
+        "chess",
+        "tile",
+        "board"
+      ],
+      "de": "Schach: helles Brettfeld (64x64)",
+      "en": "Chess: light board square (64x64)"
+    },
+    {
+      "name": "chess_square_dark",
+      "file": "chess_square_dark.png",
+      "tags": [
+        "puzzle",
+        "chess",
+        "tile",
+        "board"
+      ],
+      "de": "Schach: dunkles Brettfeld (64x64)",
+      "en": "Chess: dark board square (64x64)"
+    },
+    {
+      "name": "check_red",
+      "file": "check_red.png",
+      "tags": [
+        "puzzle",
+        "checkers",
+        "piece"
+      ],
+      "de": "Dame-Spiel: roter Stein",
+      "en": "Checkers: red piece"
+    },
+    {
+      "name": "check_black",
+      "file": "check_black.png",
+      "tags": [
+        "puzzle",
+        "checkers",
+        "piece"
+      ],
+      "de": "Dame-Spiel: schwarzer Stein",
+      "en": "Checkers: black piece"
+    },
+    {
+      "name": "check_red_king",
+      "file": "check_red_king.png",
+      "tags": [
+        "puzzle",
+        "checkers",
+        "piece"
+      ],
+      "de": "Dame-Spiel: roter Stein mit Krone (Dame)",
+      "en": "Checkers: red king with a crown"
+    },
+    {
+      "name": "check_black_king",
+      "file": "check_black_king.png",
+      "tags": [
+        "puzzle",
+        "checkers",
+        "piece"
+      ],
+      "de": "Dame-Spiel: schwarzer Stein mit Krone (Dame)",
+      "en": "Checkers: black king with a crown"
+    },
+    {
+      "name": "check_square_light",
+      "file": "check_square_light.png",
+      "tags": [
+        "puzzle",
+        "checkers",
+        "tile",
+        "board"
+      ],
+      "de": "Dame-Spiel: helles Brettfeld (64x64)",
+      "en": "Checkers: light board square (64x64)"
+    },
+    {
+      "name": "check_square_dark",
+      "file": "check_square_dark.png",
+      "tags": [
+        "puzzle",
+        "checkers",
+        "tile",
+        "board"
+      ],
+      "de": "Dame-Spiel: dunkelgrünes Brettfeld (64x64)",
+      "en": "Checkers: dark green board square (64x64)"
+    },
+    {
+      "name": "life_alive",
+      "file": "life_alive.png",
+      "tags": [
+        "puzzle",
+        "life",
+        "tile"
+      ],
+      "de": "Spiel des Lebens: lebende grüne Zelle (64x64)",
+      "en": "Game of life: living green cell (64x64)"
+    },
+    {
+      "name": "life_dead",
+      "file": "life_dead.png",
+      "tags": [
+        "puzzle",
+        "life",
+        "tile"
+      ],
+      "de": "Spiel des Lebens: tote, leere Zelle (64x64)",
+      "en": "Game of life: dead empty cell (64x64)"
+    },
+    {
+      "name": "slide_tile_blank",
+      "file": "slide_tile_blank.png",
+      "tags": [
+        "puzzle",
+        "sliding",
+        "tile"
+      ],
+      "de": "Schiebepuzzle: helles Plättchen ohne Zahl (64x64)",
+      "en": "Sliding puzzle: pale tile without a number (64x64)"
+    },
+    {
+      "name": "slide_tile_hole",
+      "file": "slide_tile_hole.png",
+      "tags": [
+        "puzzle",
+        "sliding",
+        "tile"
+      ],
+      "de": "Schiebepuzzle: das leere Loch (64x64)",
+      "en": "Sliding puzzle: the empty hole (64x64)"
+    },
+    {
+      "name": "num_tile_2",
+      "file": "num_tile_2.png",
+      "tags": [
+        "puzzle",
+        "numbers",
+        "tile",
+        "number"
+      ],
+      "de": "Zahlenplättchen 2 (2048-Spiel, 64x64)",
+      "en": "Number tile 2 (2048 game, 64x64)"
+    },
+    {
+      "name": "num_tile_4",
+      "file": "num_tile_4.png",
+      "tags": [
+        "puzzle",
+        "numbers",
+        "tile",
+        "number"
+      ],
+      "de": "Zahlenplättchen 4 (2048-Spiel, 64x64)",
+      "en": "Number tile 4 (2048 game, 64x64)"
+    },
+    {
+      "name": "num_tile_8",
+      "file": "num_tile_8.png",
+      "tags": [
+        "puzzle",
+        "numbers",
+        "tile",
+        "number"
+      ],
+      "de": "Zahlenplättchen 8 (2048-Spiel, 64x64)",
+      "en": "Number tile 8 (2048 game, 64x64)"
+    },
+    {
+      "name": "num_tile_16",
+      "file": "num_tile_16.png",
+      "tags": [
+        "puzzle",
+        "numbers",
+        "tile",
+        "number"
+      ],
+      "de": "Zahlenplättchen 16 (2048-Spiel, 64x64)",
+      "en": "Number tile 16 (2048 game, 64x64)"
+    },
+    {
+      "name": "num_tile_32",
+      "file": "num_tile_32.png",
+      "tags": [
+        "puzzle",
+        "numbers",
+        "tile",
+        "number"
+      ],
+      "de": "Zahlenplättchen 32 (2048-Spiel, 64x64)",
+      "en": "Number tile 32 (2048 game, 64x64)"
+    },
+    {
+      "name": "num_tile_64",
+      "file": "num_tile_64.png",
+      "tags": [
+        "puzzle",
+        "numbers",
+        "tile",
+        "number"
+      ],
+      "de": "Zahlenplättchen 64 (2048-Spiel, 64x64)",
+      "en": "Number tile 64 (2048 game, 64x64)"
+    },
+    {
+      "name": "num_tile_128",
+      "file": "num_tile_128.png",
+      "tags": [
+        "puzzle",
+        "numbers",
+        "tile",
+        "number"
+      ],
+      "de": "Zahlenplättchen 128 (2048-Spiel, 64x64)",
+      "en": "Number tile 128 (2048 game, 64x64)"
+    },
+    {
+      "name": "num_tile_256",
+      "file": "num_tile_256.png",
+      "tags": [
+        "puzzle",
+        "numbers",
+        "tile",
+        "number"
+      ],
+      "de": "Zahlenplättchen 256 (2048-Spiel, 64x64)",
+      "en": "Number tile 256 (2048 game, 64x64)"
+    },
+    {
+      "name": "num_tile_512",
+      "file": "num_tile_512.png",
+      "tags": [
+        "puzzle",
+        "numbers",
+        "tile",
+        "number"
+      ],
+      "de": "Zahlenplättchen 512 (2048-Spiel, 64x64)",
+      "en": "Number tile 512 (2048 game, 64x64)"
+    },
+    {
+      "name": "num_tile_1024",
+      "file": "num_tile_1024.png",
+      "tags": [
+        "puzzle",
+        "numbers",
+        "tile",
+        "number"
+      ],
+      "de": "Zahlenplättchen 1024 (2048-Spiel, 64x64)",
+      "en": "Number tile 1024 (2048 game, 64x64)"
+    },
+    {
+      "name": "num_tile_2048",
+      "file": "num_tile_2048.png",
+      "tags": [
+        "puzzle",
+        "numbers",
+        "tile",
+        "number"
+      ],
+      "de": "Zahlenplättchen 2048 (2048-Spiel, 64x64)",
+      "en": "Number tile 2048 (2048 game, 64x64)"
+    },
+    {
+      "name": "maze2_floor",
+      "file": "maze2_floor.png",
+      "tags": [
+        "puzzle",
+        "maze",
+        "tile"
+      ],
+      "de": "Mäuse-Labyrinth: Holzboden (Kachel 64x64, nahtlos)",
+      "en": "Mouse maze: wooden floor (tile 64x64, seamless)"
+    },
+    {
+      "name": "maze2_wall_top",
+      "file": "maze2_wall_top.png",
+      "tags": [
+        "puzzle",
+        "maze",
+        "tile",
+        "wall"
+      ],
+      "de": "Mäuse-Labyrinth: Mauerblock von oben (64x64)",
+      "en": "Mouse maze: wall block from above (64x64)"
+    },
+    {
+      "name": "maze2_cheese",
+      "file": "maze2_cheese.png",
+      "tags": [
+        "puzzle",
+        "maze",
+        "item"
+      ],
+      "de": "Mäuse-Labyrinth: Stück Käse",
+      "en": "Mouse maze: piece of cheese"
+    },
+    {
+      "name": "maze2_mousehole",
+      "file": "maze2_mousehole.png",
+      "tags": [
+        "puzzle",
+        "maze"
+      ],
+      "de": "Mäuse-Labyrinth: Mauseloch in der Holzwand",
+      "en": "Mouse maze: mouse hole in a wooden wall"
+    },
+    {
+      "name": "maze2_trap",
+      "file": "maze2_trap.png",
+      "tags": [
+        "puzzle",
+        "maze",
+        "obstacle"
+      ],
+      "de": "Mäuse-Labyrinth: Mausefalle von oben",
+      "en": "Mouse maze: mousetrap from above"
+    },
+    {
+      "name": "hunt_chest",
+      "file": "hunt_chest.png",
+      "tags": [
+        "puzzle",
+        "treasure",
+        "item"
+      ],
+      "de": "Schatzsuche: Schatztruhe",
+      "en": "Treasure hunt: treasure chest"
+    },
+    {
+      "name": "hunt_x_mark",
+      "file": "hunt_x_mark.png",
+      "tags": [
+        "puzzle",
+        "treasure"
+      ],
+      "de": "Schatzsuche: rotes X auf dem Boden",
+      "en": "Treasure hunt: red X on the ground"
+    },
+    {
+      "name": "hunt_shovel",
+      "file": "hunt_shovel.png",
+      "tags": [
+        "puzzle",
+        "treasure",
+        "item"
+      ],
+      "de": "Schatzsuche: Schaufel",
+      "en": "Treasure hunt: shovel"
+    },
+    {
+      "name": "hunt_hole",
+      "file": "hunt_hole.png",
+      "tags": [
+        "puzzle",
+        "treasure"
+      ],
+      "de": "Schatzsuche: gegrabenes Loch von oben",
+      "en": "Treasure hunt: dug hole from above"
+    },
+    {
+      "name": "hunt_map",
+      "file": "hunt_map.png",
+      "tags": [
+        "puzzle",
+        "treasure",
+        "item"
+      ],
+      "de": "Schatzsuche: Schatzkarte",
+      "en": "Treasure hunt: treasure map"
+    },
+    {
+      "name": "hunt_compass",
+      "file": "hunt_compass.png",
+      "tags": [
+        "puzzle",
+        "treasure",
+        "item"
+      ],
+      "de": "Schatzsuche: Kompass",
+      "en": "Treasure hunt: compass"
+    },
+    {
+      "name": "hunt_footprints_1",
+      "file": "hunt_footprints_1.png",
+      "tags": [
+        "puzzle",
+        "treasure"
+      ],
+      "de": "Schatzsuche: Fußspuren nach oben, linker Fuß vorn (Bild 1 von 2)",
+      "en": "Treasure hunt: footprints going up, left foot ahead (frame 1 of 2)"
+    },
+    {
+      "name": "hunt_footprints_2",
+      "file": "hunt_footprints_2.png",
+      "tags": [
+        "puzzle",
+        "treasure"
+      ],
+      "de": "Schatzsuche: Fußspuren nach oben, rechter Fuß vorn (Bild 2 von 2)",
+      "en": "Treasure hunt: footprints going up, right foot ahead (frame 2 of 2)"
+    },
+    {
+      "name": "hunt_gold",
+      "file": "hunt_gold.png",
+      "tags": [
+        "puzzle",
+        "treasure",
+        "item"
+      ],
+      "de": "Schatzsuche: Beutel mit Goldmünzen",
+      "en": "Treasure hunt: bag of gold coins"
+    }
+  ]
+}
