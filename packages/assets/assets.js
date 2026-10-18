@@ -1,4 +1,4 @@
-// Reads and checks the asset packs (used by the tests and by the manifest script).
+// Reads and checks the asset packs (used by the tests and by scripts/build-asset-catalog.mjs).
 import { readdirSync, readFileSync, existsSync, statSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -67,3 +67,80 @@ export function svgSize(text) {
 
 export const fileSize = (p) => statSync(p).size;
 export { join, readdirSync, readFileSync, existsSync };
+
+/** Length in seconds of a PCM WAV file (data bytes / bytes per second), rounded to milliseconds; null if unknown. */
+export function wavSeconds(buf) {
+  let i = 12, rate = 0, align = 0;
+  while (i + 8 <= buf.length) {
+    const id = buf.toString('latin1', i, i + 4), size = buf.readUInt32LE(i + 4);
+    if (id === 'fmt ') { rate = buf.readUInt32LE(i + 12); align = buf.readUInt16LE(i + 20); }
+    if (id === 'data' && rate && align) return Math.round((size / align / rate) * 1000) / 1000;
+    i += 8 + size + (size & 1);
+  }
+  return null;
+}
+
+/**
+ * Animation groups and image series from `_<n>` suffixes: names `<base>_<n>` with at least two numbers.
+ * kind 'animation' when the descriptions speak of frames (they share one canvas), else 'series' (variants like dice_1..6).
+ * @param {{ name: string, pack: string, en?: string }[]} images
+ */
+export function findGroups(images) {
+  const by = new Map();
+  for (const a of images) {
+    const m = /^(.+)_(\d+)$/.exec(a.name);
+    if (!m) continue;
+    const key = a.pack + '/' + m[1];
+    if (!by.has(key)) by.set(key, { name: m[1], pack: a.pack, items: [] });
+    by.get(key).items.push({ n: Number(m[2]), a });
+  }
+  const groups = [];
+  for (const g of by.values()) {
+    if (g.items.length < 2) continue;
+    g.items.sort((x, y) => x.n - y.n);
+    const animation = g.items.some(({ a }) => /\bframes?\b/i.test(a.en ?? ''));
+    groups.push({ name: g.name, pack: g.pack, kind: animation ? 'animation' : 'series', frames: g.items.map(({ a }) => a.name) });
+  }
+  return groups.sort((x, y) => (x.pack + '/' + x.name).localeCompare(y.pack + '/' + y.name));
+}
+
+/**
+ * The catalog of the whole library (packages/assets/catalog.json): packs, images with their size, sounds with their
+ * length, animation groups. Paths are relative to the folder of the catalog. Deterministic (sorted, no dates).
+ */
+export function buildCatalog(root = ROOT) {
+  const packs = [], images = [], sounds = [];
+  const dirs = readdirSync(root).filter((d) => existsSync(join(root, d, 'pack.json'))).sort();
+  for (const dir of dirs) {
+    const pack = JSON.parse(readFileSync(join(root, dir, 'pack.json'), 'utf8'));
+    let bytes = 0;
+    for (const a of pack.assets ?? []) {
+      const p = join(root, dir, a.file);
+      const buf = readFileSync(p);
+      bytes += buf.length;
+      let w, h;
+      if (a.file.endsWith('.png')) ({ width: w, height: h } = pngInfo(buf));
+      else [w, h] = svgSize(buf.toString('utf8'));
+      images.push({ name: a.name, pack: dir, file: `${dir}/${a.file}`, w, h, bytes: buf.length, tags: a.tags ?? [], de: a.de ?? '', en: a.en ?? '' });
+    }
+    packs.push({ pack: dir, kind: 'images', title: pack.title, format: pack.format ?? (pack.assets?.[0]?.file.split('.').pop() ?? 'png'), count: pack.assets?.length ?? 0, bytes });
+  }
+  const sdir = join(root, 'sounds');
+  if (existsSync(join(sdir, 'sounds.json'))) {
+    const list = JSON.parse(readFileSync(join(sdir, 'sounds.json'), 'utf8'));
+    let bytes = 0;
+    for (const s of list.sounds ?? []) {
+      const buf = readFileSync(join(sdir, s.file));
+      bytes += buf.length;
+      sounds.push({ name: s.name, pack: 'sounds', file: `sounds/${s.file}`, seconds: wavSeconds(buf), bytes: buf.length, tags: s.tags ?? [], de: s.de ?? '', en: s.en ?? '' });
+    }
+    packs.push({ pack: 'sounds', kind: 'sounds', title: list.title, format: 'wav', count: list.sounds?.length ?? 0, bytes });
+  }
+  return { version: 1, packs, images, sounds, groups: findGroups(images) };
+}
+
+/** The catalog as text: one entry per line (small diffs, still compact). */
+export function catalogText(catalog) {
+  const list = (arr) => (arr.length ? '[\n' + arr.map((x) => '    ' + JSON.stringify(x)).join(',\n') + '\n  ]' : '[]');
+  return '{\n' + Object.entries(catalog).map(([k, v]) => `  ${JSON.stringify(k)}: ${Array.isArray(v) ? list(v) : JSON.stringify(v)}`).join(',\n') + '\n}\n';
+}

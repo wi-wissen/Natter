@@ -1,7 +1,8 @@
 // Resources of the Pygame Zero host: images, sounds, music and fonts from the project files (images/, sounds/, music/,
-// fonts/), from asset packs on the web (packages/assets/<pack>/pack.json, sounds/sounds.json) and from the page
-// (addImage, addSound). Everything a program may use is loaded before it starts, because the bridge asks
-// synchronously (host.pgz.resource).
+// fonts/), from the asset library on the web (packages/assets/catalog.json, or the lists of single packs
+// <pack>/pack.json, sounds/sounds.json) and from the page (addImage, addSound). Everything a program may use is loaded
+// before it starts, because the bridge asks synchronously (host.pgz.resource); from the library only the names the
+// program mentions.
 
 import { usedNames, wavSeconds } from './pgzeroMath.js';
 
@@ -20,6 +21,7 @@ const TEXT = {
     missing: (what, name, where) => `${what} „${name}“ nicht gefunden. Gesucht: ${where}.`,
     project: (dir, name, exts) => `${dir}/${name}.${exts[0]} (auch .${exts.slice(1, 4).join(', .')} …) im Projekt`,
     packs: (list) => `in den Paketen ${list}`,
+    library: (n) => `in den ${n} Paketen der Bibliothek`,
     page: 'bei den Bildern der Seite',
     notLoaded: (pack) => `Es gibt „${pack.name}“ im Paket ${pack.pack}, es wurde aber nicht vorab geladen, weil der Name nicht wörtlich im Programm steht. Schreibe ihn einmal aus, z. B. in einer Liste.`,
     similar: (n) => `Meintest du „${n}“?`,
@@ -30,6 +32,7 @@ const TEXT = {
     missing: (what, name, where) => `${what} '${name}' not found. Looked for: ${where}.`,
     project: (dir, name, exts) => `${dir}/${name}.${exts[0]} (also .${exts.slice(1, 4).join(', .')} …) in the project`,
     packs: (list) => `in the packs ${list}`,
+    library: (n) => `in the ${n} packs of the library`,
     page: 'among the images of the page',
     notLoaded: (pack) => `'${pack.name}' exists in the pack ${pack.pack} but was not loaded in advance because its name is not written out in the program. Write it out once, e.g. in a list.`,
     similar: (n) => `Did you mean '${n}'?`,
@@ -89,7 +92,7 @@ async function pageImage0(src) {
   return { img: src, w: src.width, h: src.height };
 }
 
-/** Closest name (case or a typo), for a hint. */
+/** Closest name (case, a typo, or the same word with a pack word around it), for a hint. */
 function similar(name, names) {
   const low = name.toLowerCase();
   let best = null, bd = 3;
@@ -98,7 +101,8 @@ function similar(name, names) {
     const d = lev(low, n.toLowerCase());
     if (d < bd) { bd = d; best = n; }
   }
-  return best;
+  // library names carry a pack word: "ufo" → "sp_ufo", "ente" → "ente_links"
+  return best ?? names.find((n) => n.toLowerCase().endsWith('_' + low)) ?? names.find((n) => n.toLowerCase().startsWith(low + '_')) ?? null;
 }
 function lev(a, b) {
   if (Math.abs(a.length - b.length) > 2) return 9;
@@ -112,8 +116,28 @@ function lev(a, b) {
 }
 
 /**
+ * @typedef {{ baseUrl: string, packs?: string[], catalog?: string|{ images?: any[], sounds?: any[], music?: any[] } }} AssetSource
+ *   catalog: URL of a catalog (relative to baseUrl, e.g. 'catalog.json') or the catalog itself: one list for all packs,
+ *   entries { name, pack, file } with file relative to baseUrl; packs then filters it. Without a catalog every pack is
+ *   read from <baseUrl><pack>/pack.json (or <pack>/<pack>.json).
+ */
+
+/** Entries of a catalog → [{ kind, name, url, pack }]. */
+export function catalogEntries(catalog, base, packs) {
+  const keep = packs?.length ? new Set(packs) : null;
+  const out = [];
+  for (const kind of ['images', 'sounds', 'music']) {
+    for (const a of catalog?.[kind] ?? []) {
+      if (!a?.name || !a?.file || (keep && !keep.has(a.pack))) continue;
+      out.push({ kind, name: a.name, url: base + a.file, pack: a.pack ?? '' });
+    }
+  }
+  return out;
+}
+
+/**
  * @param {{
- *   assets?: { baseUrl: string, packs: string[] } | { baseUrl: string, packs: string[] }[],
+ *   assets?: AssetSource | AssetSource[],
  *   preload?: 'used'|'all',
  *   lang?: 'de'|'en',
  *   fetch?: typeof fetch,
@@ -127,6 +151,8 @@ export function createAssets(opts = {}) {
   const cache = new Map();
   /** @type {Promise<any[]>|null} the pack lists */
   let packList = null;
+  /** Names of the packs found (for the message about a missing name). */
+  let packNames = [...new Set(sources.flatMap((s) => s.packs ?? []))];
   /** Images and sounds of the page (fallbacks: the project and the packs come first). */
   const page = { images: new Map(), sounds: new Map() };
   /** What the current run can use: kind → Map(name → entry). */
@@ -141,25 +167,50 @@ export function createAssets(opts = {}) {
     return cache.get(key);
   }
 
-  /** Read the lists of all packs once: [{ kind, name, url, pack }]. */
+  /** Read the catalogs and the lists of the packs once: [{ kind, name, url, pack }]. */
   function packs() {
-    packList ??= Promise.all(sources.flatMap((s) => s.packs.map(async (pack) => {
+    if (packList) return packList;
+    let failed = false;
+    const lists = sources.map(async (s) => {
       const base = s.baseUrl.endsWith('/') ? s.baseUrl : s.baseUrl + '/';
-      for (const file of ['pack.json', `${pack}.json`]) {
+      if (s.catalog) {
         try {
-          const r = await fetchFn(base + pack + '/' + file);
-          if (!r.ok) continue;
-          const j = await r.json();
-          const out = [];
-          for (const [key, kind] of [['assets', 'images'], ['images', 'images'], ['sounds', 'sounds'], ['music', 'music']]) {
-            for (const a of j[key] ?? []) if (a?.name && a?.file) out.push({ kind, name: a.name, url: base + pack + '/' + a.file, pack });
+          let c = s.catalog;
+          if (typeof c === 'string') {
+            const r = await fetchFn(/^[a-z][a-z0-9+.-]*:|^\//i.test(c) ? c : base + c);
+            if (!r.ok) throw new Error(String(r.status));
+            c = await r.json();
           }
-          return out;
-        } catch { /* try the next name */ }
+          return catalogEntries(c, base, s.packs);
+        } catch {
+          failed = true; // try again on the next run (e.g. network back)
+          console.warn(`[natter pgzero] asset catalog not found at ${base}`);
+          return [];
+        }
       }
-      console.warn(`[natter pgzero] asset pack '${pack}' not found at ${base}`);
-      return [];
-    }))).then((l) => l.flat());
+      return Promise.all((s.packs ?? []).map(async (pack) => {
+        for (const file of ['pack.json', `${pack}.json`]) {
+          try {
+            const r = await fetchFn(base + pack + '/' + file);
+            if (!r.ok) continue;
+            const j = await r.json();
+            const out = [];
+            for (const [key, kind] of [['assets', 'images'], ['images', 'images'], ['sounds', 'sounds'], ['music', 'music']]) {
+              for (const a of j[key] ?? []) if (a?.name && a?.file) out.push({ kind, name: a.name, url: base + pack + '/' + a.file, pack });
+            }
+            return out;
+          } catch { /* try the next name */ }
+        }
+        console.warn(`[natter pgzero] asset pack '${pack}' not found at ${base}`);
+        return [];
+      })).then((l) => l.flat());
+    });
+    packList = Promise.all(lists).then((l) => {
+      const all = l.flat();
+      if (failed) packList = null;
+      packNames = [...new Set([...packNames, ...all.map((a) => a.pack).filter(Boolean)])];
+      return all;
+    });
     return packList;
   }
 
@@ -187,8 +238,14 @@ export function createAssets(opts = {}) {
       const next = { images: new Map(), sounds: new Map(), music: new Map(), fonts: new Map() };
       const problems = [];
       const jobs = [];
-      const add = (kind, name, p, file) => jobs.push(p.then((e) => { if (!next[kind].has(name)) next[kind].set(name, { ...e, file }); })
-        .catch(() => problems.push(T.failed(file))));
+      // rank: 0 the project, 1 the library; the lower rank wins whatever finishes loading first
+      const rank = new Map();
+      const add = (kind, name, p, file, r) => jobs.push(p.then((e) => {
+        const key = kind + '/' + name;
+        if (next[kind].has(name) && rank.get(key) <= r) return;
+        next[kind].set(name, { ...e, file });
+        rank.set(key, r);
+      }).catch(() => problems.push(T.failed(file))));
       // the project
       for (const [path0, v] of Object.entries(files)) {
         const path = path0.replace(/^\.?\//, '');
@@ -197,7 +254,7 @@ export function createAssets(opts = {}) {
         const kind = m[1].toLowerCase(), name = m[2], ext = m[3].toLowerCase();
         if (!EXT[kind].includes(ext)) continue;
         const blob = () => toBlob(v, ext, fetchFn);
-        if (kind === 'images') add(kind, name, blob().then(loadImage), path);
+        if (kind === 'images') add(kind, name, blob().then(loadImage), path, 0);
         else if (kind === 'fonts') add(kind, name, blob().then((b) => b.arrayBuffer()).then(async (buf) => {
           const family = `natter-pgz-font-${++fontId}`;
           const face = new FontFace(family, buf);
@@ -205,18 +262,23 @@ export function createAssets(opts = {}) {
           document.fonts.add(face);
           families[name] = family;
           return { family };
-        }), path);
-        else add(kind, name, blob().then((b) => b.arrayBuffer()).then(decodeAudio), path);
+        }), path, 0);
+        else add(kind, name, blob().then((b) => b.arrayBuffer()).then(decodeAudio), path, 0);
       }
-      // the packs
+      // the library: only what the program names (a project file of the same name wins and is not fetched)
       const list = await packs();
+      const own = new Set(Object.keys(files).map((p) => {
+        const m = /^(images|sounds|music|fonts)\/(.+)\.[a-z0-9]+$/i.exec(p.replace(/^\.?\//, ''));
+        return m ? m[1].toLowerCase() + '/' + m[2] : '';
+      }));
       const want = opts.preload === 'all' ? new Set(list.map((a) => a.name)) : new Set(usedNames(texts, list.map((a) => a.name)));
       unloaded = new Map();
-      for (const a of list) {
-        if (!want.has(a.name)) { unloaded.set(a.name, a); continue; }
+      for (const [i, a] of list.entries()) {
+        if (!want.has(a.name)) { if (!unloaded.has(a.name)) unloaded.set(a.name, a); continue; }
+        if (own.has(a.kind + '/' + a.name)) continue;
         const load = a.kind === 'images' ? () => fetchFn(a.url).then((r) => { if (!r.ok) throw new Error(r.status); return r.blob(); }).then(loadImage)
           : () => fetchFn(a.url).then((r) => { if (!r.ok) throw new Error(r.status); return r.arrayBuffer(); }).then(decodeAudio);
-        add(a.kind, a.name, cached(a.url, load), a.url);
+        add(a.kind, a.name, cached(a.url, load), a.url, 1 + i); // the first source with the name wins
       }
       await Promise.all(jobs);
       // the page (only where nothing else has the name)
@@ -246,8 +308,7 @@ export function createAssets(opts = {}) {
     describeMissing(kind, name) {
       const dir = kind;
       const where = [T.project(dir, name, EXT[kind] ?? ['?'])];
-      const packNames = [...new Set(sources.flatMap((s) => s.packs))];
-      if (packNames.length && kind !== 'fonts') where.push(T.packs(packNames.join(', ')));
+      if (packNames.length && kind !== 'fonts') where.push(packNames.length > 4 ? T.library(packNames.length) : T.packs(packNames.join(', ')));
       if (page[kind]?.size) where.push(T.page);
       let text = T.missing(T[WHAT[kind]] ?? kind, name, where.join(', '));
       const u = unloaded.get(name);

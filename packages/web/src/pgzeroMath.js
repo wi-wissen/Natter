@@ -235,11 +235,46 @@ export function pgzMode(source) {
   return null;
 }
 
-/** Image and sound names of the asset packs that a program may use: words of the source (also inside strings) and
- * names that start with a word ending in '_' or with a longer word ("heroine_run_" + str(i) loads all run frames). */
+/** A Python source split into the contents of its string literals ('…', "…", triple quotes, any prefix like f or r)
+ * and its code without comments (strings kept). */
+export function splitSource(source) {
+  const strings = [];
+  const s = String(source);
+  let code = '', from = 0;
+  for (let i = 0; i < s.length; i++) {
+    const c = s[i];
+    if (c === '#') {
+      code += s.slice(from, i);
+      const e = s.indexOf('\n', i);
+      if (e < 0) { from = s.length; break; }
+      from = i = e;
+      continue;
+    }
+    if (c !== '"' && c !== "'") continue;
+    const q = s.startsWith(c.repeat(3), i) ? c.repeat(3) : c;
+    let j = i + q.length;
+    while (j < s.length && !s.startsWith(q, j) && !(q.length === 1 && s[j] === '\n')) j += s[j] === '\\' ? 2 : 1;
+    strings.push(s.slice(i + q.length, j));
+    i = j + q.length - 1;
+  }
+  return { strings, code: code + s.slice(from) };
+}
+
+/** Contents of the string literals of a Python source. */
+export const stringLiterals = (source) => splitSource(source).strings;
+
+/** Image and sound names of the asset packs that a program may use: the words of the source (names, also inside
+ * strings, not in comments), and the names that start with a word of a string that ends in '_' or has five letters or more and is no
+ * name itself ("heroine_run_" + str(i) loads all run frames; Actor("sp_ship") or a variable `heroine` load nothing more). */
 export function usedNames(sources, names) {
-  const words = new Set();
-  for (const s of sources) for (const m of String(s).toLowerCase().matchAll(/[a-z][a-z0-9_]*/g)) words.add(m[0]);
-  const prefixes = [...words].filter((w) => w.endsWith('_') || w.length >= 5).map((w) => (w.endsWith('_') ? w : w + '_'));
+  const words = new Set(), inStrings = new Set();
+  const scan = (text, set) => { for (const m of String(text).toLowerCase().matchAll(/[a-z][a-z0-9_]*/g)) set.add(m[0]); };
+  for (const s of sources) {
+    const { strings, code } = splitSource(s);
+    scan(code, words);
+    for (const lit of strings) scan(lit, inStrings);
+  }
+  const known = new Set(names);
+  const prefixes = [...inStrings].filter((w) => w.endsWith('_') || (w.length >= 5 && !known.has(w))).map((w) => (w.endsWith('_') ? w : w + '_'));
   return names.filter((n) => words.has(n) || prefixes.some((p) => n.startsWith(p)));
 }

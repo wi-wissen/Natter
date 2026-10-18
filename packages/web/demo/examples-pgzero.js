@@ -397,7 +397,7 @@ pgzrun.go()
 
 export const PGZ_EXAMPLES = [
   { id: 'pgz-pond-start', title: 'Spiel: Ententeich, Anfang', code: POND_START },
-  { id: 'pgz-pond', title: 'Spiel: Ententeich (Platzhalterbilder)', code: POND },
+  { id: 'pgz-pond', title: 'Spiel: Ententeich (Bilder aus dem Buch-Paket)', code: POND },
   { id: 'pgz-jump', title: 'Spiel: Hüpfen mit Animation', code: JUMP },
   { id: 'pgz-pong', title: 'Spiel: Pong', code: PONG },
   { id: 'pgz-tween', title: 'Spiel: animate, clock, tween', code: TWEEN },

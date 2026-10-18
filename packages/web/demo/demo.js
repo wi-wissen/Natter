@@ -21,10 +21,10 @@ const kara = createKara($('kara'));
 const forms = createForms($('forms'), { lang: 'de' });
 const plot = createPlot($('plot'), { lang: 'de' });
 runner.use(turtle).use(kara).use(forms).use(plot);
-// Pygame Zero: images and sounds from packages/assets (and the demo's animated figures), on-screen buttons on touch screens
+// Pygame Zero: the library of packages/assets (catalog.json; the demo's own figures fill in ground_flat), on-screen buttons on touch screens
 const pgz = createPgzero($('pgzero'), {
   lang: 'de', controls: 'auto',
-  assets: [{ baseUrl: new URL('../../assets/', import.meta.url).href, packs: ['turtle', 'sounds', 'book'] }, { baseUrl: new URL('./assets/', import.meta.url).href, packs: ['anim'] }],
+  assets: [{ baseUrl: new URL('../../assets/', import.meta.url).href, catalog: 'catalog.json' }, { baseUrl: new URL('./assets/', import.meta.url).href, packs: ['anim'] }],
 });
 addPondPlaceholders(pgz);
 runner.use(pgz);

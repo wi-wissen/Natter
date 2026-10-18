@@ -254,7 +254,7 @@ pgzrun.go()
     await finished(page);
     assertEq(await state(page), 'error', 'state');
     const out = await output(page);
-    assert(/Bild „ufo“ nicht gefunden/.test(out) && out.includes('images/ufo.png') && out.includes('turtle, sounds'), 'hint: ' + out);
+    assert(/Bild „ufo“ nicht gefunden/.test(out) && out.includes('images/ufo.png') && out.includes('Paketen der Bibliothek') && out.includes('Meintest du „sp_ufo“?'), 'hint: ' + out);
     const text = await page.locator('.nw-error').innerText();
     assert(/ufo/.test(text), 'error: ' + text);
   }],

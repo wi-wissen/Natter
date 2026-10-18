@@ -6,12 +6,13 @@ import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import {
   createStepper, roundHalfEven, pgzKey, pgzMods, rotatedSize, wrapLines, layoutText, fitFontSize, toneEnvelope, wavSeconds,
-  pgzMode, usedNames, fontPixels, fontCss, mouseButtons, SPECIAL_KEYS,
+  pgzMode, usedNames, stringLiterals, fontPixels, fontCss, mouseButtons, SPECIAL_KEYS,
 } from '../src/pgzeroMath.js';
 import { createDriver, gameSource, installPgzero, systemExit, PGZ_BUILTIN_NAMES } from '../src/pgzeroDriver.js';
 import { createRunner } from '../src/runner.js';
 import { PGZ_BUILTIN_NAMES as CORE_NAMES } from '../../core/src/stdlib/pgzero.js';
 import { testResource } from '../../core/test/pgzHost.js';
+import { PGZ_EXAMPLES } from '../demo/examples-pgzero.js';
 
 const here = dirname(fileURLToPath(import.meta.url));
 
@@ -97,6 +98,14 @@ describe('helpers', () => {
     expect(usedNames(['frames = ["heroine_run_" + str(i) for i in range(1, 3)]\nsounds.coin.play()\n'], names))
       .toEqual(['heroine_run_1', 'heroine_run_2', 'coin']);
     expect(usedNames(['a = Actor("enemy_walk_1")'], names)).toEqual(['enemy_walk_1']);
+    // prefixes only from strings, and not from a word that is a name itself
+    expect(usedNames(['heroine = Actor("heroine_idle_1")\nenemy_walk = 2\n'], names)).toEqual(['heroine_idle_1']);
+    expect(usedNames(['img = "heroine" + "_run_1"  # heroine_run_2\n'], names)).toEqual(['heroine_run_1', 'heroine_run_2', 'heroine_idle_1']);
+    expect(usedNames(['# coin, "jump"\nx = 1  # heroine_run_1\ny = "#coin"\n'], names)).toEqual(['coin']);
+    expect(usedNames(['a = Actor("a_b")\nb = f"{x}coin"\n'], [...names, 'a_b_2'])).toEqual(['coin', 'a_b']);
+  });
+  it('finds the string literals of a program', () => {
+    expect(stringLiterals('a = "x\\"y" # "no"\nb = f\'\'\'t\nq\'\'\' + r"s_"\nc = "open\nd = 1\n')).toEqual(['x\\"y', 't\nq', 's_', 'open']);
   });
   it('knows the same builtin names as the core', () => {
     expect(PGZ_BUILTIN_NAMES).toEqual(CORE_NAMES);
@@ -111,14 +120,14 @@ describe('helpers', () => {
  * Run a game headless with the real runner: frames[i] = events of frame i (a function gets the driver).
  * Returns the final state, output, error and the recorded commands.
  */
-function play(src, { frames = 3, events = [], frameBudget, onFrame } = {}) {
+function play(src, { frames = 3, events = [], frameBudget, onFrame, resource = testResource } = {}) {
   const mode = pgzMode(src);
   const g = gameSource(src, mode);
   const out = [], cmds = [];
   let error = null;
   const runner = createRunner({ onOutput: (t) => out.push(t), onError: (e) => { error = e; } });
   runner.use({
-    host: { pgz: { resource: testResource, cmd: (n, a) => cmds.push([n, ...a]) } },
+    host: { pgz: { resource, cmd: (n, a) => cmds.push([n, ...a]) } },
     waits: {
       pgzero(wait, ctx) {
         const d = createDriver(ctx.vm, {
@@ -207,4 +216,21 @@ def draw():
 
 describe('core error object of systemExit', () => {
   it('is a SystemExit', () => { expect(systemExit().kind).toBe('SystemExit'); });
+});
+
+describe('the library (packages/assets/catalog.json)', () => {
+  const catalog = JSON.parse(readFileSync(join(here, '../../assets/catalog.json'), 'utf8'));
+  const sizes = new Map(catalog.images.map((a) => [a.name, [a.w, a.h]]));
+  const seconds = new Map(catalog.sounds.map((a) => [a.name, a.seconds]));
+  const resource = (kind, name) => (kind === 'images' ? sizes.get(name) ?? null : kind === 'sounds' ? seconds.get(name) ?? null : null);
+  it('the pond game of the book finds ente, kueken and boot and plays', async () => {
+    const src = PGZ_EXAMPLES.find((e) => e.id === 'pgz-pond').code;
+    expect(usedNames([src], [...sizes.keys()])).toEqual(['ente', 'kueken', 'boot']);
+    const UP = 1073741906;
+    const r = await play(src, { frames: 120, events: [[['key_down', UP, 0, '']]], resource });
+    expect(r.error).toBe(null);
+    expect(r.state).toBe('done');
+    const actors = r.cmds.filter((c) => c[0] === 'actor').map((c) => c[1]);
+    expect(new Set(actors)).toEqual(new Set(['ente', 'boot']));
+  });
 });
