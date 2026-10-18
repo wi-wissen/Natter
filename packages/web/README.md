@@ -17,7 +17,7 @@ With a bundler (Vite, esbuild, webpack):
 import { createRunner, createConsole } from '@natterjs/web';
 
 const runner = createRunner();
-createConsole(document.querySelector('#console')).connect(runner);
+createConsole(document.querySelector('#console'), { lang: 'en' }).connect(runner);
 await runner.run('name = input("Name? ")\nprint("Hello", name)');   // → 'done' | 'error' | 'stopped'
 ```
 
@@ -42,7 +42,7 @@ Without a build step, from jsDelivr (always pin a version):
   if (mods.includes('turtle')) runner.use(createTurtle(stage));
   if (mods.includes('kara')) runner.use(createKara(stage, { assets: assetsOption() }));
   if (mods.includes('pgzero')) {
-    const pgz = createPgzero(stage, { assets: assetsOption(), controls: 'auto' });
+    const pgz = createPgzero(stage, { assets: assetsOption(), controls: 'auto', lang: 'en' });
     runner.use(pgz);
     await pgz.run(runner, source);   // loads the images and sounds the program names, then runs it
   } else {
@@ -67,7 +67,7 @@ Without a build step, from jsDelivr (always pin a version):
 | `detectModules(source)` | Which of the hosts above a program needs |
 | `describeError(error, { lang })` | Title, text, line and traceback of an error |
 
-Messages are available in English (`lang: 'en'`) and German (`'de'`). Colours follow CSS variables (`--nw-bg`, `--nw-text`, `--nw-accent` …) and a dark mode. Projects with several files: pass `files` (path → text); `import` finds own modules and packages like Python.
+Texts and error messages come in English and German: pass `lang: 'en'` to the console, turtle, Pygame Zero, forms and plots (the default is `'de'`, German). Colours follow CSS variables (`--nw-bg`, `--nw-text`, `--nw-accent` …) and a dark mode. Projects with several files: pass `files` (path → text); `import` finds own modules and packages like Python.
 
 ## Features
 

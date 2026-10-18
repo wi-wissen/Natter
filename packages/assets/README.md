@@ -35,7 +35,7 @@ import { createRunner, createPgzero } from 'https://cdn.jsdelivr.net/npm/@natter
 import { assetsOption } from 'https://cdn.jsdelivr.net/npm/@natterjs/assets@0.1.0/index.js';
 
 const runner = createRunner();
-const pgz = createPgzero(document.querySelector('#game'), { assets: assetsOption() });
+const pgz = createPgzero(document.querySelector('#game'), { assets: assetsOption(), lang: 'en' });
 runner.use(pgz);
 await pgz.run(runner, 'ship = Actor("sp_ship", (400, 300))\n\ndef draw():\n    screen.clear()\n    ship.draw()');
 ```
