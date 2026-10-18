@@ -60,7 +60,8 @@ SHEETS = {
         '5) a round power-up token: a blue disc with a light rim and a small white round bomb symbol; '
         '6) a round power-up token: a green disc with a light rim and a white lightning bolt symbol.'),
         items=[('bomb_src', (64, 64), 'fit'), ('bomb_block_soft', (64, 64), 'exact'), ('bomb_block_hard', (64, 64), 'exact'),
-               ('bomb_power_range', (48, 48), 'fit'), ('bomb_power_count', (48, 48), 'fit'), ('bomb_power_speed', (48, 48), 'fit')]),
+               ('bomb_power_range', (48, 48), 'fit'), ('bomb_power_count', (48, 48), 'fit'), ('bomb_power_speed', (48, 48), 'fit')],
+        found=8, pick=[0, 1, 2, 4, 5, 6]),  # the recorded sheet has a second block and a second speed token
     'towers': dict(prompt=HEAD + (
         f'A sheet of 9 defence towers for a tower defence game, {TOP}: we look straight down onto the round tower tops. '
         'Grid of 3 columns and 3 rows. Each ROW is one tower kind, the three COLUMNS are its upgrade levels: '
@@ -71,7 +72,7 @@ SHEETS = {
         'Row 2, cannon towers: a dark grey cannon barrel on top, pointing UP (level 2 a thicker barrel, level 3 two barrels side by side); '
         'Row 3, frost towers: a light blue ice crystal on top (level 2 a bigger crystal cluster, level 3 a big glowing crystal star). '
         'All nine towers are round and about the same size.'),
-        cut='towers',
+        cut='towers', found=15, pick=[0, 2, 4, 5, 7, 9, 10, 12, 14],  # the recorded sheet has 5 columns (wood, wood, stone, gold, gold)
         items=[(f'td_tower_{k}_{n}', (64, 64), 'tower') for k in ('arrow', 'cannon', 'ice') for n in (1, 2, 3)]),
     'td_places': dict(prompt=HEAD + (
         f'A sheet of 3 places for a tower defence map, {TOP} (a slight top-down three-quarter view is fine), '
@@ -116,9 +117,11 @@ SHEETS = {
     'crop_pumpkin': dict(prompt=crop_prompt('pumpkin', [
         'only the mound with a small dug hole and three tiny pale seeds beside it',
         'two small round green leaves',
-        'a spreading vine with big round green leaves and a small yellow flower',
-        'the same vine with big leaves and one big round orange pumpkin with ribs and a short stem lying in front']),
-        cut='crop', items=[(f'farm_pumpkin_{n}', (64, 64), 'canvas') for n in range(1, 5)]),
+        'a compact bushy plant with four big round green leaves and a small yellow flower, hardly wider than the mound',
+        'the same compact plant with big leaves and one big round orange pumpkin with ribs and a short stem sitting on the mound, '
+        'hardly wider than the mound']),
+        cut='crop', rows=2, found=8, pick=[3, 0, 1, 2],  # the row is drawn twice; the seed mound sorts after the top row
+        items=[(f'farm_pumpkin_{n}', (64, 64), 'canvas') for n in range(1, 5)]),
     'crop_wheat': dict(prompt=crop_prompt('wheat', [
         'only the mound with a small dug hole and three tiny pale seeds beside it',
         'three thin short green blades of grass',
@@ -167,7 +170,8 @@ SHEETS = {
         '4) a long truck: short orange cab on the right and a long light grey box trailer behind it. '
         'Cars show windscreen, roof and four dark tyres peeking out at the sides; simple and friendly.'),
         items=[('cross_car_1', (96, 48), 'fit'), ('cross_car_2', (96, 48), 'fit'), ('cross_car_3', (96, 48), 'fit'),
-               ('cross_truck', (160, 48), 'fit')]),
+               ('cross_truck', (160, 48), 'fit')],
+        found=6, pick=[0, 1, 3, 5]),  # the recorded sheet has two extra cars
     'cross_river': dict(prompt=HEAD + (
         f'A sheet of 4 objects floating on a river, {TOP}, each in its own row, left aligned: '
         '1) a short floating log lying horizontally: brown bark, light round cut faces at both ends, about two times as long as thick; '
@@ -175,7 +179,8 @@ SHEETS = {
         '3) a swimming turtle heading RIGHT: a round green shell with lighter hexagon plates, head on the right, four flippers; '
         '4) the same turtle with the flippers in the other swimming position (front flippers back, back flippers forward).'),
         items=[('cross_log_s', (64, 48), 'fit'), ('cross_log_l', (160, 48), 'fit'),
-               ('cross_turtle_1', (56, 56), 'turtle'), ('cross_turtle_2', (56, 56), 'turtle')], cut='turtle'),
+               ('cross_turtle_1', (56, 56), 'turtle'), ('cross_turtle_2', (56, 56), 'turtle')], cut='turtle',
+        found=5, pick=[0, 1, 2]),  # three identical turtles: frame 2 is frame 1 flipped top to bottom (the other stroke)
     'cross_misc': dict(prompt=HEAD + (
         'A sheet of 3 objects, in ONE horizontal row, left to right: '
         f'1) a round green lily pad {TOP}, one thin narrow slit from the edge to the centre, light green veins, a small pink water lily flower on it; '
@@ -192,7 +197,8 @@ SHEETS = {
         '5) a battery: a short upright cylinder, green body, grey top with a small knob, a white lightning bolt on the side; '
         '6) a yellow wedge of cheese with round holes.'),
         items=[('fish_item', (40, 40), 'fit'), ('gem_blue', (40, 40), 'fit'), ('gem_red', (40, 40), 'fit'),
-               ('gem_green', (40, 40), 'fit'), ('battery', (40, 40), 'fit'), ('cheese', (40, 40), 'fit')]),
+               ('gem_green', (40, 40), 'fit'), ('battery', (40, 40), 'fit'), ('cheese', (40, 40), 'fit')],
+        found=8, pick=[0, 1, 2, 4, 5, 6]),  # extra red gem and cheese
 }
 
 # ---------------------------------------------------------------- descriptions
@@ -314,7 +320,7 @@ def defringe(rgba):
     return rgba
 
 
-def components(path, count, min_area=1500, grow=8):
+def components(path, count, min_area=1500, grow=8, row=False):
     rgba = defringe(key(Image.open(path)))
     alpha = rgba[..., 3] > 128
     lab, n = ndimage.label(ndimage.binary_dilation(alpha, iterations=grow))
@@ -323,7 +329,7 @@ def components(path, count, min_area=1500, grow=8):
         raise ValueError(f'{path}: found {len(comps)} objects, expected {count}')
     cy = [(s[0].start + s[0].stop) / 2 for s, _ in comps]
     h = np.median([s[0].stop - s[0].start for s, _ in comps])
-    order = sorted(range(len(comps)), key=lambda k: (round(cy[k] / (h * 0.9)), comps[k][0][1].start))
+    order = sorted(range(len(comps)), key=lambda k: (0 if row else round(cy[k] / (h * 0.9)), comps[k][0][1].start))
     out = []
     for k in order:
         sl, i = comps[k]
@@ -380,18 +386,27 @@ def save(im, name):
     return path
 
 
+ROW_SHEETS = {'td_places', 'td_items', 'td_enemies', 'farm_animals', 'cross_frog', 'cross_misc'}
+
+
 def cut(sheet):
     s = SHEETS[sheet]
-    crops = components(os.path.join(WORK, sheet + '.png'), s.get('found', len(s['items'])), grow=s.get('grow', 8))
+    # one-row sheets are ordered by x only (objects of different height would fall into different rows)
+    row = (sheet in ROW_SHEETS or sheet.startswith('crop_')) and s.get('rows', 1) == 1
+    crops = components(os.path.join(WORK, sheet + '.png'), s.get('found', len(s['items'])), grow=s.get('grow', 8), row=row)
     if s.get('pick'):
         crops = [crops[k] for k in s['pick']]
     kind = s.get('cut')
     items = s['items']
     if kind == 'crop':
         # one scale for the four stages, so the soil mound stays the same size; bottom aligned on 64x64
-        sc = min(60 / max(c.width for c in crops), 60 / max(c.height for c in crops))
+        # the mound of stage 1 is about 44 px wide; a big plant (ripe tomato, pumpkin vine) makes the canvas of
+        # the whole series bigger than 64x64: it grows up and out of its cell
+        sc = min(44 / crops[0].width, 84 / max(c.width for c in crops), 96 / max(c.height for c in crops))
+        w = max(64, max(round(c.width * sc) + 4 for c in crops))
+        h = max(64, max(round(c.height * sc) + 4 for c in crops))
         for (name, box, _), im in zip(items, crops):
-            save(on_canvas(scaled(im, sc), box), name)
+            save(on_canvas(scaled(im, sc), (w, h)), name)
         return
     if kind == 'towers':
         # levels grow a little: 52, 58, 62 px on a common 64x64 canvas, centred
@@ -401,7 +416,7 @@ def cut(sheet):
             save(on_canvas(scaled(im, side / max(im.width, im.height)), box, 'center'), name)
         return
     if kind == 'frog':
-        sc = 44 / max(max(c.width, c.height) for c in crops)
+        sc = 44 / max(crops[0].width, crops[0].height)
         up = on_canvas(scaled(crops[0], sc), (48, 48), 'center')
         save(up, 'cross_frog_up')
         for d, rot in (('left', 90), ('down', 180), ('right', 270)):
@@ -412,7 +427,7 @@ def cut(sheet):
     if kind == 'turtle':
         for (name, box, mode), im in zip(items[:2], crops[:2]):
             save(fit(im, box), name)
-        t = crops[2:4]
+        t = [crops[2], crops[2].transpose(Image.FLIP_TOP_BOTTOM)]
         sc = 52 / max(max(c.width, c.height) for c in t)
         for (name, box, _), im in zip(items[2:], t):
             save(on_canvas(scaled(im, sc), box, 'center'), name)
@@ -427,12 +442,12 @@ def cut(sheet):
 def bombs(im):
     """bomb_1..3 from one drawn bomb: it swells and glows a little warmer each frame (same 64x64 canvas)."""
     base = scaled(im, 56 / max(im.width, im.height))
-    for n, (s, warm) in enumerate(((0.90, 0.0), (0.95, 0.12), (1.0, 0.25)), 1):
+    for n, (s, warm) in enumerate(((0.90, 0.0), (0.95, 0.3), (1.0, 0.55)), 1):
         b = scaled(base, s)
         a = np.asarray(b).astype(np.float32)
         # tint the dark body towards red
         dark = (a[..., :3].max(-1) < 90)[..., None]
-        tint = a[..., :3] * (1 - warm) + np.array([200, 40, 40], np.float32) * warm
+        tint = a[..., :3] * (1 - warm) + np.array([230, 60, 50], np.float32) * warm
         a[..., :3] = np.where(dark, tint, a[..., :3])
         save(on_canvas(Image.fromarray(a.clip(0, 255).astype(np.uint8), 'RGBA'), (64, 64), 'center'), f'bomb_{n}')
 
@@ -536,7 +551,7 @@ GRASS, GRASS_D = (124, 186, 82), (104, 166, 66)
 
 
 def tufts(d, seed):
-    rng = np.random.default_rng(abs(hash(str(seed))) % 1000 if False else sum(map(ord, str(seed))))
+    rng = np.random.default_rng(sum(map(ord, str(seed))))
     for _ in range(6):
         x, y = rng.integers(6, 58, 2)
         for dx in (-2, 0, 2):
@@ -547,7 +562,7 @@ def range_ring():
     n = 192 * SS
     im = Image.new('RGBA', (n, n), (0, 0, 0, 0))
     d = ImageDraw.Draw(im)
-    d.ellipse([2 * SS, 2 * SS, n - 2 * SS, n - 2 * SS], fill=(255, 255, 255, 46), outline=(255, 255, 255, 200), width=3 * SS)
+    d.ellipse([2 * SS, 2 * SS, n - 2 * SS, n - 2 * SS], fill=(90, 170, 255, 48), outline=(70, 150, 250, 210), width=3 * SS)
     return im.resize((192, 192), Image.LANCZOS)
 
 

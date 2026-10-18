@@ -1,0 +1,1062 @@
+{
+  "pack": "grid_action",
+  "title": {
+    "de": "Raster-Action",
+    "en": "Grid action"
+  },
+  "format": "png",
+  "assets": [
+    {
+      "name": "bomb_1",
+      "file": "bomb_1.png",
+      "tags": [
+        "grid",
+        "bomb"
+      ],
+      "de": "Runde Bombe mit Zündschnur, pulsiert, Bild 1 von 3",
+      "en": "Round fuse bomb pulsing, frame 1 of 3"
+    },
+    {
+      "name": "bomb_2",
+      "file": "bomb_2.png",
+      "tags": [
+        "grid",
+        "bomb"
+      ],
+      "de": "Runde Bombe mit Zündschnur, pulsiert, Bild 2 von 3",
+      "en": "Round fuse bomb pulsing, frame 2 of 3"
+    },
+    {
+      "name": "bomb_3",
+      "file": "bomb_3.png",
+      "tags": [
+        "grid",
+        "bomb"
+      ],
+      "de": "Runde Bombe mit Zündschnur, pulsiert, Bild 3 von 3",
+      "en": "Round fuse bomb pulsing, frame 3 of 3"
+    },
+    {
+      "name": "bomb_blast_center",
+      "file": "bomb_blast_center.png",
+      "tags": [
+        "grid",
+        "bomb",
+        "effect"
+      ],
+      "de": "Explosion, Mitte (Feuer nach allen vier Seiten)",
+      "en": "Blast centre (fire to all four sides)"
+    },
+    {
+      "name": "bomb_blast_h",
+      "file": "bomb_blast_h.png",
+      "tags": [
+        "grid",
+        "bomb",
+        "effect"
+      ],
+      "de": "Explosion, waagrechtes Mittelstück",
+      "en": "Blast, horizontal middle piece"
+    },
+    {
+      "name": "bomb_blast_v",
+      "file": "bomb_blast_v.png",
+      "tags": [
+        "grid",
+        "bomb",
+        "effect"
+      ],
+      "de": "Explosion, senkrechtes Mittelstück",
+      "en": "Blast, vertical middle piece"
+    },
+    {
+      "name": "bomb_blast_end_up",
+      "file": "bomb_blast_end_up.png",
+      "tags": [
+        "grid",
+        "bomb",
+        "effect"
+      ],
+      "de": "Explosion, Ende oben",
+      "en": "Blast, end pointing up"
+    },
+    {
+      "name": "bomb_blast_end_down",
+      "file": "bomb_blast_end_down.png",
+      "tags": [
+        "grid",
+        "bomb",
+        "effect"
+      ],
+      "de": "Explosion, Ende unten",
+      "en": "Blast, end pointing down"
+    },
+    {
+      "name": "bomb_blast_end_left",
+      "file": "bomb_blast_end_left.png",
+      "tags": [
+        "grid",
+        "bomb",
+        "effect"
+      ],
+      "de": "Explosion, Ende links",
+      "en": "Blast, end pointing left"
+    },
+    {
+      "name": "bomb_blast_end_right",
+      "file": "bomb_blast_end_right.png",
+      "tags": [
+        "grid",
+        "bomb",
+        "effect"
+      ],
+      "de": "Explosion, Ende rechts",
+      "en": "Blast, end pointing right"
+    },
+    {
+      "name": "bomb_block_soft",
+      "file": "bomb_block_soft.png",
+      "tags": [
+        "grid",
+        "bomb",
+        "tile"
+      ],
+      "de": "Holzkiste, lässt sich wegsprengen (Kachel 64x64)",
+      "en": "Wooden crate that can be blown up (tile 64x64)"
+    },
+    {
+      "name": "bomb_block_hard",
+      "file": "bomb_block_hard.png",
+      "tags": [
+        "grid",
+        "bomb",
+        "tile"
+      ],
+      "de": "Fester Steinblock, unzerstörbar (Kachel 64x64)",
+      "en": "Solid stone block, unbreakable (tile 64x64)"
+    },
+    {
+      "name": "bomb_power_range",
+      "file": "bomb_power_range.png",
+      "tags": [
+        "grid",
+        "bomb",
+        "item"
+      ],
+      "de": "Extra: größere Reichweite (Flamme)",
+      "en": "Power-up: bigger range (flame)"
+    },
+    {
+      "name": "bomb_power_count",
+      "file": "bomb_power_count.png",
+      "tags": [
+        "grid",
+        "bomb",
+        "item"
+      ],
+      "de": "Extra: eine Bombe mehr",
+      "en": "Power-up: one more bomb"
+    },
+    {
+      "name": "bomb_power_speed",
+      "file": "bomb_power_speed.png",
+      "tags": [
+        "grid",
+        "bomb",
+        "item"
+      ],
+      "de": "Extra: schneller laufen (Blitz)",
+      "en": "Power-up: faster (lightning)"
+    },
+    {
+      "name": "td_tower_arrow_1",
+      "file": "td_tower_arrow_1.png",
+      "tags": [
+        "grid",
+        "tower_defense",
+        "tower"
+      ],
+      "de": "Bogenturm von oben, Stufe 1 von 3",
+      "en": "Archer tower from above, level 1 of 3"
+    },
+    {
+      "name": "td_tower_arrow_2",
+      "file": "td_tower_arrow_2.png",
+      "tags": [
+        "grid",
+        "tower_defense",
+        "tower"
+      ],
+      "de": "Bogenturm von oben, Stufe 2 von 3",
+      "en": "Archer tower from above, level 2 of 3"
+    },
+    {
+      "name": "td_tower_arrow_3",
+      "file": "td_tower_arrow_3.png",
+      "tags": [
+        "grid",
+        "tower_defense",
+        "tower"
+      ],
+      "de": "Bogenturm von oben, Stufe 3 von 3",
+      "en": "Archer tower from above, level 3 of 3"
+    },
+    {
+      "name": "td_tower_cannon_1",
+      "file": "td_tower_cannon_1.png",
+      "tags": [
+        "grid",
+        "tower_defense",
+        "tower"
+      ],
+      "de": "Kanonenturm von oben, Stufe 1 von 3",
+      "en": "Cannon tower from above, level 1 of 3"
+    },
+    {
+      "name": "td_tower_cannon_2",
+      "file": "td_tower_cannon_2.png",
+      "tags": [
+        "grid",
+        "tower_defense",
+        "tower"
+      ],
+      "de": "Kanonenturm von oben, Stufe 2 von 3",
+      "en": "Cannon tower from above, level 2 of 3"
+    },
+    {
+      "name": "td_tower_cannon_3",
+      "file": "td_tower_cannon_3.png",
+      "tags": [
+        "grid",
+        "tower_defense",
+        "tower"
+      ],
+      "de": "Kanonenturm von oben, Stufe 3 von 3",
+      "en": "Cannon tower from above, level 3 of 3"
+    },
+    {
+      "name": "td_tower_ice_1",
+      "file": "td_tower_ice_1.png",
+      "tags": [
+        "grid",
+        "tower_defense",
+        "tower"
+      ],
+      "de": "Frostturm von oben, Stufe 1 von 3",
+      "en": "Frost tower from above, level 1 of 3"
+    },
+    {
+      "name": "td_tower_ice_2",
+      "file": "td_tower_ice_2.png",
+      "tags": [
+        "grid",
+        "tower_defense",
+        "tower"
+      ],
+      "de": "Frostturm von oben, Stufe 2 von 3",
+      "en": "Frost tower from above, level 2 of 3"
+    },
+    {
+      "name": "td_tower_ice_3",
+      "file": "td_tower_ice_3.png",
+      "tags": [
+        "grid",
+        "tower_defense",
+        "tower"
+      ],
+      "de": "Frostturm von oben, Stufe 3 von 3",
+      "en": "Frost tower from above, level 3 of 3"
+    },
+    {
+      "name": "td_base",
+      "file": "td_base.png",
+      "tags": [
+        "grid",
+        "tower_defense"
+      ],
+      "de": "Kleine Burg, die verteidigt wird",
+      "en": "Small castle to defend"
+    },
+    {
+      "name": "td_spawn",
+      "file": "td_spawn.png",
+      "tags": [
+        "grid",
+        "tower_defense"
+      ],
+      "de": "Höhle, aus der die Monster kommen",
+      "en": "Cave where the monsters come from"
+    },
+    {
+      "name": "td_road_h",
+      "file": "td_road_h.png",
+      "tags": [
+        "grid",
+        "tower_defense",
+        "tile"
+      ],
+      "de": "Weg für die Monster, waagrecht (Kachel 64x64, schließt an)",
+      "en": "Monster path, horizontal (tile 64x64, connects)"
+    },
+    {
+      "name": "td_road_v",
+      "file": "td_road_v.png",
+      "tags": [
+        "grid",
+        "tower_defense",
+        "tile"
+      ],
+      "de": "Weg für die Monster, senkrecht (Kachel 64x64, schließt an)",
+      "en": "Monster path, vertical (tile 64x64, connects)"
+    },
+    {
+      "name": "td_road_ne",
+      "file": "td_road_ne.png",
+      "tags": [
+        "grid",
+        "tower_defense",
+        "tile"
+      ],
+      "de": "Weg für die Monster, Kurve oben-rechts (Kachel 64x64, schließt an)",
+      "en": "Monster path, curve top-right (tile 64x64, connects)"
+    },
+    {
+      "name": "td_road_nw",
+      "file": "td_road_nw.png",
+      "tags": [
+        "grid",
+        "tower_defense",
+        "tile"
+      ],
+      "de": "Weg für die Monster, Kurve oben-links (Kachel 64x64, schließt an)",
+      "en": "Monster path, curve top-left (tile 64x64, connects)"
+    },
+    {
+      "name": "td_road_se",
+      "file": "td_road_se.png",
+      "tags": [
+        "grid",
+        "tower_defense",
+        "tile"
+      ],
+      "de": "Weg für die Monster, Kurve unten-rechts (Kachel 64x64, schließt an)",
+      "en": "Monster path, curve bottom-right (tile 64x64, connects)"
+    },
+    {
+      "name": "td_road_sw",
+      "file": "td_road_sw.png",
+      "tags": [
+        "grid",
+        "tower_defense",
+        "tile"
+      ],
+      "de": "Weg für die Monster, Kurve unten-links (Kachel 64x64, schließt an)",
+      "en": "Monster path, curve bottom-left (tile 64x64, connects)"
+    },
+    {
+      "name": "td_shot_arrow",
+      "file": "td_shot_arrow.png",
+      "tags": [
+        "grid",
+        "tower_defense",
+        "projectile"
+      ],
+      "de": "Pfeil, fliegt nach rechts",
+      "en": "Arrow flying right"
+    },
+    {
+      "name": "td_shot_ball",
+      "file": "td_shot_ball.png",
+      "tags": [
+        "grid",
+        "tower_defense",
+        "projectile"
+      ],
+      "de": "Kanonenkugel",
+      "en": "Cannonball"
+    },
+    {
+      "name": "td_shot_ice",
+      "file": "td_shot_ice.png",
+      "tags": [
+        "grid",
+        "tower_defense",
+        "projectile"
+      ],
+      "de": "Eissplitter, fliegt nach rechts",
+      "en": "Ice shard flying right"
+    },
+    {
+      "name": "td_coin",
+      "file": "td_coin.png",
+      "tags": [
+        "grid",
+        "tower_defense",
+        "item"
+      ],
+      "de": "Goldmünze",
+      "en": "Gold coin"
+    },
+    {
+      "name": "td_heart",
+      "file": "td_heart.png",
+      "tags": [
+        "grid",
+        "tower_defense",
+        "item"
+      ],
+      "de": "Herz (Leben)",
+      "en": "Heart (life)"
+    },
+    {
+      "name": "td_build_spot",
+      "file": "td_build_spot.png",
+      "tags": [
+        "grid",
+        "tower_defense"
+      ],
+      "de": "Leerer Bauplatz für einen Turm",
+      "en": "Empty plot for a tower"
+    },
+    {
+      "name": "td_range_ring",
+      "file": "td_range_ring.png",
+      "tags": [
+        "grid",
+        "tower_defense"
+      ],
+      "de": "Durchsichtiger Kreis für die Reichweite (192x192, beliebig skalieren)",
+      "en": "Transparent range ring (192x192, scale as needed)"
+    },
+    {
+      "name": "td_enemy_1",
+      "file": "td_enemy_1.png",
+      "tags": [
+        "grid",
+        "tower_defense",
+        "enemy"
+      ],
+      "de": "Grüner Schleim von oben, kriecht nach rechts",
+      "en": "Green slime from above, heading right"
+    },
+    {
+      "name": "td_enemy_2",
+      "file": "td_enemy_2.png",
+      "tags": [
+        "grid",
+        "tower_defense",
+        "enemy"
+      ],
+      "de": "Orangefarbener Käfer von oben, krabbelt nach rechts",
+      "en": "Orange beetle from above, heading right"
+    },
+    {
+      "name": "td_enemy_3",
+      "file": "td_enemy_3.png",
+      "tags": [
+        "grid",
+        "tower_defense",
+        "enemy"
+      ],
+      "de": "Blauer Flatterer von oben, fliegt nach rechts",
+      "en": "Blue flapper from above, flying right"
+    },
+    {
+      "name": "td_boss",
+      "file": "td_boss.png",
+      "tags": [
+        "grid",
+        "tower_defense",
+        "enemy"
+      ],
+      "de": "Großes gepanzertes Boss-Monster von oben, nach rechts",
+      "en": "Big armoured boss monster from above, heading right"
+    },
+    {
+      "name": "farm_carrot_1",
+      "file": "farm_carrot_1.png",
+      "tags": [
+        "grid",
+        "farm",
+        "plant"
+      ],
+      "de": "Karotte, Stufe 1 von 4: Saat",
+      "en": "Carrot, stage 1 of 4: seed"
+    },
+    {
+      "name": "farm_carrot_2",
+      "file": "farm_carrot_2.png",
+      "tags": [
+        "grid",
+        "farm",
+        "plant"
+      ],
+      "de": "Karotte, Stufe 2 von 4: Keimling",
+      "en": "Carrot, stage 2 of 4: sprout"
+    },
+    {
+      "name": "farm_carrot_3",
+      "file": "farm_carrot_3.png",
+      "tags": [
+        "grid",
+        "farm",
+        "plant"
+      ],
+      "de": "Karotte, Stufe 3 von 4: wächst",
+      "en": "Carrot, stage 3 of 4: growing"
+    },
+    {
+      "name": "farm_carrot_4",
+      "file": "farm_carrot_4.png",
+      "tags": [
+        "grid",
+        "farm",
+        "plant"
+      ],
+      "de": "Karotte, Stufe 4 von 4: reif",
+      "en": "Carrot, stage 4 of 4: ready"
+    },
+    {
+      "name": "farm_tomato_1",
+      "file": "farm_tomato_1.png",
+      "tags": [
+        "grid",
+        "farm",
+        "plant"
+      ],
+      "de": "Tomate, Stufe 1 von 4: Saat",
+      "en": "Tomato, stage 1 of 4: seed"
+    },
+    {
+      "name": "farm_tomato_2",
+      "file": "farm_tomato_2.png",
+      "tags": [
+        "grid",
+        "farm",
+        "plant"
+      ],
+      "de": "Tomate, Stufe 2 von 4: Keimling",
+      "en": "Tomato, stage 2 of 4: sprout"
+    },
+    {
+      "name": "farm_tomato_3",
+      "file": "farm_tomato_3.png",
+      "tags": [
+        "grid",
+        "farm",
+        "plant"
+      ],
+      "de": "Tomate, Stufe 3 von 4: wächst",
+      "en": "Tomato, stage 3 of 4: growing"
+    },
+    {
+      "name": "farm_tomato_4",
+      "file": "farm_tomato_4.png",
+      "tags": [
+        "grid",
+        "farm",
+        "plant"
+      ],
+      "de": "Tomate, Stufe 4 von 4: reif",
+      "en": "Tomato, stage 4 of 4: ready"
+    },
+    {
+      "name": "farm_pumpkin_1",
+      "file": "farm_pumpkin_1.png",
+      "tags": [
+        "grid",
+        "farm",
+        "plant"
+      ],
+      "de": "Kürbis, Stufe 1 von 4: Saat",
+      "en": "Pumpkin, stage 1 of 4: seed"
+    },
+    {
+      "name": "farm_pumpkin_2",
+      "file": "farm_pumpkin_2.png",
+      "tags": [
+        "grid",
+        "farm",
+        "plant"
+      ],
+      "de": "Kürbis, Stufe 2 von 4: Keimling",
+      "en": "Pumpkin, stage 2 of 4: sprout"
+    },
+    {
+      "name": "farm_pumpkin_3",
+      "file": "farm_pumpkin_3.png",
+      "tags": [
+        "grid",
+        "farm",
+        "plant"
+      ],
+      "de": "Kürbis, Stufe 3 von 4: wächst",
+      "en": "Pumpkin, stage 3 of 4: growing"
+    },
+    {
+      "name": "farm_pumpkin_4",
+      "file": "farm_pumpkin_4.png",
+      "tags": [
+        "grid",
+        "farm",
+        "plant"
+      ],
+      "de": "Kürbis, Stufe 4 von 4: reif",
+      "en": "Pumpkin, stage 4 of 4: ready"
+    },
+    {
+      "name": "farm_wheat_1",
+      "file": "farm_wheat_1.png",
+      "tags": [
+        "grid",
+        "farm",
+        "plant"
+      ],
+      "de": "Weizen, Stufe 1 von 4: Saat",
+      "en": "Wheat, stage 1 of 4: seed"
+    },
+    {
+      "name": "farm_wheat_2",
+      "file": "farm_wheat_2.png",
+      "tags": [
+        "grid",
+        "farm",
+        "plant"
+      ],
+      "de": "Weizen, Stufe 2 von 4: Keimling",
+      "en": "Wheat, stage 2 of 4: sprout"
+    },
+    {
+      "name": "farm_wheat_3",
+      "file": "farm_wheat_3.png",
+      "tags": [
+        "grid",
+        "farm",
+        "plant"
+      ],
+      "de": "Weizen, Stufe 3 von 4: wächst",
+      "en": "Wheat, stage 3 of 4: growing"
+    },
+    {
+      "name": "farm_wheat_4",
+      "file": "farm_wheat_4.png",
+      "tags": [
+        "grid",
+        "farm",
+        "plant"
+      ],
+      "de": "Weizen, Stufe 4 von 4: reif",
+      "en": "Wheat, stage 4 of 4: ready"
+    },
+    {
+      "name": "farm_seeds",
+      "file": "farm_seeds.png",
+      "tags": [
+        "grid",
+        "farm"
+      ],
+      "de": "Saatgutbeutel",
+      "en": "Seed bag"
+    },
+    {
+      "name": "farm_watering_can",
+      "file": "farm_watering_can.png",
+      "tags": [
+        "grid",
+        "farm"
+      ],
+      "de": "Gießkanne",
+      "en": "Watering can"
+    },
+    {
+      "name": "farm_hoe",
+      "file": "farm_hoe.png",
+      "tags": [
+        "grid",
+        "farm"
+      ],
+      "de": "Hacke",
+      "en": "Hoe"
+    },
+    {
+      "name": "farm_basket",
+      "file": "farm_basket.png",
+      "tags": [
+        "grid",
+        "farm"
+      ],
+      "de": "Weidenkorb",
+      "en": "Wicker basket"
+    },
+    {
+      "name": "farm_scarecrow",
+      "file": "farm_scarecrow.png",
+      "tags": [
+        "grid",
+        "farm"
+      ],
+      "de": "Vogelscheuche",
+      "en": "Scarecrow"
+    },
+    {
+      "name": "farm_chicken",
+      "file": "farm_chicken.png",
+      "tags": [
+        "grid",
+        "farm",
+        "animal"
+      ],
+      "de": "Huhn von oben, schaut nach rechts",
+      "en": "Hen from above, facing right"
+    },
+    {
+      "name": "farm_cow",
+      "file": "farm_cow.png",
+      "tags": [
+        "grid",
+        "farm",
+        "animal"
+      ],
+      "de": "Kuh von oben, schaut nach rechts",
+      "en": "Cow from above, facing right"
+    },
+    {
+      "name": "farm_pig",
+      "file": "farm_pig.png",
+      "tags": [
+        "grid",
+        "farm",
+        "animal"
+      ],
+      "de": "Schwein von oben, schaut nach rechts",
+      "en": "Pig from above, facing right"
+    },
+    {
+      "name": "farm_barn",
+      "file": "farm_barn.png",
+      "tags": [
+        "grid",
+        "farm"
+      ],
+      "de": "Rote Scheune",
+      "en": "Red barn"
+    },
+    {
+      "name": "farm_fence_h",
+      "file": "farm_fence_h.png",
+      "tags": [
+        "grid",
+        "farm",
+        "tile"
+      ],
+      "de": "Zaunstück, waagrecht (64x64, schließt an)",
+      "en": "Fence piece, horizontal (64x64, connects)"
+    },
+    {
+      "name": "farm_fence_v",
+      "file": "farm_fence_v.png",
+      "tags": [
+        "grid",
+        "farm",
+        "tile"
+      ],
+      "de": "Zaunstück, senkrecht (64x64, schließt an)",
+      "en": "Fence piece, vertical (64x64, connects)"
+    },
+    {
+      "name": "farm_well",
+      "file": "farm_well.png",
+      "tags": [
+        "grid",
+        "farm"
+      ],
+      "de": "Brunnen",
+      "en": "Water well"
+    },
+    {
+      "name": "farm_coin",
+      "file": "farm_coin.png",
+      "tags": [
+        "grid",
+        "farm",
+        "item"
+      ],
+      "de": "Goldmünze mit Ähre",
+      "en": "Gold coin with a wheat ear"
+    },
+    {
+      "name": "cross_frog_up",
+      "file": "cross_frog_up.png",
+      "tags": [
+        "grid",
+        "crossing",
+        "player"
+      ],
+      "de": "Frosch von oben, schaut nach oben",
+      "en": "Frog from above, facing up"
+    },
+    {
+      "name": "cross_frog_down",
+      "file": "cross_frog_down.png",
+      "tags": [
+        "grid",
+        "crossing",
+        "player"
+      ],
+      "de": "Frosch von oben, schaut nach unten",
+      "en": "Frog from above, facing down"
+    },
+    {
+      "name": "cross_frog_left",
+      "file": "cross_frog_left.png",
+      "tags": [
+        "grid",
+        "crossing",
+        "player"
+      ],
+      "de": "Frosch von oben, schaut nach links",
+      "en": "Frog from above, facing left"
+    },
+    {
+      "name": "cross_frog_right",
+      "file": "cross_frog_right.png",
+      "tags": [
+        "grid",
+        "crossing",
+        "player"
+      ],
+      "de": "Frosch von oben, schaut nach rechts",
+      "en": "Frog from above, facing right"
+    },
+    {
+      "name": "cross_frog_hop_up",
+      "file": "cross_frog_hop_up.png",
+      "tags": [
+        "grid",
+        "crossing",
+        "player"
+      ],
+      "de": "Frosch mitten im Sprung nach oben",
+      "en": "Frog in mid-jump, facing up"
+    },
+    {
+      "name": "cross_car_1",
+      "file": "cross_car_1.png",
+      "tags": [
+        "grid",
+        "crossing",
+        "vehicle"
+      ],
+      "de": "Auto von oben, fährt nach rechts, Sorte 1 (96x48)",
+      "en": "Car from above, driving right, kind 1 (96x48)"
+    },
+    {
+      "name": "cross_car_2",
+      "file": "cross_car_2.png",
+      "tags": [
+        "grid",
+        "crossing",
+        "vehicle"
+      ],
+      "de": "Auto von oben, fährt nach rechts, Sorte 2 (96x48)",
+      "en": "Car from above, driving right, kind 2 (96x48)"
+    },
+    {
+      "name": "cross_car_3",
+      "file": "cross_car_3.png",
+      "tags": [
+        "grid",
+        "crossing",
+        "vehicle"
+      ],
+      "de": "Auto von oben, fährt nach rechts, Sorte 3 (96x48)",
+      "en": "Car from above, driving right, kind 3 (96x48)"
+    },
+    {
+      "name": "cross_truck",
+      "file": "cross_truck.png",
+      "tags": [
+        "grid",
+        "crossing",
+        "vehicle"
+      ],
+      "de": "Lastwagen von oben, fährt nach rechts (160x48)",
+      "en": "Truck from above, driving right (160x48)"
+    },
+    {
+      "name": "cross_log_s",
+      "file": "cross_log_s.png",
+      "tags": [
+        "grid",
+        "crossing"
+      ],
+      "de": "Kurzer Baumstamm im Fluss (64 breit)",
+      "en": "Short floating log (64 wide)"
+    },
+    {
+      "name": "cross_log_l",
+      "file": "cross_log_l.png",
+      "tags": [
+        "grid",
+        "crossing"
+      ],
+      "de": "Langer Baumstamm im Fluss (160 breit)",
+      "en": "Long floating log (160 wide)"
+    },
+    {
+      "name": "cross_turtle_1",
+      "file": "cross_turtle_1.png",
+      "tags": [
+        "grid",
+        "crossing"
+      ],
+      "de": "Schwimmende Schildkröte von oben, nach rechts, Bild 1 von 2",
+      "en": "Swimming turtle from above, heading right, frame 1 of 2"
+    },
+    {
+      "name": "cross_turtle_2",
+      "file": "cross_turtle_2.png",
+      "tags": [
+        "grid",
+        "crossing"
+      ],
+      "de": "Schwimmende Schildkröte von oben, nach rechts, Bild 2 von 2",
+      "en": "Swimming turtle from above, heading right, frame 2 of 2"
+    },
+    {
+      "name": "cross_lily",
+      "file": "cross_lily.png",
+      "tags": [
+        "grid",
+        "crossing"
+      ],
+      "de": "Seerosenblatt",
+      "en": "Lily pad"
+    },
+    {
+      "name": "cross_road",
+      "file": "cross_road.png",
+      "tags": [
+        "grid",
+        "crossing",
+        "tile"
+      ],
+      "de": "Asphalt mit Mittelstreifen (Kachel 64x64)",
+      "en": "Asphalt with a dashed line (tile 64x64)"
+    },
+    {
+      "name": "cross_grass",
+      "file": "cross_grass.png",
+      "tags": [
+        "grid",
+        "crossing",
+        "tile"
+      ],
+      "de": "Gras am Ufer (Kachel 64x64)",
+      "en": "Grass bank (tile 64x64)"
+    },
+    {
+      "name": "cross_water",
+      "file": "cross_water.png",
+      "tags": [
+        "grid",
+        "crossing",
+        "tile"
+      ],
+      "de": "Wasser (Kachel 64x64)",
+      "en": "Water (tile 64x64)"
+    },
+    {
+      "name": "cross_goal_home",
+      "file": "cross_goal_home.png",
+      "tags": [
+        "grid",
+        "crossing",
+        "tile"
+      ],
+      "de": "Zielbucht mit Seerose im Ufer (Kachel 64x64)",
+      "en": "Home bay with a lily pad in the bank (tile 64x64)"
+    },
+    {
+      "name": "cross_fly",
+      "file": "cross_fly.png",
+      "tags": [
+        "grid",
+        "crossing"
+      ],
+      "de": "Fliege für Bonuspunkte",
+      "en": "Bonus fly"
+    },
+    {
+      "name": "cross_snake",
+      "file": "cross_snake.png",
+      "tags": [
+        "grid",
+        "crossing",
+        "enemy"
+      ],
+      "de": "Grüne Schlange von oben, nach rechts (96x32)",
+      "en": "Green snake from above, heading right (96x32)"
+    },
+    {
+      "name": "fish_item",
+      "file": "fish_item.png",
+      "tags": [
+        "grid",
+        "item"
+      ],
+      "de": "Fisch zum Einsammeln",
+      "en": "Fish to collect"
+    },
+    {
+      "name": "gem_blue",
+      "file": "gem_blue.png",
+      "tags": [
+        "grid",
+        "item"
+      ],
+      "de": "Blauer Edelstein von oben",
+      "en": "Blue gem from above"
+    },
+    {
+      "name": "gem_red",
+      "file": "gem_red.png",
+      "tags": [
+        "grid",
+        "item"
+      ],
+      "de": "Roter Edelstein von oben",
+      "en": "Red gem from above"
+    },
+    {
+      "name": "gem_green",
+      "file": "gem_green.png",
+      "tags": [
+        "grid",
+        "item"
+      ],
+      "de": "Grüner Edelstein von oben",
+      "en": "Green gem from above"
+    },
+    {
+      "name": "battery",
+      "file": "battery.png",
+      "tags": [
+        "grid",
+        "item"
+      ],
+      "de": "Batterie",
+      "en": "Battery"
+    },
+    {
+      "name": "cheese",
+      "file": "cheese.png",
+      "tags": [
+        "grid",
+        "item"
+      ],
+      "de": "Stück Käse",
+      "en": "Piece of cheese"
+    }
+  ]
+}

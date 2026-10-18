@@ -18,6 +18,7 @@ sounds.coin.play()
 | `book` | Teich-Spiel aus dem Buch | 18 | 79 KB | `ente`, `kueken`, `boot`, `seerose`, `teich_hintergrund` |
 | `characters` | Figuren | 38 | 326 KB | `heroine_run_1` … `_8`, `heroine_idle_1`, `boy_run_1`, `enemy_walk_1` |
 | `flyer` | Flieger und Fallendes | 39 | 401 KB | `fl_bird_1`, `fl_pillar_top`, `fall_apple`, `fl_bg_day` |
+| `grid_action` | Raster-Action | 98 | 381 KB | `bomb_1`, `bomb_blast_center`, `td_tower_arrow_1`, `td_road_h`, `farm_carrot_1` … `_4`, `cross_frog_up`, `gem_blue` |
 | `kara` | Kara der Marienkäfer | 17 | 75 KB | `kara`, `kara_tree`, `kara_mushroom`, `turtle_top` |
 | `nature` | Natur und Wetter | 51 | 237 KB | `nat_oak`, `nat_cloud_1`, `fruit_apple` |
 | `platformer` | Jump and Run | 73 | 505 KB | `pf_grass_mid`, `pf_coin_1`, `slug_walk_1`, `pf_bg_day` |

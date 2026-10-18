@@ -1,0 +1,520 @@
+{
+  "pack": "grid_tiles",
+  "title": {
+    "de": "Rasterkacheln",
+    "en": "Grid tiles"
+  },
+  "format": "png",
+  "assets": [
+    {
+      "name": "gt_ice",
+      "file": "gt_ice.png",
+      "tags": [
+        "tile",
+        "grid"
+      ],
+      "de": "Kachel Eis (glatt)",
+      "en": "Tile ice (slippery)"
+    },
+    {
+      "name": "gt_hedge",
+      "file": "gt_hedge.png",
+      "tags": [
+        "tile",
+        "grid",
+        "wall"
+      ],
+      "de": "Kachel Hecke, geschnitten (Wand)",
+      "en": "Tile trimmed hedge (wall)"
+    },
+    {
+      "name": "gt_soil",
+      "file": "gt_soil.png",
+      "tags": [
+        "tile",
+        "grid"
+      ],
+      "de": "Kachel Erde",
+      "en": "Tile plain soil"
+    },
+    {
+      "name": "gt_soil_tilled",
+      "file": "gt_soil_tilled.png",
+      "tags": [
+        "tile",
+        "grid"
+      ],
+      "de": "Kachel gepflügter Acker mit Furchen",
+      "en": "Tile ploughed field with furrows"
+    },
+    {
+      "name": "gt_soil_wet",
+      "file": "gt_soil_wet.png",
+      "tags": [
+        "tile",
+        "grid"
+      ],
+      "de": "Kachel nasse Erde mit Pfützen",
+      "en": "Tile wet soil with puddles"
+    },
+    {
+      "name": "gt_clover",
+      "file": "gt_clover.png",
+      "tags": [
+        "tile",
+        "grid"
+      ],
+      "de": "Kachel Wiese mit Klee",
+      "en": "Tile meadow with clover"
+    },
+    {
+      "name": "gt_flowers",
+      "file": "gt_flowers.png",
+      "tags": [
+        "tile",
+        "grid"
+      ],
+      "de": "Kachel Wiese mit kleinen Blumen",
+      "en": "Tile meadow with small flowers"
+    },
+    {
+      "name": "gt_cobble",
+      "file": "gt_cobble.png",
+      "tags": [
+        "tile",
+        "grid"
+      ],
+      "de": "Kachel Kopfsteinpflaster (Straße)",
+      "en": "Tile cobble street"
+    },
+    {
+      "name": "gt_carpet_red",
+      "file": "gt_carpet_red.png",
+      "tags": [
+        "tile",
+        "grid"
+      ],
+      "de": "Kachel roter Teppich",
+      "en": "Tile red carpet"
+    },
+    {
+      "name": "gt_tiles_checker",
+      "file": "gt_tiles_checker.png",
+      "tags": [
+        "tile",
+        "grid"
+      ],
+      "de": "Kachel Schachbrettboden schwarz-weiß",
+      "en": "Tile black and white checker floor"
+    },
+    {
+      "name": "gt_metal",
+      "file": "gt_metal.png",
+      "tags": [
+        "tile",
+        "grid"
+      ],
+      "de": "Kachel Metallboden mit Nieten (Raumstation)",
+      "en": "Tile metal floor with rivets (space station)"
+    },
+    {
+      "name": "gt_conveyor_up",
+      "file": "gt_conveyor_up.png",
+      "tags": [
+        "tile",
+        "grid"
+      ],
+      "de": "Kachel Förderband nach oben",
+      "en": "Tile conveyor belt moving up"
+    },
+    {
+      "name": "gt_conveyor_down",
+      "file": "gt_conveyor_down.png",
+      "tags": [
+        "tile",
+        "grid"
+      ],
+      "de": "Kachel Förderband nach unten",
+      "en": "Tile conveyor belt moving down"
+    },
+    {
+      "name": "gt_conveyor_left",
+      "file": "gt_conveyor_left.png",
+      "tags": [
+        "tile",
+        "grid"
+      ],
+      "de": "Kachel Förderband nach links",
+      "en": "Tile conveyor belt moving left"
+    },
+    {
+      "name": "gt_conveyor_right",
+      "file": "gt_conveyor_right.png",
+      "tags": [
+        "tile",
+        "grid"
+      ],
+      "de": "Kachel Förderband nach rechts",
+      "en": "Tile conveyor belt moving right"
+    },
+    {
+      "name": "gt_arrow_up",
+      "file": "gt_arrow_up.png",
+      "tags": [
+        "tile",
+        "grid"
+      ],
+      "de": "Kachel Boden mit Pfeil nach oben",
+      "en": "Tile floor with an arrow pointing up"
+    },
+    {
+      "name": "gt_arrow_down",
+      "file": "gt_arrow_down.png",
+      "tags": [
+        "tile",
+        "grid"
+      ],
+      "de": "Kachel Boden mit Pfeil nach unten",
+      "en": "Tile floor with an arrow pointing down"
+    },
+    {
+      "name": "gt_arrow_left",
+      "file": "gt_arrow_left.png",
+      "tags": [
+        "tile",
+        "grid"
+      ],
+      "de": "Kachel Boden mit Pfeil nach links",
+      "en": "Tile floor with an arrow pointing left"
+    },
+    {
+      "name": "gt_arrow_right",
+      "file": "gt_arrow_right.png",
+      "tags": [
+        "tile",
+        "grid"
+      ],
+      "de": "Kachel Boden mit Pfeil nach rechts",
+      "en": "Tile floor with an arrow pointing right"
+    },
+    {
+      "name": "gt_button",
+      "file": "gt_button.png",
+      "tags": [
+        "tile",
+        "grid"
+      ],
+      "de": "Kachel Druckplatte",
+      "en": "Tile pressure plate"
+    },
+    {
+      "name": "gt_button_pressed",
+      "file": "gt_button_pressed.png",
+      "tags": [
+        "tile",
+        "grid"
+      ],
+      "de": "Kachel Druckplatte, gedrückt",
+      "en": "Tile pressure plate, pressed"
+    },
+    {
+      "name": "gt_hole",
+      "file": "gt_hole.png",
+      "tags": [
+        "tile",
+        "grid"
+      ],
+      "de": "Kachel Loch (Grube)",
+      "en": "Tile hole (pit)"
+    },
+    {
+      "name": "gt_teleporter_1",
+      "file": "gt_teleporter_1.png",
+      "tags": [
+        "tile",
+        "grid",
+        "animation"
+      ],
+      "de": "Kachel Teleporter, Bild 1 von 2",
+      "en": "Tile teleporter, frame 1 of 2"
+    },
+    {
+      "name": "gt_teleporter_2",
+      "file": "gt_teleporter_2.png",
+      "tags": [
+        "tile",
+        "grid",
+        "animation"
+      ],
+      "de": "Kachel Teleporter, Bild 2 von 2",
+      "en": "Tile teleporter, frame 2 of 2"
+    },
+    {
+      "name": "gt_start",
+      "file": "gt_start.png",
+      "tags": [
+        "tile",
+        "grid"
+      ],
+      "de": "Kachel Startfeld",
+      "en": "Tile start square"
+    },
+    {
+      "name": "gt_goal",
+      "file": "gt_goal.png",
+      "tags": [
+        "tile",
+        "grid"
+      ],
+      "de": "Kachel Zielfeld mit Fahne",
+      "en": "Tile goal square with a flag"
+    },
+    {
+      "name": "gt_spikes_out",
+      "file": "gt_spikes_out.png",
+      "tags": [
+        "tile",
+        "grid"
+      ],
+      "de": "Kachel Stacheln, ausgefahren (gefährlich)",
+      "en": "Tile spikes, out (dangerous)"
+    },
+    {
+      "name": "gt_spikes_in",
+      "file": "gt_spikes_in.png",
+      "tags": [
+        "tile",
+        "grid"
+      ],
+      "de": "Kachel Stacheln, eingefahren (sicher)",
+      "en": "Tile spikes, retracted (safe)"
+    },
+    {
+      "name": "gt_door_red",
+      "file": "gt_door_red.png",
+      "tags": [
+        "tile",
+        "grid",
+        "wall"
+      ],
+      "de": "Kachel Tür rot, verschlossen",
+      "en": "Tile door red, locked"
+    },
+    {
+      "name": "gt_door_blue",
+      "file": "gt_door_blue.png",
+      "tags": [
+        "tile",
+        "grid",
+        "wall"
+      ],
+      "de": "Kachel Tür blau, verschlossen",
+      "en": "Tile door blue, locked"
+    },
+    {
+      "name": "gt_door_green",
+      "file": "gt_door_green.png",
+      "tags": [
+        "tile",
+        "grid",
+        "wall"
+      ],
+      "de": "Kachel Tür grün, verschlossen",
+      "en": "Tile door green, locked"
+    },
+    {
+      "name": "gt_key_red",
+      "file": "gt_key_red.png",
+      "tags": [
+        "item",
+        "key"
+      ],
+      "de": "Schlüssel rot (durchsichtig)",
+      "en": "Key red (transparent)"
+    },
+    {
+      "name": "gt_key_blue",
+      "file": "gt_key_blue.png",
+      "tags": [
+        "item",
+        "key"
+      ],
+      "de": "Schlüssel blau (durchsichtig)",
+      "en": "Key blue (transparent)"
+    },
+    {
+      "name": "gt_key_green",
+      "file": "gt_key_green.png",
+      "tags": [
+        "item",
+        "key"
+      ],
+      "de": "Schlüssel grün (durchsichtig)",
+      "en": "Key green (transparent)"
+    },
+    {
+      "name": "gt_lever_off",
+      "file": "gt_lever_off.png",
+      "tags": [
+        "tile",
+        "grid"
+      ],
+      "de": "Kachel Hebel, aus (nach links)",
+      "en": "Tile lever, off (tilted left)"
+    },
+    {
+      "name": "gt_lever_on",
+      "file": "gt_lever_on.png",
+      "tags": [
+        "tile",
+        "grid"
+      ],
+      "de": "Kachel Hebel, an (nach rechts)",
+      "en": "Tile lever, on (tilted right)"
+    },
+    {
+      "name": "gt_wall_brick",
+      "file": "gt_wall_brick.png",
+      "tags": [
+        "tile",
+        "grid",
+        "wall"
+      ],
+      "de": "Kachel rote Ziegelmauer",
+      "en": "Tile red brick wall"
+    },
+    {
+      "name": "gt_wall_stone_block",
+      "file": "gt_wall_stone_block.png",
+      "tags": [
+        "tile",
+        "grid",
+        "wall"
+      ],
+      "de": "Kachel Mauer aus großen Steinblöcken",
+      "en": "Tile wall of big stone blocks"
+    },
+    {
+      "name": "gt_wall_crystal",
+      "file": "gt_wall_crystal.png",
+      "tags": [
+        "tile",
+        "grid",
+        "wall"
+      ],
+      "de": "Kachel Kristallwand",
+      "en": "Tile crystal wall"
+    },
+    {
+      "name": "gt_bush_wall",
+      "file": "gt_bush_wall.png",
+      "tags": [
+        "tile",
+        "grid",
+        "wall"
+      ],
+      "de": "Kachel dichtes Gebüsch (Wand)",
+      "en": "Tile dense bushes (wall)"
+    },
+    {
+      "name": "gt_tree_top",
+      "file": "gt_tree_top.png",
+      "tags": [
+        "object",
+        "topdown"
+      ],
+      "de": "Baum von oben (durchsichtig, 64 x 64)",
+      "en": "Tree seen from above (transparent, 64 x 64)"
+    },
+    {
+      "name": "gt_rock_top",
+      "file": "gt_rock_top.png",
+      "tags": [
+        "object",
+        "topdown"
+      ],
+      "de": "Felsbrocken von oben (durchsichtig, 64 x 64)",
+      "en": "Boulder seen from above (transparent, 64 x 64)"
+    },
+    {
+      "name": "gt_water_lily",
+      "file": "gt_water_lily.png",
+      "tags": [
+        "tile",
+        "grid"
+      ],
+      "de": "Kachel Wasser mit Seerose",
+      "en": "Tile water with a water lily"
+    },
+    {
+      "name": "gt_shadow",
+      "file": "gt_shadow.png",
+      "tags": [
+        "overlay",
+        "grid"
+      ],
+      "de": "Weicher runder Schatten (durchsichtig)",
+      "en": "Soft round shadow (transparent)"
+    },
+    {
+      "name": "gt_marker_circle",
+      "file": "gt_marker_circle.png",
+      "tags": [
+        "overlay",
+        "grid"
+      ],
+      "de": "Auswahlring (durchsichtig, 64 x 64)",
+      "en": "Selection ring (transparent, 64 x 64)"
+    },
+    {
+      "name": "gt_marker_cross",
+      "file": "gt_marker_cross.png",
+      "tags": [
+        "overlay",
+        "grid"
+      ],
+      "de": "Rotes Kreuz als Markierung (durchsichtig, 64 x 64)",
+      "en": "Red cross marker (transparent, 64 x 64)"
+    },
+    {
+      "name": "gt_path_dot",
+      "file": "gt_path_dot.png",
+      "tags": [
+        "overlay",
+        "grid"
+      ],
+      "de": "Wegpunkt (durchsichtig, 64 x 64)",
+      "en": "Path dot (transparent, 64 x 64)"
+    },
+    {
+      "name": "gt_highlight_green",
+      "file": "gt_highlight_green.png",
+      "tags": [
+        "overlay",
+        "grid"
+      ],
+      "de": "Halbdurchsichtige Markierung grün für Felder (64 x 64)",
+      "en": "Semi-transparent green square highlight (64 x 64)"
+    },
+    {
+      "name": "gt_highlight_red",
+      "file": "gt_highlight_red.png",
+      "tags": [
+        "overlay",
+        "grid"
+      ],
+      "de": "Halbdurchsichtige Markierung rot für Felder (64 x 64)",
+      "en": "Semi-transparent red square highlight (64 x 64)"
+    },
+    {
+      "name": "gt_highlight_blue",
+      "file": "gt_highlight_blue.png",
+      "tags": [
+        "overlay",
+        "grid"
+      ],
+      "de": "Halbdurchsichtige Markierung blau für Felder (64 x 64)",
+      "en": "Semi-transparent blue square highlight (64 x 64)"
+    }
+  ]
+}

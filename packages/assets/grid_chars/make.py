@@ -106,7 +106,8 @@ REDO = {
                    'figure 1 but with the eyes closed (blinking); 3 very happy, cheering with both paws raised HIGH above the head, big open smile; '
                    '4 dizzy, still facing the viewer: spiral eyes, a wobbly mouth, three small yellow stars circling close around the top of its head. '),
 }
-EXTRA_SHEETS = {'robo_extra2': ('robo', EXTRA_ROW.format(arms='arms'))}  # robo: happy pose of a second extra sheet
+# robo: the happy pose comes from a second extra sheet; maus: idle and blink from a first try that missed the happy pose
+EXTRA_SHEETS = {'robo_extra2': ('robo', EXTRA_ROW.format(arms='arms')), 'maus_extra_a': ('maus', EXTRA)}
 
 SHEETS = {}
 for _c in CHARS:
@@ -185,6 +186,280 @@ def do_gen(s):
     return s, gen(os.path.join(WORK, s), spec['prompt'], ref_path(spec['ref']))
 
 
+# ---- cutting ----
+from scipy import ndimage  # noqa: E402
+
+H = 400  # working height of a standing figure
+
+
+def bleed(rgba):
+    """Edge pixels take the colour of the nearest solid pixel (no magenta fringe, clean downscaling)."""
+    a = rgba.copy()
+    solid = ndimage.binary_erosion(a[..., 3] > 250, iterations=1)
+    if solid.any():
+        iy, ix = ndimage.distance_transform_edt(~solid, return_distances=False, return_indices=True)
+        a[..., :3] = a[iy, ix, :3]
+    a[..., :3][a[..., 3] == 0] = 0
+    return a
+
+
+_cache = {}
+
+
+def split(rgba, n):
+    """Figures in reading order. Big parts are figures; small parts (stars, a loose tail tip) join the nearest figure.
+    Figures that nearly touch are separated by growing the mask less."""
+    alpha = rgba[..., 3] > 128
+    for _ in range(n):  # figures that touch: cut the widest blob at its thinnest column
+        lab, k = ndimage.label(alpha)
+        area = ndimage.sum(alpha, lab, range(1, k + 1))
+        sl = [b for i, b in enumerate(ndimage.find_objects(lab)) if area[i] >= 0.2 * area.max()]
+        if len(sl) >= n:
+            break
+        widths = [b[1].stop - b[1].start for b in sl]
+        if max(widths) < 1.6 * np.median(widths) and len(sl) > 1:
+            break
+        b = sl[int(np.argmax(widths))]
+        cols = alpha[b].sum(0)
+        w = len(cols)
+        x = b[1].start + int(w * 0.3) + int(np.argmin(cols[int(w * 0.3): int(w * 0.7)]))
+        alpha[:, x - 1: x + 2] = False
+        rgba = rgba.copy()
+        rgba[:, x - 1: x + 2, 3] = 0
+    for grow in (6, 3, 1, 0):
+        lab, k = ndimage.label(ndimage.binary_dilation(alpha, iterations=grow) if grow else alpha)
+        sl = ndimage.find_objects(lab)
+        area = ndimage.sum(np.ones_like(lab), lab, range(1, k + 1))
+        big = [i for i in range(k) if area[i] >= 0.2 * area.max()]
+        if len(big) >= n:
+            break
+    owner = np.zeros(k + 1, int)
+    cen = [((sl[i][0].start + sl[i][0].stop) / 2, (sl[i][1].start + sl[i][1].stop) / 2) for i in range(k)]
+    for i in range(k):
+        if i in big:
+            owner[i + 1] = i + 1
+        else:  # nearest big figure by box distance
+            def dist(j):
+                y0, y1, x0, x1 = sl[j][0].start, sl[j][0].stop, sl[j][1].start, sl[j][1].stop
+                cy, cx = cen[i]
+                return max(y0 - cy, 0, cy - y1) + max(x0 - cx, 0, cx - x1)
+            owner[i + 1] = min(big, key=dist) + 1
+    lab = owner[lab]
+    boxes = [(ndimage.find_objects(lab)[j], j + 1) for j in big]
+    cy = [(b[0].start + b[0].stop) / 2 for b, _ in boxes]
+    h = np.median([b[0].stop - b[0].start for b, _ in boxes])
+    order = sorted(range(len(boxes)), key=lambda q: (round(cy[q] / (h * 0.8)), boxes[q][0][1].start))
+    out = []
+    for q in order:
+        b, j = boxes[q]
+        crop = rgba[b].copy()
+        crop[..., 3] = np.where(lab[b] == j, crop[..., 3], 0)
+        out.append(Image.fromarray(crop, 'RGBA'))
+    return out
+
+
+def figs(sheet, n, ref=0):
+    """The n figures of a sheet in reading order, cropped, scaled so that figure `ref` (a standing pose) is H high."""
+    if sheet in _cache:
+        return _cache[sheet]
+    fr = split(bleed(key(sheet_path(sheet))), n)
+    if len(fr) != n:
+        raise ValueError(f'{sheet}: found {len(fr)} figures, expected {n}')
+    fr = [f.crop(f.getbbox()) for f in fr]
+    k = H / fr[ref].height
+    _cache[sheet] = [f.resize((round(f.width * k), round(f.height * k)), Image.LANCZOS) for f in fr]
+    return _cache[sheet]
+
+
+def mirror(im):
+    return im.transpose(Image.FLIP_LEFT_RIGHT)
+
+
+def tilt(im, deg):
+    """Rotate around the bottom centre (positive = counter-clockwise), for waddling."""
+    w, h = im.size
+    c = Image.new('RGBA', (w * 2, h * 2), (0, 0, 0, 0))
+    c.paste(im, (w // 2, h), im)  # bottom centre of the figure at the canvas centre
+    c = c.rotate(deg, resample=Image.BICUBIC, center=(w, h * 2 - 1))
+    return c.crop(c.getbbox())
+
+
+def anchor_x(im, ref_h):
+    """Horizontal anchor: centre of mass of the head part (the upper part of a standing-high box above the feet)."""
+    a = np.asarray(im)[..., 3].astype(np.float32)
+    top = max(0, im.height - ref_h)
+    part = a[top: top + int(ref_h * 0.55)]
+    if part.sum() == 0:
+        part = a
+    return (part.sum(0) * np.arange(a.shape[1])).sum() / part.sum()
+
+
+def place(frames, ref_h, centre=False, margin=1):
+    """All frames of one character on one CANVAS x CANVAS canvas at one scale: feet on one line, head centred
+    (centre=True: centred on the middle of the canvas both ways, for figures seen straight from above)."""
+    ext = []
+    for im in frames:
+        if centre:
+            ax, ay = im.width / 2, im.height / 2
+            ext.append((ax, im.width - ax, ay, im.height - ay))
+        else:
+            ax = anchor_x(im, ref_h)
+            ext.append((ax, im.width - ax, im.height, 0))
+    half = CANVAS / 2 - margin
+    if centre:
+        s = min(min(half / max(l, r), half / max(t, b)) for l, r, t, b in ext)
+        foot = None
+    else:
+        s = min(min(half / max(l, r), (CANVAS - 2 * margin - 1) / t) for l, r, t, b in ext)
+        foot = CANVAS - margin - 1
+    out = []
+    for im, (l, r, t, b) in zip(frames, ext):
+        w, h = max(1, round(im.width * s)), max(1, round(im.height * s))
+        im2 = im.resize((w, h), Image.LANCZOS)
+        c = Image.new('RGBA', (CANVAS, CANVAS), (0, 0, 0, 0))
+        x = round(CANVAS / 2 - l * s)
+        y = round(CANVAS / 2 - t * s) if centre else foot + 1 - h
+        c.paste(im2, (x, y), im2)
+        a = np.asarray(c).copy()
+        a[..., :3][a[..., 3] == 0] = 0
+        out.append(Image.fromarray(a, 'RGBA'))
+    return out, s
+
+
+DIRS = ['down', 'up', 'left', 'right']
+
+
+def player(c):
+    """The 17 images of a player character as {name: image at working scale}."""
+    d = figs(f'{c}_down', 3, 1)
+    u = figs(f'{c}_up', 3, 1)
+    r = figs(f'{c}_side', 3, 1)
+    if c == 'robo':
+        e = figs('robo_extra', 4)
+        e = e[:2] + [figs('robo_extra2', 3)[1], e[3]]
+    elif c == 'maus':
+        e = figs('maus_extra_a', 3)[:2] + figs('maus_extra', 4)[2:]
+    else:
+        e = figs(f'{c}_extra', 4)
+    down, up, right = [d[0], d[1], mirror(d[0])], [u[0], u[1], mirror(u[0])], list(r)
+    if c == 'pinguin':  # the model draws no waddle: tilt the body around the feet
+        down = [tilt(d[1], 9), d[1], tilt(mirror(d[1]), -9)]
+        up = [tilt(u[1], 9), u[1], tilt(mirror(u[1]), -9)]  # a lifted foot seen from behind looks odd
+        right = [tilt(r[0], -9), r[1], tilt(r[2], 9)]
+    left = [mirror(im) for im in right]
+    out = {}
+    for name, fr in (('down', down), ('up', up), ('left', left), ('right', right)):
+        for i, im in enumerate(fr, 1):
+            out[f'{c}_{name}_{i}'] = im
+    out[f'{c}_idle_1'], out[f'{c}_idle_2'], out[f'{c}_happy'], out[f'{c}_dizzy'] = e
+    return out
+
+
+LEG = (82, 98, 140)
+
+
+def legs_step(im, shift):
+    """Bug: move the legs on the left side up and those on the right side down by `shift` px (and the other way round)."""
+    a = np.asarray(im).copy()
+    h, w = a.shape[:2]
+    lum = a[..., :3].astype(np.int32).sum(2)
+    body = (a[..., 3] > 128) & (lum > 200)  # shell and head are lighter than the dark legs
+    body = ndimage.binary_fill_holes(ndimage.binary_closing(body, iterations=6))
+    lab, n = ndimage.label(body)
+    if n > 1:  # keep the biggest light part (the shell)
+        sizes = ndimage.sum(body, lab, range(1, n + 1))
+        body = lab == (1 + int(np.argmax(sizes)))
+    xs = np.where(body.any(0))[0]
+    x0, x1 = xs.min(), xs.max()
+    ys = np.where(body.any(1))[0]
+    legs = (a[..., 3] > 0) & ~ndimage.binary_dilation(body, iterations=2)
+    legs &= (np.arange(h)[:, None] > ys.min() + (ys.max() - ys.min()) * 0.12)  # not the antennae
+    rest = a.copy()
+    rest[legs] = 0
+    out = np.zeros_like(a)
+    for side, dy in ((np.arange(w)[None, :] < (x0 + x1) / 2, -shift), (np.arange(w)[None, :] >= (x0 + x1) / 2, shift)):
+        m = legs & side
+        part = np.where(m[..., None], a, 0)
+        part = np.roll(part, dy, axis=0)
+        out = np.where(part[..., 3:4] > 0, part, out)
+    out[..., :3][out[..., 3] > 0] = LEG  # the model's near-black legs vanish on dark backgrounds
+    res = Image.fromarray(out, 'RGBA')
+    res.alpha_composite(Image.fromarray(rest, 'RGBA'))
+    return res
+
+
+def sway(im, deg=5):
+    return [tilt(im, deg), tilt(mirror(im), -deg)]
+
+
+def foe(f):
+    if f == 'bug':
+        b = figs('bug', 2)[0]
+        pad = Image.new('RGBA', (b.width, b.height + 60), (0, 0, 0, 0))
+        pad.paste(b, (0, 30), b)
+        a, bb = legs_step(pad, 22), legs_step(pad, -22)
+        rot = {'up': 0, 'left': 90, 'down': 180, 'right': -90}
+        return {f'bug_{d}_{i}': im.rotate(rot[d], expand=True) for d in DIRS for i, im in ((1, a), (2, bb))}
+    s = figs(f, 4)
+    front, back, r1, r2 = s
+    fr = {'down': [front, mirror(front)], 'up': [back, mirror(back)], 'right': [r1, r2], 'left': [mirror(r1), mirror(r2)]}
+    if f in SWAY_BACK:
+        fr['up'] = sway(back)
+    return {f'{f}_{d}_{i}': im for d in DIRS for i, im in enumerate(fr[d], 1)}
+
+
+SWAY_BACK = {'crab', 'golem'}  # their back views are symmetric: a mirror would not move, so they sway
+
+
+def names():
+    out = []
+    for c in CHARS:
+        out.append([f'{c}_{d}_{i}' for d in DIRS for i in (1, 2, 3)] + [f'{c}_idle_1', f'{c}_idle_2', f'{c}_happy', f'{c}_dizzy'])
+    out.append([f'{f}_{d}_{i}' for f in ('bug', 'wisp') for d in DIRS for i in (1, 2)])
+    out.append([f'{f}_{d}_{i}' for f in ('crab', 'golem') for d in DIRS for i in (1, 2)])
+    return out
+
+
+def contact():
+    rows = names()
+    cols = max(len(r) for r in rows)
+    for zoom in (1, 2):
+        cell = CANVAS * zoom + 6
+        for tag, col, line in (('dark', (40, 42, 54, 255), (60, 62, 76, 255)), ('light', (245, 245, 240, 255), (225, 225, 218, 255))):
+            c = Image.new('RGBA', (cols * cell, len(rows) * cell), col)
+            from PIL import ImageDraw
+            d = ImageDraw.Draw(c)
+            for y, r in enumerate(rows):
+                for x, n in enumerate(r):
+                    d.rectangle((x * cell + 2, y * cell + 2, x * cell + 3 + CANVAS * zoom, y * cell + 3 + CANVAS * zoom), outline=line)
+                    im = Image.open(os.path.join(HERE, n + '.png')).convert('RGBA')
+                    im = im.resize((im.width * zoom, im.height * zoom), Image.NEAREST)
+                    c.alpha_composite(im, (x * cell + 3, y * cell + 3))
+            c.save(os.path.join(WORK, f'contact-{tag}-{zoom}x.png'))
+
+
+def save(im, name):
+    im.save(os.path.join(HERE, name + '.png'), optimize=True)
+
+
+def cut():
+    for c in CHARS:
+        imgs = player(c)
+        placed, s = place(list(imgs.values()), H)
+        for n, im in zip(imgs, placed):
+            save(im, n)
+        print(c, 'scale', round(s * H, 1), 'px standing height')
+    for f in FOES:
+        imgs = foe(f)
+        if f == 'bug':
+            placed, s = place(list(imgs.values()), 0, centre=True)
+        else:
+            placed, s = place(list(imgs.values()), max(i.height for i in imgs.values()))
+        for n, im in zip(imgs, placed):
+            save(im, n)
+        print(f, 'ok')
+
+
 if __name__ == '__main__':
     cmd, args = sys.argv[1], sys.argv[2:]
     if cmd == 'gen':
@@ -194,3 +469,7 @@ if __name__ == '__main__':
         with ThreadPoolExecutor(8) as ex:
             for s, r in ex.map(do_gen, args or list(SHEETS)):
                 print(s, r)
+    elif cmd == 'cut':
+        cut()
+    elif cmd == 'sheet':
+        contact()

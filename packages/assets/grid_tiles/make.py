@@ -109,6 +109,10 @@ def objects():
         for n, f in zip(names, files):
             im = Image.open(f).convert('RGBA')
             out[n] = bleed(im.crop(im.getbbox()))
+    # the clover is nearly the colour of the grass: a darker green reads better on the meadow
+    a = np.asarray(out['clover']).astype(np.float32)
+    a[..., :3] *= np.array([0.72, 0.82, 0.72])
+    out['clover'] = Image.fromarray(a.astype(np.uint8), 'RGBA')
     return out
 
 
@@ -181,7 +185,7 @@ GRASS = '#84b54c'  # the main colour of adventure/tile_grass, so meadows sit nex
 
 # ---- floors ----
 
-def meadow(o, kinds, n, size, seed, extra=()):
+def meadow(o, kinds, n, size, seed, small=None):
     im, d = new(GRASS)
     pts, rnd = spots(n, seed)
     # a few small darker grass marks like adventure/tile_grass
@@ -190,7 +194,7 @@ def meadow(o, kinds, n, size, seed, extra=()):
             wpoly(d, [(x + dx - 5, y), (x + dx + 5, y), (x + dx * 1.7, y - top)], '#6f9e3c')
     for k, (x, y) in enumerate(pts):
         name = kinds[k % len(kinds)]
-        spr = rot(scaled(o[name], size * (0.85 + 0.3 * rnd.random())), rnd.randrange(360))
+        spr = rot(scaled(o[name], (small or {}).get(name, size) * (0.85 + 0.3 * rnd.random())), rnd.randrange(360))
         wpaste(im, spr, x, y)
     return done(im)
 
@@ -205,16 +209,17 @@ def soil():
 
 
 def soil_tilled():
-    im, d = new('#6e4225')  # furrow bottoms
+    im, d = new('#5e3820')  # furrow bottoms
     rnd = random.Random(12)
     h = S // 4
     for r in range(4):
         y = r * h
-        wrect(d, (-20, y + 8, S + 20, y + h - 18), '#9a6239', 22)  # ridge
-        wrect(d, (-20, y + 12, S + 20, y + 24), '#ab7044', 6)  # lit top of the ridge
-        for _ in range(3):
-            x = rnd.randrange(S)
-            wellipse(d, (x - 8, y + h - 14, x + 8, y + h - 4), '#5c361e')
+        wrect(d, (-20, y + 10, S + 20, y + h - 12), '#7f4f2d', 24)  # shadow side of the ridge
+        wrect(d, (-20, y + 6, S + 20, y + h - 20), '#9e663b', 22)  # ridge
+        for k in range(7):  # clods on the ridge
+            x = (k * 37 + rnd.randrange(0, 20)) % S
+            r2 = rnd.randrange(5, 9)
+            wellipse(d, (x - r2, y + 22 - r2 * 0.7, x + r2, y + 22 + r2 * 0.7), rnd.choice(['#b47a4a', '#8a5531']))
     return done(im)
 
 
@@ -552,8 +557,8 @@ def marker_cross(d, s):
 
 def path_dot(d, s):
     c = s // 2
-    d.ellipse((c - 30, c - 30, c + 30, c + 30), fill=(40, 40, 50, 90))
-    d.ellipse((c - 22, c - 22, c + 22, c + 22), fill=(255, 255, 255, 240))
+    d.ellipse((c - 40, c - 40, c + 40, c + 40), fill=(40, 40, 50, 90))
+    d.ellipse((c - 30, c - 30, c + 30, c + 30), fill=(255, 255, 255, 240))
 
 
 def highlight(rgb):
@@ -573,7 +578,7 @@ def build():
     out['gt_soil'] = soil()
     out['gt_soil_tilled'] = soil_tilled()
     out['gt_soil_wet'] = soil_wet()
-    out['gt_clover'] = meadow(o, ['clover', 'clover', 'clover', 'cloverblossom'], 9, 60, 41)
+    out['gt_clover'] = meadow(o, ['clover'] * 4 + ['cloverblossom'] + ['clover'] * 4, 9, 84, 41, small={'cloverblossom': 40})
     out['gt_flowers'] = meadow(o, ['daisy', 'buttercup', 'blueflower', 'daisy', 'orangeflower'], 7, 44, 42)
     out['gt_cobble'] = cobble()
     out['gt_carpet_red'] = carpet()
