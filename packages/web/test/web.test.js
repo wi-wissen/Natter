@@ -264,3 +264,32 @@ describe('runner', () => {
     expect(files.at(-1)).toEqual(['x.txt', '1']);
   });
 });
+
+describe('kara images', async () => {
+  const { karaImageUrls, karaSprite, meadowDecor, KARA_IMAGES } = await import('../src/karaWorld.js');
+  it('finds the kara images in the catalog and in pack.json', () => {
+    const cat = { images: [{ name: 'kara', file: 'kara/kara.png' }, { name: 'kara', file: 'other.png' }, { name: 'ente', file: 'animals/ente.png' }, { name: 'kara_rock', file: 'kara/kara_rock.png' }, { name: 'kara_tree', file: '/abs/tree.png' }] };
+    expect(karaImageUrls(cat, 'https://x/lib/')).toEqual({ kara: 'https://x/lib/kara/kara.png', kara_tree: '/abs/tree.png' });
+    expect(karaImageUrls({ assets: [{ name: 'kara_grass', file: 'kara_grass.png' }] }, '/a/', 'kara/')).toEqual({ kara_grass: '/a/kara/kara_grass.png' });
+    expect(KARA_IMAGES).toContain('kara_mushroom_berry');
+  });
+  it('picks the picture for the direction, turns kara while turning', () => {
+    expect(karaSprite({ angle: 0 })).toEqual({ name: 'kara', rotate: 0 });
+    expect(karaSprite({ angle: -90 })).toEqual({ name: 'kara_up', rotate: 0 });
+    expect(karaSprite({ angle: 180 })).toEqual({ name: 'kara_left', rotate: 0 });
+    expect(karaSprite({ angle: 450 })).toEqual({ name: 'kara_down', rotate: 0 });
+    expect(karaSprite({ angle: -45 })).toEqual({ name: 'kara', rotate: 315 });
+    expect(karaSprite({ angle: 90, berry: true })).toEqual({ name: 'kara_berry', rotate: 90 });
+    expect(karaSprite({ angle: 180, berry: true, bump: true })).toEqual({ name: 'kara_bump', rotate: 180 });
+  });
+  it('decorates few cells, always the same ones', () => {
+    let n = 0;
+    for (let y = 0; y < 20; y++) for (let x = 0; x < 30; x++) {
+      const d = meadowDecor(x, y);
+      expect(d).toEqual(meadowDecor(x, y));
+      if (d) { n++; expect(d.name).toBe('kara_flower'); expect(d.dx > 0 && d.dx < 1 && d.dy > 0 && d.dy < 1).toBe(true); }
+    }
+    expect(n).toBeGreaterThan(20);
+    expect(n).toBeLessThan(120);
+  });
+});

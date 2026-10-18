@@ -107,6 +107,39 @@ for i in range(3):
     move()
 print("Der Pilz liegt auf der Beere.")
 ` },
+  { id: 'kara-sokoban', title: 'Kara: Sokoban mit Pilzen', code: `world(${Q}
+########
+#@ $  .#
+#      #
+#  $   #
+#   .  #
+########
+${Q})
+# Schiebe beide Pilze auf die Beeren, wie Kisten in Sokoban.
+def schritte(n):
+    for i in range(n):
+        move()
+
+# 1. Pilz: geradeaus auf die Beere schieben
+schritte(4)
+# 2. Pilz: hinlaufen und nach rechts schieben ...
+turnRight()
+move()
+turnRight()
+schritte(3)
+turnLeft()
+move()
+turnLeft()
+move()
+# ... dann von oben auf die Beere schieben
+turnLeft()
+move()
+turnRight()
+move()
+turnRight()
+move()
+print("Beide Pilze liegen auf den Beeren!")
+` },
   { id: 'kara-crash', title: 'Kara: gegen den Baum', code: `world(${Q}
 #######
 #@  # #

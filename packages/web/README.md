@@ -18,7 +18,7 @@ import { createRunner, createConsole, createTurtle, createKara, detectModules, k
 const runner = createRunner({ timeScale: 1 });
 const con = createConsole(document.querySelector('#console'), { lang: 'de', onLineClick: (line) => editor.goto(line) }).connect(runner);
 const turtle = createTurtle(document.querySelector('#turtle'));   // Container braucht eine Höhe
-const kara = createKara(document.querySelector('#kara'));
+const kara = createKara(document.querySelector('#kara'), { assets: { baseUrl: '/assets/', catalog: 'catalog.json' } });
 runner.use(turtle).use(kara);
 
 const mods = detectModules(source);                               // ['turtle'] / ['kara'] / []
@@ -64,9 +64,13 @@ Farben über CSS-Variablen `--nw-bg`, `--nw-text`, `--nw-muted`, `--nw-line`, `-
 
 Setzt `host.turtle(kind, args)` aus `docs/HOST-TURTLE-KARA.md` um: Ursprung in der Mitte, y nach oben, `setworldcoordinates`, Stifte, Füllen (`evenodd` wie Tk, die Füllung liegt unter den Linien), Punkte, Text mit Schrift, Stempel, mehrere Schildkröten mit Formen (`turtle` aus `packages/assets/turtle/turtle.svg`, mit `fillcolor` eingefärbt), Sichtbarkeit, `bgcolor`, `setup`, `title`, `clear`, `reset`, `clearscreen`, `tracer`/`update`. Geschwindigkeit 1–10 animiert (Rückgabe = Wartezeit); Tempo 0 kostet `instantMs` (1 ms) pro Schritt, solange `tracer` an ist (wie die Bildschirm-Updates in CPython), mit `tracer(0)` nichts. Tasten (Tk-Namen: `Left`, `space` …), Klicks und Tipps (als Float-Koordinaten) und Timer gehen über `turtleEvent` an `mainloop()`, `exitonclick()` endet beim Klick; `textinput`/`numinput` öffnen einen Dialog. Bildschirm vor `setup()`: 960 × 810 (wie `window_width()` im Kern), auf das Containermaß verkleinert; Schildkröten behalten dabei ihre Bildschirmgröße.
 
-## Kara: `createKara(container, { stepSeconds, fit, maxScale })`
+## Kara: `createKara(container, { stepSeconds, fit, maxScale, assets, decor })`
 
-Wiese von 3×3 bis 30×20 (Zellen passen sich an), Bäume, Beeren, Pilze (grün, wenn alle auf Beeren liegen), Marienkäfer mit Blickrichtung. `move`, `push`, `turn`, `put`, `remove` sind animiert (`stepSeconds`, Standard 0,3; auch später über `kara.stepSeconds` änderbar), `crash` zeigt den Zusammenstoß, der Fehler kommt wie jeder andere.
+Wiese von 3×3 bis 30×20 (Zellen passen sich an), Bäume, Beeren, Pilze, Marienkäfer mit Blickrichtung. `move`, `push`, `turn`, `put`, `remove` sind animiert (`stepSeconds`, Standard 0,3; auch später über `kara.stepSeconds` änderbar), `crash` zeigt den Zusammenstoß, der Fehler kommt wie jeder andere.
+
+- **Bilder:** `assets` wie bei Pygame Zero (`{ baseUrl, catalog: 'catalog.json' }`, der Katalog selbst oder eine Liste; ohne Katalog `<baseUrl>kara/pack.json`). Beim ersten `world` lädt Kara einmal die Bilder des Pakets `kara` (nur diese 12 Dateien; `kara.preload()` lädt sofort): `kara_grass` unter jeder Zelle, `kara_tree`, `kara_blueberry`, `kara_mushroom` (`kara_mushroom_berry` auf einer Beere), Kara als `kara`/`kara_up`/`kara_left`/`kara_down`, `kara_berry` auf einer Beere (in ihre Richtung gedreht), `kara_bump` nach dem Zusammenstoß. Beim Drehen dreht sich das Bild `kara` und rastet dann auf das Bild der Richtung ein. Wer ein Bild im Katalog unter demselben Namen ersetzt, ändert Karas Aussehen. `decor` (Standard an): auf etwa jeder neunten leeren Zelle eine kleine Blume (`kara_flower`), fest je Zelle, nur Schmuck und nur bei Zellen ab 30 px; `kara_rock` bleibt weg (sähe wie ein Hindernis aus).
+- **Ersatz:** ohne `assets`, oder wenn Katalog oder ein Bild fehlt, zeichnet Kara wie bisher mit Vektorformen (Pilze grün, wenn alle auf Beeren liegen). Bis die Bilder da sind (höchstens 1,5 s), zeigt die Fläche nur die Wiese. `canvas.dataset.karaStyle` ist `images`, `shapes` oder `loading`, `kara.info.images` `ready`, `failed`, `none` oder `loading`.
+- Pilze lassen sich schieben wie Kisten in Sokoban (Demo-Beispiel „Kara: Sokoban mit Pilzen“).
 
 ## Pygame Zero: `createPgzero(container, options)`
 

@@ -40,6 +40,8 @@ Ereignisse (Tasten, Klicks, Zeitgeber): `mainloop()`/`done()`/`exitonclick()` wa
 | `put`, `remove` | x, y |
 | `crash` | `'tree'`, `'edge'`, `'mushroom'`, `'berryThere'`, `'noBerry'` (kurz vor dem Fehler) |
 
+Pilze lassen sich wie Kisten in Sokoban schieben: `move()` gegen einen Pilz schiebt ihn eine Zelle weiter, wenn dahinter frei ist (kein Baum, kein Pilz, kein Rand); `*` ist ein Pilz auf einer Beere (Ziel). Der Browser-Host zeichnet mit den Bildern des Pakets `kara` (`packages/web/README.md`).
+
 Der Zustand liegt in `vm.kara`; `worldText(vm.kara)` (aus `stdlib/kara.js`) liefert das aktuelle Bild. Die Befehle gibt es als Modul (`import kara`) und als vorbelegte Namen: `karaGlobals()` an `runToEnd` oder die VM (`globals`) übergeben, dann laufen Programme wie im Buch ohne Import. Fehler heißen `err.script.kara.<was>` (Deutsch und Englisch in `messages.js`).
 
 ## requests: `task.wait.kind === 'http'`

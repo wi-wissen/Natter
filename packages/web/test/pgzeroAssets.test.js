@@ -113,7 +113,7 @@ describe('hints for a missing library name', () => {
     const assets = createAssets({ assets: { baseUrl: BASE, catalog: 'catalog.json' }, fetch: f.fn });
     await assets.prepare(['a = Actor("ufo")\n']);
     const t = assets.describeMissing('images', 'ufo');
-    expect(t).toContain('in den 14 Paketen der Bibliothek');
+    expect(t).toMatch(/in den \d+ Paketen der Bibliothek/);
     expect(t).toContain('Meintest du „sp_ufo“?');
   });
 });

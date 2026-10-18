@@ -138,8 +138,67 @@ const tests = [
     await frame(page);
     assertEq(await state(page), 'done', 'state');
     const [cx, cy] = await page.evaluate(() => window.demo.kara.cellCenter(7, 1));
-    const c = await pixel(page, 'kara', cx, cy - 8);
-    assert(c[1] > 120 && c[0] < 80, 'green cap (mushroom on berry): ' + c);
+    const sc = await page.evaluate(() => window.demo.kara.stage.scale);
+    const c = await pixel(page, 'kara', cx + 4 * sc, cy - 8 * sc);
+    assert(c[0] > 190 && c[1] > 100 && c[1] < 160 && c[2] < 80, 'orange cap of kara_mushroom_berry: ' + c);
+    const b = await pixel(page, 'kara', cx - 10 * sc, cy + 12 * sc);
+    assert(b[2] > b[0] + 30, 'blueberry under the mushroom: ' + b);
+  }],
+  ['kara draws the library images (grass, tree, Kara by direction)', async ({ page }) => {
+    await start(page, 'kara-tree');
+    await finished(page);
+    await frame(page);
+    assertEq(await page.evaluate(() => window.demo.kara.canvas.dataset.karaStyle), 'images', 'data-kara-style');
+    assertEq(await page.evaluate(() => window.demo.kara.info.images), 'ready', 'info.images');
+    const sc = await page.evaluate(() => window.demo.kara.stage.scale);
+    // an empty cell: grass green of kara_grass (151, 211, 104), not the pale shapes meadow
+    const [gx, gy] = await page.evaluate(() => window.demo.kara.cellCenter(6, 2));
+    const g = await pixel(page, 'kara', gx, gy - 14 * sc);
+    assert(near(g, [151, 211, 104], 25), 'grass of the image: ' + g);
+    // a tree: the green crown of kara_tree
+    const [tx, ty] = await page.evaluate(() => window.demo.kara.cellCenter(0, 0));
+    const t = await pixel(page, 'kara', tx, ty - 4 * sc);
+    assert(t[1] > t[0] + 30 && t[1] < 200, 'tree crown: ' + t);
+    // Kara looks down at the end (kara_down): the black head is below the centre
+    const [kx, ky] = await page.evaluate(() => window.demo.kara.cellCenter(4, 3));
+    const head = await pixel(page, 'kara', kx - 17 * sc, ky);
+    assert(head[0] < 90 && head[1] < 90, 'black head on the left (kara_left): ' + head);
+    const tail = await pixel(page, 'kara', kx + 12 * sc, ky - 6 * sc);
+    assert(tail[0] > 150 && tail[1] < 90, 'red wings on the right: ' + tail);
+  }],
+  ['kara sokoban: two mushrooms pushed onto the berries (screenshots while pushing)', async ({ page }) => {
+    await start(page, 'kara-sokoban');
+    await page.waitForFunction(() => window.demo.kara.info.kara.x === 3, null, { timeout: 15000 });
+    await page.waitForTimeout(120);
+    await page.screenshot({ path: join(OUT, 'desktop-kara-push.png') });
+    await finished(page);
+    await frame(page);
+    assertEq(await state(page), 'done', 'state');
+    assert((await output(page)).includes('Beide Pilze'), 'output');
+    const sc = await page.evaluate(() => window.demo.kara.stage.scale);
+    for (const [x, y] of [[6, 1], [4, 4]]) {
+      const [cx, cy] = await page.evaluate(([x, y]) => window.demo.kara.cellCenter(x, y), [x, y]);
+      const c = await pixel(page, 'kara', cx + 4 * sc, cy - 8 * sc);
+      assert(c[0] > 190 && c[1] > 100 && c[2] < 80, `mushroom on the berry at ${x},${y}: ` + c);
+    }
+    await page.screenshot({ path: join(OUT, 'desktop-kara-sokoban.png') });
+  }],
+  ['kara images scale to tiny and large worlds', async ({ page }) => {
+    const rows = Array.from({ length: 20 }, (_, y) => Array.from({ length: 30 }, (_, x) => (x === 0 || y === 0 || x === 29 || y === 19 ? '#' : ' ')));
+    rows[1][1] = '@';
+    for (const [x, y, ch] of [[8, 4, '.'], [12, 6, '$'], [20, 10, '*'], [5, 14, '#'], [6, 14, '#'], [24, 3, '.'], [15, 15, '$'], [16, 15, '.']]) rows[y][x] = ch;
+    const big = rows.map((r) => r.join('')).join('\n');
+    await start(page, `world("""\n${big}\n""")\nmove()\nmove()\nturnRight()\nmove()\n`);
+    await finished(page);
+    await frame(page);
+    assertEq(await state(page), 'done', 'state: ' + (await output(page)));
+    assertEq(JSON.stringify(await page.evaluate(() => window.demo.kara.info.size)), '[30,20]', 'size');
+    await page.screenshot({ path: join(OUT, 'desktop-kara-big.png') });
+    await start(page, 'world("""\n@. \n $ \n  #\n""")\nmove()\nputBerry() if not onBerry() else None\nturnRight()\n');
+    await finished(page);
+    await frame(page);
+    assertEq(await state(page), 'done', 'state small: ' + (await output(page)));
+    await page.screenshot({ path: join(OUT, 'desktop-kara-small.png') });
   }],
   ['kara crash: bump and friendly error', async ({ page }) => {
     await start(page, 'kara-crash');
@@ -150,7 +209,37 @@ const tests = [
     assert(/Zeile 7/.test(err), 'line in the error: ' + err);
     assertEq(await page.locator('.nw-error').getAttribute('data-code'), 'err.script.kara', 'error code');
     await page.waitForTimeout(500);
+    // kara_bump: the yellow stars above the head (towards the tree on the right)
+    const [cx, cy] = await page.evaluate(() => window.demo.kara.cellCenter(3, 1));
+    const sc = await page.evaluate(() => window.demo.kara.stage.scale);
+    let star = false;
+    for (let dx = 4; dx <= 22 && !star; dx += 2) for (let dy = -22; dy <= -10 && !star; dy += 2) {
+      const c = await pixel(page, 'kara', cx + dx * sc, cy + dy * sc);
+      star = c[0] > 200 && c[1] > 170 && c[2] < 120;
+    }
+    assert(star, 'yellow stars of kara_bump');
     await page.screenshot({ path: join(OUT, 'desktop-kara-crash.png') });
+  }],
+  ['kara falls back to shapes when the images are missing', async ({ browser, base }) => {
+    const ctx = await browser.newContext({ viewport: { width: 1440, height: 900 } });
+    const p = await ctx.newPage();
+    await p.goto(base + '?kara=shapes&example=kara-tree');
+    await p.waitForFunction(() => window.demo);
+    await p.click('#run');
+    await finished(p);
+    await frame(p);
+    assertEq(await p.evaluate(() => document.body.dataset.state), 'done', 'state');
+    assertEq(await p.evaluate(() => window.demo.kara.canvas.dataset.karaStyle), 'shapes', 'data-kara-style');
+    assertEq(await p.evaluate(() => window.demo.kara.info.images), 'failed', 'info.images');
+    const [cx, cy] = await p.evaluate(() => window.demo.kara.cellCenter(4, 3));
+    const reds = [];
+    for (const dx of [-8, -4, 0, 4, 8]) for (const dy of [-8, -4, 0, 4, 8]) reds.push(await pixel(p, 'kara', cx + dx, cy + dy));
+    assert(reds.filter((c) => c[0] > 200 && c[1] < 100).length >= 5, 'red ladybug drawn with shapes: ' + JSON.stringify(reds));
+    const [gx, gy] = await p.evaluate(() => window.demo.kara.cellCenter(6, 2));
+    const g = await pixel(p, 'kara', gx, gy);
+    assert(near(g, [234, 244, 220], 12) || near(g, [227, 240, 210], 12), 'pale meadow of the shapes: ' + g);
+    await p.screenshot({ path: join(OUT, 'desktop-kara-shapes.png') });
+    await ctx.close();
   }],
   ['input() through the console line', async ({ page }) => {
     await start(page, 'input');
@@ -250,7 +339,21 @@ const tests = [
     await p.click('#run');
     await finished(p);
     await frame(p);
+    assertEq(await p.evaluate(() => window.demo.kara.canvas.dataset.karaStyle), 'images', 'images on the phone');
+    const kfit = await p.evaluate(() => ({ sw: document.scrollingElement.scrollWidth, r: window.demo.kara.canvas.getBoundingClientRect().right, k: window.demo.kara.canvas.width / window.demo.kara.canvas.clientWidth }));
+    assert(kfit.sw <= 412 && kfit.r <= 412, 'kara fits the phone: ' + JSON.stringify(kfit));
+    assert(Math.abs(kfit.k - 2.625) < 0.05, 'kara crisp on the phone: ' + kfit.k);
     await p.screenshot({ path: join(OUT, 'phone-kara.png'), fullPage: true });
+    await p.evaluate(() => window.demo.load('kara-sokoban'));
+    await p.click('#run');
+    await finished(p);
+    await frame(p);
+    await p.locator('#kara').screenshot({ path: join(OUT, 'phone-kara-sokoban.png') });
+    await p.evaluate(() => window.demo.load('kara-crash'));
+    await p.click('#run');
+    await finished(p);
+    await p.waitForTimeout(500);
+    await p.locator('#kara').screenshot({ path: join(OUT, 'phone-kara-crash.png') });
     await ctx.close();
   }],
 ];

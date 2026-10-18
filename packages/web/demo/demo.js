@@ -17,14 +17,17 @@ const STATES = { idle: 'bereit', running: 'läuft …', waiting: 'wartet …', p
 const runner = createRunner();
 const con = createConsole($('console'), { lang: 'de', onLineClick: (line) => selectLine(line) }).connect(runner);
 const turtle = createTurtle($('turtle'), { lang: 'de' });
-const kara = createKara($('kara'));
+// Kara draws with the images of the library (pack kara); ?kara=shapes points it at a missing library (fallback: shapes)
+const library = new URL('../../assets/', import.meta.url).href;
+const karaLib = new URLSearchParams(location.search).get('kara') === 'shapes' ? new URL('./missing/', import.meta.url).href : library;
+const kara = createKara($('kara'), { assets: { baseUrl: karaLib, catalog: 'catalog.json' } });
 const forms = createForms($('forms'), { lang: 'de' });
 const plot = createPlot($('plot'), { lang: 'de' });
 runner.use(turtle).use(kara).use(forms).use(plot);
 // Pygame Zero: the library of packages/assets (catalog.json; the demo's own figures fill in ground_flat), on-screen buttons on touch screens
 const pgz = createPgzero($('pgzero'), {
   lang: 'de', controls: 'auto',
-  assets: [{ baseUrl: new URL('../../assets/', import.meta.url).href, catalog: 'catalog.json' }, { baseUrl: new URL('./assets/', import.meta.url).href, packs: ['anim'] }],
+  assets: [{ baseUrl: library, catalog: 'catalog.json' }, { baseUrl: new URL('./assets/', import.meta.url).href, packs: ['anim'] }],
 });
 addPondPlaceholders(pgz);
 runner.use(pgz);
