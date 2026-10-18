@@ -472,6 +472,7 @@ function renderBody(sec) {
   if (sec.assets) {
     const a = sec.assets;
     h += `<h4>Game types with starter sets</h4><div class="scroll"><table class="rt"><thead><tr><th>Game type</th><th>Packs and starter images</th></tr></thead><tbody>${a.types.map((t) => `<tr class="re" data-q="${esc(`${t.id} ${t.text} ${t.hint} ${t.packs.join(' ')} ${t.starter.join(' ')}`.toLowerCase())}"><td><b>${esc(t.text)}</b><br><code>${esc(t.id)}</code></td><td>${esc(t.hint)}<br><span class="small">Packs: ${t.packs.map((p) => `<code>${esc(p)}</code>`).join(' ')}</span><br>${t.starter.map((s) => `<code class="img">${esc(s)}</code>`).join(' ')}</td></tr>`).join('')}</tbody></table></div>`;
+    h += `<p class="intro"><a class="btn" href="../sprites/">Browse all images and sounds in the sprite gallery</a></p>`;
     h += `<h4>Packs</h4><ul class="chips">${a.packs.map((p) => `<li class="re" data-q="${esc(`${p.pack} ${p.title}`.toLowerCase())}"><code>${esc(p.pack)}</code> ${esc(p.title)}</li>`).join('')}</ul>`;
     h += `<h4>Sounds</h4><ul class="chips">${a.sounds.map((s) => `<li class="re" data-q="${esc(`sounds.${s.name} ${s.text}`.toLowerCase())}"><code>sounds.${esc(s.name)}</code> ${esc(s.text)}</li>`).join('')}</ul>`;
   }
@@ -592,7 +593,7 @@ function render(sections) {
 <header class="ref-top">
   <div class="wrap topbar">
     <a class="brand" href="../index.html" aria-label="Natter, home page"><img src="../natter-small.svg" width="32" height="32" alt="">Natter</a>
-    <a class="gh-small" href="https://github.com/wi-wissen/Natter">GitHub</a>
+    <span class="toplinks"><a class="gh-small" href="../sprites/">Sprites</a><a class="gh-small" href="https://github.com/wi-wissen/Natter">GitHub</a></span>
   </div>
   <div class="wrap ref-hero">
     <p class="eyebrow">Command reference</p>
@@ -618,7 +619,7 @@ ${sections.map(renderSection).join('\n')}
 <footer>
   <div class="wrap foot">
     <img class="foot-mark" src="../natter.svg" width="64" height="64" alt="">
-    <p>Natter is open source. <a href="../index.html">Overview</a> &middot; <a href="https://github.com/wi-wissen/Natter">Source code</a></p>
+    <p>Natter is open source. <a href="../index.html">Overview</a> &middot; <a href="../sprites/">Sprites</a> &middot; <a href="https://github.com/wi-wissen/Natter">Source code</a></p>
   </div>
 </footer>
 <script>${SCRIPT}</script>

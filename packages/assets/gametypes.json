@@ -1,5 +1,5 @@
 {
-  "about": "Game types of the library: the gallery of python.jetzt shows them first, each with a hand-picked starter set (8 to 16 image names; a frame name like heroine_run_1 stands for its animation), the packs hold the rest. Checked by test/gametypes.test.js, copied into catalog.json.",
+  "about": "Game types of the library: the sprite gallery (docs/sprites/) shows them first, each with a hand-picked starter set (8 to 16 image names; a frame name like heroine_run_1 stands for its animation), the packs hold the rest. Checked by test/gametypes.test.js, copied into catalog.json.",
   "types": [
     {
       "id": "platformer",

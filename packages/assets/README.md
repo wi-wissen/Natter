@@ -1,6 +1,6 @@
 # Bildbibliothek für Spiele
 
-Bilder und Klänge für Pygame-Zero-Spiele in Natter und auf [python.jetzt](https://python.jetzt/bilder.html): rund 920 PNG-Sprites in einem einheitlichen flachen Emoji-Stil, zwei SVG-Schildkröten und 14 kurze Klänge. Schülerinnen und Schüler schreiben nur den Namen, ohne Dateien hochzuladen:
+Bilder und Klänge für Pygame-Zero-Spiele in Natter und in [CodeNatter](https://codenatter.de), alle zu sehen in der [Sprite-Galerie](https://natter.wi7.net/sprites/): rund 920 PNG-Sprites in einem einheitlichen flachen Emoji-Stil, zwei SVG-Schildkröten und 14 kurze Klänge. Schülerinnen und Schüler schreiben nur den Namen, ohne Dateien hochzuladen:
 
 ```python
 heldin = Actor("heroine_run_1")
@@ -41,11 +41,11 @@ Zusammen etwa 4,5 MB. Jedes Paket hat eine `pack.json` (Name, Datei, Schlagwört
 npm run assets:catalog    # catalog.json neu schreiben (nach jeder Änderung an einem Paket)
 ```
 
-Ein Test (`test/catalog.test.js`) schlägt fehl, wenn die eingecheckte Datei nicht mehr stimmt. Der Pygame-Zero-Host liest den Katalog mit einer Anfrage (`assets: { baseUrl, catalog: 'catalog.json' }`, siehe `packages/web/README.md`) und lädt danach nur die Bilder, die ein Programm nennt; python.jetzt baut daraus seine Bildergalerie.
+Ein Test (`test/catalog.test.js`) schlägt fehl, wenn die eingecheckte Datei nicht mehr stimmt. Der Pygame-Zero-Host liest den Katalog mit einer Anfrage (`assets: { baseUrl, catalog: 'catalog.json' }`, siehe `packages/web/README.md`) und lädt danach nur die Bilder, die ein Programm nennt; die [Sprite-Galerie](https://natter.wi7.net/sprites/) (`npm run sprites`) und CodeNatter bauen darauf auf.
 
 ## Spielarten
 
-`gametypes.json` ordnet die Bibliothek nach Spielart, so zeigt sie die Galerie auf python.jetzt: zuerst je Spielart eine kleine, von Hand ausgesuchte **Startauswahl** (8 bis 16 Bilder), darunter „Mehr aus den Paketen“ mit allem Übrigen. Jede Spielart hat `id`, `de`, `en`, `hint` (ein Satz de/en), `packs` (die Pakete dahinter, ein Paket darf in mehreren stehen) und `starter` (Bildnamen; ein Animationsbild wie `heroine_run_1` steht für die ganze Animation).
+`gametypes.json` ordnet die Bibliothek nach Spielart, so zeigt sie die [Sprite-Galerie](https://natter.wi7.net/sprites/) (`docs/sprites/`, `npm run sprites`): zuerst je Spielart eine kleine, von Hand ausgesuchte **Startauswahl** (8 bis 16 Bilder), darunter „Mehr aus den Paketen“ mit allem Übrigen. Jede Spielart hat `id`, `de`, `en`, `hint` (ein Satz de/en), `packs` (die Pakete dahinter, ein Paket darf in mehreren stehen) und `starter` (Bildnamen; ein Animationsbild wie `heroine_run_1` steht für die ganze Animation).
 
 | `id` | Spielart | Pakete |
 |---|---|---|
@@ -89,4 +89,4 @@ Gedacht als **CC0** (gemeinfrei): frei verwendbar, veränderbar und weitergebbar
 3. `pack.json` schreiben (`pack`, `title.de/en`, `format: "png"`, `assets` mit `name`, `file`, `tags`, `de`, `en`).
 4. Das Paket in `gametypes.json` einer Spielart zuordnen (oder eine neue anlegen, mit Startauswahl).
 5. `npm run assets:catalog`, dann `npx vitest run packages/assets` (prüft Namen, Dateien, Größen, Alphakanal, Katalog, Spielarten).
-6. In python.jetzt `npm run natter:sync` ausführen: das Paket erscheint dort im Spiel und in der Galerie.
+6. `npm run sprites` ausführen: das Paket erscheint in der Sprite-Galerie (`docs/sprites/index.html`). CodeNatter übernimmt es mit der nächsten Version von `@natterjs/assets`.

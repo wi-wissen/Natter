@@ -100,7 +100,7 @@ function tile(item, base) {
   const attrs = [`data-p="${esc(item.pack)}"`, `data-g="${esc((a.tags ?? []).join(' '))}"`];
   if (anim) attrs.push(`data-fr="${esc(item.images.map((f) => f.name).join(' '))}"`);
   const size = `${a.w}×${a.h}${anim ? ` · ${item.images.length} frames` : ''}`;
-  return `<li class="t${anim ? ' an' : ''}" ${attrs.join(' ')}><button type="button" class="pv"><img src="${esc(base + a.file)}" width="${w}" height="${h}" loading="lazy" decoding="async" alt="${esc(item.text)}"></button><button type="button" class="nm" title="Copy name">${esc(a.name)}</button><span class="sz">${size}</span></li>`;
+  return `<li class="t${anim ? ' an' : ''}" ${attrs.join(' ')}><button type="button" class="pv"><img src="${esc(base + a.file)}" width="${w}" height="${h}" loading="lazy" decoding="async" alt="${esc(item.text)}"></button><button type="button" class="nm" title="Copy name">${esc(a.name).replace(/_/g, '_<wbr>')}</button><span class="sz">${size}</span></li>`;
 }
 
 const grid = (items, base) => `<ul class="tiles">${items.map((i) => tile(i, base)).join('')}</ul>`;
@@ -128,7 +128,7 @@ function renderSounds(catalog, base) {
   return `<section class="gt" id="sounds" data-title="sounds sound audio">
 <p class="kicker">${String(read('gametypes.json').types.length + 1).padStart(2, '0')} &middot; Sounds</p>
 <h2>Sounds</h2>
-<p class="hint">Short WAV effects. Play one with <code>sounds.coin.play()</code>; <code>music.play("win")</code> loops it.</p>
+<p class="hint">Short WAV effects. Play one with <code>sounds.coin.play()</code>, click a name to copy that line.</p>
 <ul class="sounds">${catalog.sounds.map((s) => `<li class="snd" data-n="${esc(s.name)}" data-g="${esc((s.tags ?? []).join(' '))}"><button type="button" class="play" data-src="${esc(base + s.file)}" aria-label="Play ${esc(s.name)}"></button><button type="button" class="nm" title="Copy code" data-copy="sounds.${esc(s.name)}.play()">sounds.${esc(s.name)}.play()</button><span class="sd">${esc(s.en)} <span class="sz">${s.seconds} s</span></span></li>`).join('')}</ul>
 </section>`;
 }
@@ -212,7 +212,7 @@ const SCRIPT = `
     function off() { if (stop) { stop(); stop = null; } }
     t.addEventListener('pointerenter', function (e) { if (e.pointerType === 'mouse') on(); });
     t.addEventListener('pointerleave', off);
-    t.addEventListener('focusin', on);
+    t.addEventListener('focusin', function (e) { if (e.target.matches(':focus-visible')) on(); });
     t.addEventListener('focusout', off);
   });
 
@@ -398,7 +398,7 @@ function render({ catalog, types }, base) {
   </div></nav>
 </div>
 <main class="wrap" id="content">
-<p class="tip">Click a picture for details and code, click a name to copy it. Animations play when you point at them.</p>
+<p class="tip">Click a picture for details and code, click a name to copy it. Animations play when you point at them or open them.</p>
 <p id="none" class="none" hidden>Nothing found. Try an English word like <code>tree</code>, <code>coin</code> or <code>walk</code>.</p>
 ${types.map((t, i) => renderType(t, i, types, base)).join('\n')}
 ${renderSounds(catalog, base)}

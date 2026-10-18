@@ -140,8 +140,8 @@ export function buildCatalog(root = ROOT) {
 }
 
 /**
- * The game types (packages/assets/gametypes.json): id, de, en, hint {de, en}, packs, starter (image names). The gallery
- * of python.jetzt is ordered by them. Empty when the file is missing.
+ * The game types (packages/assets/gametypes.json): id, de, en, hint {de, en}, packs, starter (image names). The sprite
+ * gallery (docs/sprites/) and CodeNatter are ordered by them. Empty when the file is missing.
  */
 export function readGametypes(root = ROOT) {
   const file = join(root, 'gametypes.json');

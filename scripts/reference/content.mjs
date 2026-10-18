@@ -405,7 +405,7 @@ export const SECTIONS = [
     id: 'assets', title: 'Asset library', group: G_DRAW, source: 'assets',
     intro: [
       'About {images} images in one consistent style plus short sounds, free to use (CC0). A program only names them, without uploading files: `Actor("heroine_run_1")`, `screen.blit("pf_grass_mid", (0, 416))`, `sounds.coin.play()`. Kara and the turtle shape use the same library.',
-      'Only what the program mentions is loaded. A string like `"heroine_run_" + str(i)` loads all images whose name starts that way. Your own file with the same name in the project folder `images/` wins. The [gallery on python.jetzt](https://python.jetzt/bilder.html) shows all images with previews; the packs live in `packages/assets` (`gametypes.json`, `catalog.json`).',
+      'Only what the program mentions is loaded. A string like `"heroine_run_" + str(i)` loads all images whose name starts that way. Your own file with the same name in the project folder `images/` wins. The [sprite gallery](../sprites/) shows all images and sounds with previews, sorted by game type; the packs live in `packages/assets` (`gametypes.json`, `catalog.json`).',
     ],
     notesTitle: 'Names',
     notes: ['Lower case, ASCII, unique across all packs. Animation frames end in `_1`, `_2` … (`heroine_run_1` to `heroine_run_8`); characters face right unless the name says `_left`. Names in the book pack are German (`ente`, `kueken`, `boot`) because the book uses them.'],

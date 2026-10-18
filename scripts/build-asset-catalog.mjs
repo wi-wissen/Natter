@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // Write packages/assets/catalog.json: every image of every pack (name, pack, file, size, tags, de/en), the sounds,
-// and the animation groups. The Pygame Zero host reads it with one request instead of one per pack; python.jetzt
-// builds its gallery from it. Usage: npm run assets:catalog [-- --check]
+// and the animation groups. The Pygame Zero host reads it with one request instead of one per pack; the sprite
+// gallery (scripts/build-sprites.mjs) and CodeNatter build on it. Usage: npm run assets:catalog [-- --check]
 import { readFileSync, writeFileSync, existsSync } from 'node:fs';
 import { join } from 'node:path';
 import { ROOT, buildCatalog, catalogText } from '../packages/assets/assets.js';

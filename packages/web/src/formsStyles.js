@@ -1,5 +1,5 @@
 // CSS of the guizero renderer (forms.js) and the plot viewer (plot.js), added once to the page. Colours and sizes are
-// theme tokens: --nwf-* (forms), --nwp-* (plots), falling back to the --nw-* tokens of the console and to python.jetzt's
+// theme tokens: --nwf-* (forms), --nwp-* (plots), falling back to the --nw-* tokens of the console and to CodeNatter's
 // tokens (--bg, --text, --line, --primary ...). Dark mode follows prefers-color-scheme unless the page sets
 // data-theme="light" / "dark" on <html>.
 

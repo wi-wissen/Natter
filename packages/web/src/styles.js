@@ -1,5 +1,5 @@
 // CSS of the web components, added once to the page. Colours are theme tokens (CSS variables) with defaults that
-// follow python.jetzt's tokens when they exist (--bg, --text, --err ...), so a page restyles by setting --nw-*.
+// follow CodeNatter's tokens when they exist (--bg, --text, --err ...), so a page restyles by setting --nw-*.
 
 const CSS = `
 .nw-console, .nw-stage, .nw-dialog {

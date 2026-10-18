@@ -1,6 +1,6 @@
 # Asset conventions
 
-Game graphics for Natter's Pygame Zero module and for python.jetzt. All files are original work, free to use (CC0): drawn by an image model from our own prompts, in one style. Nothing may copy or closely imitate an existing game, film or brand character.
+Game graphics for Natter's Pygame Zero module and for [CodeNatter](https://codenatter.de). All files are original work, free to use (CC0): drawn by an image model from our own prompts, in one style. Nothing may copy or closely imitate an existing game, film or brand character.
 
 ## Look
 

@@ -58,7 +58,7 @@ Ein Modul bündelt das als Plugin: `runner.use({ name, host: {…}, waits: {…}
 
 Ausgabe (gepuffert, einmal pro Frame geschrieben, ältere Ausgabe fällt nach `maxChars` weg), Eingabezeile für `input()`, Fehlerkasten mit Zeile (klickbar), freundlicher Meldung und aufklappbarem Traceback. `connect(runner)` verdrahtet alles; einzeln: `write`, `showInput`, `showError`, `clear`, `text`. Der Stopp-Knopf gehört der Seite.
 
-Farben über CSS-Variablen `--nw-bg`, `--nw-text`, `--nw-muted`, `--nw-line`, `--nw-err`, `--nw-err-bg`, `--nw-err-line`, `--nw-stderr`, `--nw-input`, `--nw-input-bg`, `--nw-accent`, `--nw-font`, `--nw-mono`, `--nw-radius`, `--nw-stage-bg`. Ohne sie gelten die Tokens von python.jetzt (`--bg-soft`, `--text`, `--err` …), sonst eigene Werte mit Dunkelmodus.
+Farben über CSS-Variablen `--nw-bg`, `--nw-text`, `--nw-muted`, `--nw-line`, `--nw-err`, `--nw-err-bg`, `--nw-err-line`, `--nw-stderr`, `--nw-input`, `--nw-input-bg`, `--nw-accent`, `--nw-font`, `--nw-mono`, `--nw-radius`, `--nw-stage-bg`. Ohne sie gelten die Tokens von CodeNatter (`--bg-soft`, `--text`, `--err` …), sonst eigene Werte mit Dunkelmodus.
 
 ## Turtle: `createTurtle(container, { width, height, fit, upscale, instantMs, lang, onTitle })`
 

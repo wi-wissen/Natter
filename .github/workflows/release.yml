@@ -92,7 +92,7 @@ jobs:
               echo "$name@$VERSION is already on npm, skipped"
               continue
             fi
-            npm publish "release/natterjs-$ws-$VERSION.tgz" --access public --provenance
+            npm publish "./release/natterjs-$ws-$VERSION.tgz" --access public --provenance
           done
 
       - name: Release files

@@ -14,7 +14,7 @@ A small Python interpreter written in JavaScript, made for teaching in the brows
 
 Natter is built to run the Python in these projects:
 
-- [python.jetzt](https://github.com/wi-wissen/python.jetzt): a browser editor for learning Python in school.
+- [CodeNatter](https://codenatter.de) ([source](https://github.com/wi-wissen/codenatter.de)): a browser IDE for learning Python in school, built on Natter.
 - [Kronland](https://github.com/wi-wissen/kronland): a browser strategy game with Python scripting.
 
 ## How it works
@@ -59,6 +59,14 @@ npm run reference   # rewrite docs/reference/index.html
 ```
 
 `packages/core/test/reference.test.js` fails when the page is stale, when a described name no longer exists or when an example stops working.
+
+The **sprite gallery** ([`docs/sprites/index.html`](docs/sprites/index.html), <https://natter.wi7.net/sprites/>) shows every image and sound of `@natterjs/assets` by game type: the starter set first, then the rest of the packs, with search, animation previews, a detail view with code and copy-on-click names. It is generated from `packages/assets/catalog.json` and `gametypes.json` by `scripts/build-sprites.mjs`; the pictures are not copied into `docs/` but loaded lazily from jsDelivr (`https://cdn.jsdelivr.net/npm/@natterjs/assets@<version>/`, version from `packages/assets/package.json`). To preview with local files, serve `packages/assets` and open the page with `?base=http://localhost:8123/`. After changing the assets or bumping their version, run
+
+```bash
+npm run sprites   # rewrite docs/sprites/index.html (--check only checks)
+```
+
+`packages/assets/test/sprites-page.test.js` fails when the page is stale or lists a name that is not in the catalog.
 
 ## Einbinden
 
