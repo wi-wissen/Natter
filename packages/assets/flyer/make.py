@@ -3,7 +3,7 @@ python3 make.py gen [sheet ...]   draw sheets into the work folder (all when non
 python3 make.py cut               cut the sheets into the pack folder and write pack.json"""
 import os, sys, json, threading
 import numpy as np
-from PIL import Image
+from PIL import Image, ImageFilter
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.abspath(os.path.join(HERE, '..', '..', '..'))
@@ -61,7 +61,7 @@ ITEMS = {
                 [('fl_pillar_top', (80, 240)), ('fl_pillar_bottom', (80, 240)), ('fl_icicle_top', (80, 240)), ('fl_icicle_bottom', (80, 240))], STYLE),
     'obstacles': (BASE + 'Draw exactly 2 separate objects in ONE horizontal row, left to right, with wide space between them: '
                   '1) a dark grey storm cloud with an angry frown and a small yellow lightning bolt below it (the bolt touches the cloud); '
-                  '2) a tall upright tree trunk (a vertical log, cut flat at the top showing light tree rings, brown bark, a small side branch stump, no leaves), about four times as tall as wide.' + MAGENTA,
+                  '2) a VERY TALL, SLENDER upright tree trunk reaching from the top to the bottom of the picture (a vertical log about five times as tall as wide, cut flat at the top showing light tree rings, brown bark with a few vertical lines, one small side branch stump, no leaves, no roots).' + MAGENTA,
                   [('fl_cloud_obstacle', (128, 96)), ('fl_tree_trunk', (64, 224))], STYLE),
     'falling': (BASE + 'Draw exactly 7 separate objects in a grid of TWO rows: top row 4 objects, bottom row 3 objects, evenly spaced, reading order left to right: '
                 '1) a shiny red apple with a green leaf; 2) a round black cartoon bomb with a short fuse and a little spark (cartoon, not realistic); '
@@ -73,7 +73,7 @@ ITEMS = {
     'ground': (BASE + 'Draw exactly 2 separate wide flat rectangular ground strips, one ABOVE the other, with wide space between them, each about twice as wide as tall, '
                'with STRAIGHT vertical left and right edges and square corners (so it can be repeated side by side seamlessly): '
                '1) top: a strip with a band of green grass on top (small grass tufts along the top edge) and brown soil with a few small pebbles below; '
-               '2) bottom: the same kind of strip covered with a thick white snow layer on top and dark brown frozen soil with a few small stones below.' + MAGENTA,
+               '2) bottom: the same kind of strip in winter: a soft white snow layer on top with a gently rounded, slightly bumpy top edge and a few rounded snow drips hanging over the soil, light blue-grey snow shading, dark brown frozen soil with a few small stones below.' + MAGENTA,
                [('fl_ground', (128, 64)), ('fl_ground_snow', (128, 64))], STYLE),
 }
 
@@ -160,6 +160,17 @@ def save(im, name):
         im.quantize(colors=128, method=Image.Quantize.FASTOCTREE if im.mode == 'RGBA' else Image.Quantize.MEDIANCUT).save(path, optimize=True)
 
 
+def seamless(im, size, overlap=0.18):
+    """Make a strip repeat side by side without a seam: crossfade its left end with the part right after its right end
+    (result[x] = mix(src[W-o+x], src[x])), so that the last column runs straight on into the first."""
+    a = np.asarray(im.convert('RGBA')).astype(np.float32)
+    W = a.shape[1]; o = int(W * overlap)
+    t = (np.arange(o, dtype=np.float32) / o)[None, :, None]
+    out = a[:, :W - o].copy()
+    out[:, :o] = a[:, W - o:] * (1 - t) + a[:, :o] * t
+    return Image.fromarray(out.round().astype(np.uint8), 'RGBA').resize(size, Image.LANCZOS)
+
+
 def have(sheet):
     ok = os.path.exists(os.path.join(WORK, sheet + '.png'))
     if not ok: print('missing sheet', sheet)
@@ -207,7 +218,7 @@ def cut():
                 a = np.asarray(im)[..., 3]
                 rows = np.where((a > 200).mean(1) > 0.97)[0]
                 cols = np.where((a > 200).mean(0) > 0.5)[0]
-                im = im.crop((cols[0] + 6, 0, cols[-1] - 6, rows[-1] - 2)).resize(box, Image.LANCZOS)
+                im = seamless(im.crop((cols[0] + 6, 0, cols[-1] - 6, rows[-1] - 2)), box)
                 save(im, name)
                 continue
             im = fit(im, box)
@@ -221,7 +232,9 @@ def cut():
             nw = h * 5 // 3; im = im.crop(((w - nw) // 2, 0, (w - nw) // 2 + nw, h))
         else:
             nh = w * 3 // 5; im = im.crop((0, (h - nh) // 2, w, (h - nh) // 2 + nh))
-        save(im.resize((800, 480), Image.LANCZOS), name)
+        # median filter takes out the model's pixel noise, then 64 flat colours keep the file small
+        im = im.filter(ImageFilter.MedianFilter(5)).resize((800, 480), Image.LANCZOS)
+        im.quantize(colors=64, method=Image.Quantize.MEDIANCUT, dither=Image.Dither.NONE).save(os.path.join(HERE, name + '.png'), optimize=True)
     pack = {'pack': 'flyer', 'title': {'de': 'Flieger und Fallendes', 'en': 'Flyers and falling things'}, 'format': 'png',
             'assets': [{'name': n, 'file': n + '.png', 'tags': t, 'de': de, 'en': en} for n, t, de, en in ASSETS
                        if os.path.exists(os.path.join(HERE, n + '.png'))]}
