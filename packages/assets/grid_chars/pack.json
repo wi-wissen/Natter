@@ -1,0 +1,1154 @@
+{
+  "pack": "grid_chars",
+  "title": {
+    "de": "Rasterfiguren (von oben)",
+    "en": "Grid characters (top-down)"
+  },
+  "format": "png",
+  "assets": [
+    {
+      "name": "robo_down_1",
+      "file": "robo_down_1.png",
+      "tags": [
+        "character",
+        "player",
+        "topdown",
+        "animation"
+      ],
+      "de": "Würfelroboter geht nach unten (zum Betrachter), Bild 1 von 3",
+      "en": "Cube robot walking down (towards the viewer), frame 1 of 3"
+    },
+    {
+      "name": "robo_down_2",
+      "file": "robo_down_2.png",
+      "tags": [
+        "character",
+        "player",
+        "topdown",
+        "animation"
+      ],
+      "de": "Würfelroboter geht nach unten (zum Betrachter), Bild 2 von 3 (steht)",
+      "en": "Cube robot walking down (towards the viewer), frame 2 of 3 (standing)"
+    },
+    {
+      "name": "robo_down_3",
+      "file": "robo_down_3.png",
+      "tags": [
+        "character",
+        "player",
+        "topdown",
+        "animation"
+      ],
+      "de": "Würfelroboter geht nach unten (zum Betrachter), Bild 3 von 3",
+      "en": "Cube robot walking down (towards the viewer), frame 3 of 3"
+    },
+    {
+      "name": "robo_up_1",
+      "file": "robo_up_1.png",
+      "tags": [
+        "character",
+        "player",
+        "topdown",
+        "animation"
+      ],
+      "de": "Würfelroboter geht nach oben (vom Betrachter weg), Bild 1 von 3",
+      "en": "Cube robot walking up (away from the viewer), frame 1 of 3"
+    },
+    {
+      "name": "robo_up_2",
+      "file": "robo_up_2.png",
+      "tags": [
+        "character",
+        "player",
+        "topdown",
+        "animation"
+      ],
+      "de": "Würfelroboter geht nach oben (vom Betrachter weg), Bild 2 von 3 (steht)",
+      "en": "Cube robot walking up (away from the viewer), frame 2 of 3 (standing)"
+    },
+    {
+      "name": "robo_up_3",
+      "file": "robo_up_3.png",
+      "tags": [
+        "character",
+        "player",
+        "topdown",
+        "animation"
+      ],
+      "de": "Würfelroboter geht nach oben (vom Betrachter weg), Bild 3 von 3",
+      "en": "Cube robot walking up (away from the viewer), frame 3 of 3"
+    },
+    {
+      "name": "robo_left_1",
+      "file": "robo_left_1.png",
+      "tags": [
+        "character",
+        "player",
+        "topdown",
+        "animation"
+      ],
+      "de": "Würfelroboter geht nach links, Bild 1 von 3",
+      "en": "Cube robot walking to the left, frame 1 of 3"
+    },
+    {
+      "name": "robo_left_2",
+      "file": "robo_left_2.png",
+      "tags": [
+        "character",
+        "player",
+        "topdown",
+        "animation"
+      ],
+      "de": "Würfelroboter geht nach links, Bild 2 von 3 (steht)",
+      "en": "Cube robot walking to the left, frame 2 of 3 (standing)"
+    },
+    {
+      "name": "robo_left_3",
+      "file": "robo_left_3.png",
+      "tags": [
+        "character",
+        "player",
+        "topdown",
+        "animation"
+      ],
+      "de": "Würfelroboter geht nach links, Bild 3 von 3",
+      "en": "Cube robot walking to the left, frame 3 of 3"
+    },
+    {
+      "name": "robo_right_1",
+      "file": "robo_right_1.png",
+      "tags": [
+        "character",
+        "player",
+        "topdown",
+        "animation"
+      ],
+      "de": "Würfelroboter geht nach rechts, Bild 1 von 3",
+      "en": "Cube robot walking to the right, frame 1 of 3"
+    },
+    {
+      "name": "robo_right_2",
+      "file": "robo_right_2.png",
+      "tags": [
+        "character",
+        "player",
+        "topdown",
+        "animation"
+      ],
+      "de": "Würfelroboter geht nach rechts, Bild 2 von 3 (steht)",
+      "en": "Cube robot walking to the right, frame 2 of 3 (standing)"
+    },
+    {
+      "name": "robo_right_3",
+      "file": "robo_right_3.png",
+      "tags": [
+        "character",
+        "player",
+        "topdown",
+        "animation"
+      ],
+      "de": "Würfelroboter geht nach rechts, Bild 3 von 3",
+      "en": "Cube robot walking to the right, frame 3 of 3"
+    },
+    {
+      "name": "robo_idle_1",
+      "file": "robo_idle_1.png",
+      "tags": [
+        "character",
+        "player",
+        "topdown",
+        "animation"
+      ],
+      "de": "Würfelroboter wartet, schaut nach unten, Bild 1 von 2",
+      "en": "Cube robot idle, facing down, frame 1 of 2"
+    },
+    {
+      "name": "robo_idle_2",
+      "file": "robo_idle_2.png",
+      "tags": [
+        "character",
+        "player",
+        "topdown",
+        "animation"
+      ],
+      "de": "Würfelroboter wartet, schaut nach unten, Bild 2 von 2 (blinzelt)",
+      "en": "Cube robot idle, facing down, frame 2 of 2 (blinking)"
+    },
+    {
+      "name": "robo_happy",
+      "file": "robo_happy.png",
+      "tags": [
+        "character",
+        "player",
+        "topdown"
+      ],
+      "de": "Würfelroboter jubelt, schaut nach unten",
+      "en": "Cube robot cheering, facing down"
+    },
+    {
+      "name": "robo_dizzy",
+      "file": "robo_dizzy.png",
+      "tags": [
+        "character",
+        "player",
+        "topdown"
+      ],
+      "de": "Würfelroboter ist benommen, Sterne um den Kopf",
+      "en": "Cube robot dizzy, stars around the head"
+    },
+    {
+      "name": "fuchs_down_1",
+      "file": "fuchs_down_1.png",
+      "tags": [
+        "character",
+        "player",
+        "topdown",
+        "animation"
+      ],
+      "de": "Kleiner Fuchs geht nach unten (zum Betrachter), Bild 1 von 3",
+      "en": "Little fox walking down (towards the viewer), frame 1 of 3"
+    },
+    {
+      "name": "fuchs_down_2",
+      "file": "fuchs_down_2.png",
+      "tags": [
+        "character",
+        "player",
+        "topdown",
+        "animation"
+      ],
+      "de": "Kleiner Fuchs geht nach unten (zum Betrachter), Bild 2 von 3 (steht)",
+      "en": "Little fox walking down (towards the viewer), frame 2 of 3 (standing)"
+    },
+    {
+      "name": "fuchs_down_3",
+      "file": "fuchs_down_3.png",
+      "tags": [
+        "character",
+        "player",
+        "topdown",
+        "animation"
+      ],
+      "de": "Kleiner Fuchs geht nach unten (zum Betrachter), Bild 3 von 3",
+      "en": "Little fox walking down (towards the viewer), frame 3 of 3"
+    },
+    {
+      "name": "fuchs_up_1",
+      "file": "fuchs_up_1.png",
+      "tags": [
+        "character",
+        "player",
+        "topdown",
+        "animation"
+      ],
+      "de": "Kleiner Fuchs geht nach oben (vom Betrachter weg), Bild 1 von 3",
+      "en": "Little fox walking up (away from the viewer), frame 1 of 3"
+    },
+    {
+      "name": "fuchs_up_2",
+      "file": "fuchs_up_2.png",
+      "tags": [
+        "character",
+        "player",
+        "topdown",
+        "animation"
+      ],
+      "de": "Kleiner Fuchs geht nach oben (vom Betrachter weg), Bild 2 von 3 (steht)",
+      "en": "Little fox walking up (away from the viewer), frame 2 of 3 (standing)"
+    },
+    {
+      "name": "fuchs_up_3",
+      "file": "fuchs_up_3.png",
+      "tags": [
+        "character",
+        "player",
+        "topdown",
+        "animation"
+      ],
+      "de": "Kleiner Fuchs geht nach oben (vom Betrachter weg), Bild 3 von 3",
+      "en": "Little fox walking up (away from the viewer), frame 3 of 3"
+    },
+    {
+      "name": "fuchs_left_1",
+      "file": "fuchs_left_1.png",
+      "tags": [
+        "character",
+        "player",
+        "topdown",
+        "animation"
+      ],
+      "de": "Kleiner Fuchs geht nach links, Bild 1 von 3",
+      "en": "Little fox walking to the left, frame 1 of 3"
+    },
+    {
+      "name": "fuchs_left_2",
+      "file": "fuchs_left_2.png",
+      "tags": [
+        "character",
+        "player",
+        "topdown",
+        "animation"
+      ],
+      "de": "Kleiner Fuchs geht nach links, Bild 2 von 3 (steht)",
+      "en": "Little fox walking to the left, frame 2 of 3 (standing)"
+    },
+    {
+      "name": "fuchs_left_3",
+      "file": "fuchs_left_3.png",
+      "tags": [
+        "character",
+        "player",
+        "topdown",
+        "animation"
+      ],
+      "de": "Kleiner Fuchs geht nach links, Bild 3 von 3",
+      "en": "Little fox walking to the left, frame 3 of 3"
+    },
+    {
+      "name": "fuchs_right_1",
+      "file": "fuchs_right_1.png",
+      "tags": [
+        "character",
+        "player",
+        "topdown",
+        "animation"
+      ],
+      "de": "Kleiner Fuchs geht nach rechts, Bild 1 von 3",
+      "en": "Little fox walking to the right, frame 1 of 3"
+    },
+    {
+      "name": "fuchs_right_2",
+      "file": "fuchs_right_2.png",
+      "tags": [
+        "character",
+        "player",
+        "topdown",
+        "animation"
+      ],
+      "de": "Kleiner Fuchs geht nach rechts, Bild 2 von 3 (steht)",
+      "en": "Little fox walking to the right, frame 2 of 3 (standing)"
+    },
+    {
+      "name": "fuchs_right_3",
+      "file": "fuchs_right_3.png",
+      "tags": [
+        "character",
+        "player",
+        "topdown",
+        "animation"
+      ],
+      "de": "Kleiner Fuchs geht nach rechts, Bild 3 von 3",
+      "en": "Little fox walking to the right, frame 3 of 3"
+    },
+    {
+      "name": "fuchs_idle_1",
+      "file": "fuchs_idle_1.png",
+      "tags": [
+        "character",
+        "player",
+        "topdown",
+        "animation"
+      ],
+      "de": "Kleiner Fuchs wartet, schaut nach unten, Bild 1 von 2",
+      "en": "Little fox idle, facing down, frame 1 of 2"
+    },
+    {
+      "name": "fuchs_idle_2",
+      "file": "fuchs_idle_2.png",
+      "tags": [
+        "character",
+        "player",
+        "topdown",
+        "animation"
+      ],
+      "de": "Kleiner Fuchs wartet, schaut nach unten, Bild 2 von 2 (blinzelt)",
+      "en": "Little fox idle, facing down, frame 2 of 2 (blinking)"
+    },
+    {
+      "name": "fuchs_happy",
+      "file": "fuchs_happy.png",
+      "tags": [
+        "character",
+        "player",
+        "topdown"
+      ],
+      "de": "Kleiner Fuchs jubelt, schaut nach unten",
+      "en": "Little fox cheering, facing down"
+    },
+    {
+      "name": "fuchs_dizzy",
+      "file": "fuchs_dizzy.png",
+      "tags": [
+        "character",
+        "player",
+        "topdown"
+      ],
+      "de": "Kleiner Fuchs ist benommen, Sterne um den Kopf",
+      "en": "Little fox dizzy, stars around the head"
+    },
+    {
+      "name": "maus_down_1",
+      "file": "maus_down_1.png",
+      "tags": [
+        "character",
+        "player",
+        "topdown",
+        "animation"
+      ],
+      "de": "Maus geht nach unten (zum Betrachter), Bild 1 von 3",
+      "en": "Mouse walking down (towards the viewer), frame 1 of 3"
+    },
+    {
+      "name": "maus_down_2",
+      "file": "maus_down_2.png",
+      "tags": [
+        "character",
+        "player",
+        "topdown",
+        "animation"
+      ],
+      "de": "Maus geht nach unten (zum Betrachter), Bild 2 von 3 (steht)",
+      "en": "Mouse walking down (towards the viewer), frame 2 of 3 (standing)"
+    },
+    {
+      "name": "maus_down_3",
+      "file": "maus_down_3.png",
+      "tags": [
+        "character",
+        "player",
+        "topdown",
+        "animation"
+      ],
+      "de": "Maus geht nach unten (zum Betrachter), Bild 3 von 3",
+      "en": "Mouse walking down (towards the viewer), frame 3 of 3"
+    },
+    {
+      "name": "maus_up_1",
+      "file": "maus_up_1.png",
+      "tags": [
+        "character",
+        "player",
+        "topdown",
+        "animation"
+      ],
+      "de": "Maus geht nach oben (vom Betrachter weg), Bild 1 von 3",
+      "en": "Mouse walking up (away from the viewer), frame 1 of 3"
+    },
+    {
+      "name": "maus_up_2",
+      "file": "maus_up_2.png",
+      "tags": [
+        "character",
+        "player",
+        "topdown",
+        "animation"
+      ],
+      "de": "Maus geht nach oben (vom Betrachter weg), Bild 2 von 3 (steht)",
+      "en": "Mouse walking up (away from the viewer), frame 2 of 3 (standing)"
+    },
+    {
+      "name": "maus_up_3",
+      "file": "maus_up_3.png",
+      "tags": [
+        "character",
+        "player",
+        "topdown",
+        "animation"
+      ],
+      "de": "Maus geht nach oben (vom Betrachter weg), Bild 3 von 3",
+      "en": "Mouse walking up (away from the viewer), frame 3 of 3"
+    },
+    {
+      "name": "maus_left_1",
+      "file": "maus_left_1.png",
+      "tags": [
+        "character",
+        "player",
+        "topdown",
+        "animation"
+      ],
+      "de": "Maus geht nach links, Bild 1 von 3",
+      "en": "Mouse walking to the left, frame 1 of 3"
+    },
+    {
+      "name": "maus_left_2",
+      "file": "maus_left_2.png",
+      "tags": [
+        "character",
+        "player",
+        "topdown",
+        "animation"
+      ],
+      "de": "Maus geht nach links, Bild 2 von 3 (steht)",
+      "en": "Mouse walking to the left, frame 2 of 3 (standing)"
+    },
+    {
+      "name": "maus_left_3",
+      "file": "maus_left_3.png",
+      "tags": [
+        "character",
+        "player",
+        "topdown",
+        "animation"
+      ],
+      "de": "Maus geht nach links, Bild 3 von 3",
+      "en": "Mouse walking to the left, frame 3 of 3"
+    },
+    {
+      "name": "maus_right_1",
+      "file": "maus_right_1.png",
+      "tags": [
+        "character",
+        "player",
+        "topdown",
+        "animation"
+      ],
+      "de": "Maus geht nach rechts, Bild 1 von 3",
+      "en": "Mouse walking to the right, frame 1 of 3"
+    },
+    {
+      "name": "maus_right_2",
+      "file": "maus_right_2.png",
+      "tags": [
+        "character",
+        "player",
+        "topdown",
+        "animation"
+      ],
+      "de": "Maus geht nach rechts, Bild 2 von 3 (steht)",
+      "en": "Mouse walking to the right, frame 2 of 3 (standing)"
+    },
+    {
+      "name": "maus_right_3",
+      "file": "maus_right_3.png",
+      "tags": [
+        "character",
+        "player",
+        "topdown",
+        "animation"
+      ],
+      "de": "Maus geht nach rechts, Bild 3 von 3",
+      "en": "Mouse walking to the right, frame 3 of 3"
+    },
+    {
+      "name": "maus_idle_1",
+      "file": "maus_idle_1.png",
+      "tags": [
+        "character",
+        "player",
+        "topdown",
+        "animation"
+      ],
+      "de": "Maus wartet, schaut nach unten, Bild 1 von 2",
+      "en": "Mouse idle, facing down, frame 1 of 2"
+    },
+    {
+      "name": "maus_idle_2",
+      "file": "maus_idle_2.png",
+      "tags": [
+        "character",
+        "player",
+        "topdown",
+        "animation"
+      ],
+      "de": "Maus wartet, schaut nach unten, Bild 2 von 2 (blinzelt)",
+      "en": "Mouse idle, facing down, frame 2 of 2 (blinking)"
+    },
+    {
+      "name": "maus_happy",
+      "file": "maus_happy.png",
+      "tags": [
+        "character",
+        "player",
+        "topdown"
+      ],
+      "de": "Maus jubelt, schaut nach unten",
+      "en": "Mouse cheering, facing down"
+    },
+    {
+      "name": "maus_dizzy",
+      "file": "maus_dizzy.png",
+      "tags": [
+        "character",
+        "player",
+        "topdown"
+      ],
+      "de": "Maus ist benommen, Sterne um den Kopf",
+      "en": "Mouse dizzy, stars around the head"
+    },
+    {
+      "name": "pinguin_down_1",
+      "file": "pinguin_down_1.png",
+      "tags": [
+        "character",
+        "player",
+        "topdown",
+        "animation"
+      ],
+      "de": "Pinguin geht nach unten (zum Betrachter), Bild 1 von 3",
+      "en": "Penguin walking down (towards the viewer), frame 1 of 3"
+    },
+    {
+      "name": "pinguin_down_2",
+      "file": "pinguin_down_2.png",
+      "tags": [
+        "character",
+        "player",
+        "topdown",
+        "animation"
+      ],
+      "de": "Pinguin geht nach unten (zum Betrachter), Bild 2 von 3 (steht)",
+      "en": "Penguin walking down (towards the viewer), frame 2 of 3 (standing)"
+    },
+    {
+      "name": "pinguin_down_3",
+      "file": "pinguin_down_3.png",
+      "tags": [
+        "character",
+        "player",
+        "topdown",
+        "animation"
+      ],
+      "de": "Pinguin geht nach unten (zum Betrachter), Bild 3 von 3",
+      "en": "Penguin walking down (towards the viewer), frame 3 of 3"
+    },
+    {
+      "name": "pinguin_up_1",
+      "file": "pinguin_up_1.png",
+      "tags": [
+        "character",
+        "player",
+        "topdown",
+        "animation"
+      ],
+      "de": "Pinguin geht nach oben (vom Betrachter weg), Bild 1 von 3",
+      "en": "Penguin walking up (away from the viewer), frame 1 of 3"
+    },
+    {
+      "name": "pinguin_up_2",
+      "file": "pinguin_up_2.png",
+      "tags": [
+        "character",
+        "player",
+        "topdown",
+        "animation"
+      ],
+      "de": "Pinguin geht nach oben (vom Betrachter weg), Bild 2 von 3 (steht)",
+      "en": "Penguin walking up (away from the viewer), frame 2 of 3 (standing)"
+    },
+    {
+      "name": "pinguin_up_3",
+      "file": "pinguin_up_3.png",
+      "tags": [
+        "character",
+        "player",
+        "topdown",
+        "animation"
+      ],
+      "de": "Pinguin geht nach oben (vom Betrachter weg), Bild 3 von 3",
+      "en": "Penguin walking up (away from the viewer), frame 3 of 3"
+    },
+    {
+      "name": "pinguin_left_1",
+      "file": "pinguin_left_1.png",
+      "tags": [
+        "character",
+        "player",
+        "topdown",
+        "animation"
+      ],
+      "de": "Pinguin geht nach links, Bild 1 von 3",
+      "en": "Penguin walking to the left, frame 1 of 3"
+    },
+    {
+      "name": "pinguin_left_2",
+      "file": "pinguin_left_2.png",
+      "tags": [
+        "character",
+        "player",
+        "topdown",
+        "animation"
+      ],
+      "de": "Pinguin geht nach links, Bild 2 von 3 (steht)",
+      "en": "Penguin walking to the left, frame 2 of 3 (standing)"
+    },
+    {
+      "name": "pinguin_left_3",
+      "file": "pinguin_left_3.png",
+      "tags": [
+        "character",
+        "player",
+        "topdown",
+        "animation"
+      ],
+      "de": "Pinguin geht nach links, Bild 3 von 3",
+      "en": "Penguin walking to the left, frame 3 of 3"
+    },
+    {
+      "name": "pinguin_right_1",
+      "file": "pinguin_right_1.png",
+      "tags": [
+        "character",
+        "player",
+        "topdown",
+        "animation"
+      ],
+      "de": "Pinguin geht nach rechts, Bild 1 von 3",
+      "en": "Penguin walking to the right, frame 1 of 3"
+    },
+    {
+      "name": "pinguin_right_2",
+      "file": "pinguin_right_2.png",
+      "tags": [
+        "character",
+        "player",
+        "topdown",
+        "animation"
+      ],
+      "de": "Pinguin geht nach rechts, Bild 2 von 3 (steht)",
+      "en": "Penguin walking to the right, frame 2 of 3 (standing)"
+    },
+    {
+      "name": "pinguin_right_3",
+      "file": "pinguin_right_3.png",
+      "tags": [
+        "character",
+        "player",
+        "topdown",
+        "animation"
+      ],
+      "de": "Pinguin geht nach rechts, Bild 3 von 3",
+      "en": "Penguin walking to the right, frame 3 of 3"
+    },
+    {
+      "name": "pinguin_idle_1",
+      "file": "pinguin_idle_1.png",
+      "tags": [
+        "character",
+        "player",
+        "topdown",
+        "animation"
+      ],
+      "de": "Pinguin wartet, schaut nach unten, Bild 1 von 2",
+      "en": "Penguin idle, facing down, frame 1 of 2"
+    },
+    {
+      "name": "pinguin_idle_2",
+      "file": "pinguin_idle_2.png",
+      "tags": [
+        "character",
+        "player",
+        "topdown",
+        "animation"
+      ],
+      "de": "Pinguin wartet, schaut nach unten, Bild 2 von 2 (blinzelt)",
+      "en": "Penguin idle, facing down, frame 2 of 2 (blinking)"
+    },
+    {
+      "name": "pinguin_happy",
+      "file": "pinguin_happy.png",
+      "tags": [
+        "character",
+        "player",
+        "topdown"
+      ],
+      "de": "Pinguin jubelt, schaut nach unten",
+      "en": "Penguin cheering, facing down"
+    },
+    {
+      "name": "pinguin_dizzy",
+      "file": "pinguin_dizzy.png",
+      "tags": [
+        "character",
+        "player",
+        "topdown"
+      ],
+      "de": "Pinguin ist benommen, Sterne um den Kopf",
+      "en": "Penguin dizzy, stars around the head"
+    },
+    {
+      "name": "bug_down_1",
+      "file": "bug_down_1.png",
+      "tags": [
+        "character",
+        "enemy",
+        "topdown",
+        "animation"
+      ],
+      "de": "Glänzender Käfer (von oben) läuft nach unten (zum Betrachter), Bild 1 von 2",
+      "en": "Shiny beetle (seen from above) walking down (towards the viewer), frame 1 of 2"
+    },
+    {
+      "name": "bug_down_2",
+      "file": "bug_down_2.png",
+      "tags": [
+        "character",
+        "enemy",
+        "topdown",
+        "animation"
+      ],
+      "de": "Glänzender Käfer (von oben) läuft nach unten (zum Betrachter), Bild 2 von 2",
+      "en": "Shiny beetle (seen from above) walking down (towards the viewer), frame 2 of 2"
+    },
+    {
+      "name": "bug_up_1",
+      "file": "bug_up_1.png",
+      "tags": [
+        "character",
+        "enemy",
+        "topdown",
+        "animation"
+      ],
+      "de": "Glänzender Käfer (von oben) läuft nach oben (vom Betrachter weg), Bild 1 von 2",
+      "en": "Shiny beetle (seen from above) walking up (away from the viewer), frame 1 of 2"
+    },
+    {
+      "name": "bug_up_2",
+      "file": "bug_up_2.png",
+      "tags": [
+        "character",
+        "enemy",
+        "topdown",
+        "animation"
+      ],
+      "de": "Glänzender Käfer (von oben) läuft nach oben (vom Betrachter weg), Bild 2 von 2",
+      "en": "Shiny beetle (seen from above) walking up (away from the viewer), frame 2 of 2"
+    },
+    {
+      "name": "bug_left_1",
+      "file": "bug_left_1.png",
+      "tags": [
+        "character",
+        "enemy",
+        "topdown",
+        "animation"
+      ],
+      "de": "Glänzender Käfer (von oben) läuft nach links, Bild 1 von 2",
+      "en": "Shiny beetle (seen from above) walking to the left, frame 1 of 2"
+    },
+    {
+      "name": "bug_left_2",
+      "file": "bug_left_2.png",
+      "tags": [
+        "character",
+        "enemy",
+        "topdown",
+        "animation"
+      ],
+      "de": "Glänzender Käfer (von oben) läuft nach links, Bild 2 von 2",
+      "en": "Shiny beetle (seen from above) walking to the left, frame 2 of 2"
+    },
+    {
+      "name": "bug_right_1",
+      "file": "bug_right_1.png",
+      "tags": [
+        "character",
+        "enemy",
+        "topdown",
+        "animation"
+      ],
+      "de": "Glänzender Käfer (von oben) läuft nach rechts, Bild 1 von 2",
+      "en": "Shiny beetle (seen from above) walking to the right, frame 1 of 2"
+    },
+    {
+      "name": "bug_right_2",
+      "file": "bug_right_2.png",
+      "tags": [
+        "character",
+        "enemy",
+        "topdown",
+        "animation"
+      ],
+      "de": "Glänzender Käfer (von oben) läuft nach rechts, Bild 2 von 2",
+      "en": "Shiny beetle (seen from above) walking to the right, frame 2 of 2"
+    },
+    {
+      "name": "wisp_down_1",
+      "file": "wisp_down_1.png",
+      "tags": [
+        "character",
+        "enemy",
+        "topdown",
+        "animation"
+      ],
+      "de": "Flammengeist schwebt nach unten (zum Betrachter), Bild 1 von 2",
+      "en": "Flame wisp floating down (towards the viewer), frame 1 of 2"
+    },
+    {
+      "name": "wisp_down_2",
+      "file": "wisp_down_2.png",
+      "tags": [
+        "character",
+        "enemy",
+        "topdown",
+        "animation"
+      ],
+      "de": "Flammengeist schwebt nach unten (zum Betrachter), Bild 2 von 2",
+      "en": "Flame wisp floating down (towards the viewer), frame 2 of 2"
+    },
+    {
+      "name": "wisp_up_1",
+      "file": "wisp_up_1.png",
+      "tags": [
+        "character",
+        "enemy",
+        "topdown",
+        "animation"
+      ],
+      "de": "Flammengeist schwebt nach oben (vom Betrachter weg), Bild 1 von 2",
+      "en": "Flame wisp floating up (away from the viewer), frame 1 of 2"
+    },
+    {
+      "name": "wisp_up_2",
+      "file": "wisp_up_2.png",
+      "tags": [
+        "character",
+        "enemy",
+        "topdown",
+        "animation"
+      ],
+      "de": "Flammengeist schwebt nach oben (vom Betrachter weg), Bild 2 von 2",
+      "en": "Flame wisp floating up (away from the viewer), frame 2 of 2"
+    },
+    {
+      "name": "wisp_left_1",
+      "file": "wisp_left_1.png",
+      "tags": [
+        "character",
+        "enemy",
+        "topdown",
+        "animation"
+      ],
+      "de": "Flammengeist schwebt nach links, Bild 1 von 2",
+      "en": "Flame wisp floating to the left, frame 1 of 2"
+    },
+    {
+      "name": "wisp_left_2",
+      "file": "wisp_left_2.png",
+      "tags": [
+        "character",
+        "enemy",
+        "topdown",
+        "animation"
+      ],
+      "de": "Flammengeist schwebt nach links, Bild 2 von 2",
+      "en": "Flame wisp floating to the left, frame 2 of 2"
+    },
+    {
+      "name": "wisp_right_1",
+      "file": "wisp_right_1.png",
+      "tags": [
+        "character",
+        "enemy",
+        "topdown",
+        "animation"
+      ],
+      "de": "Flammengeist schwebt nach rechts, Bild 1 von 2",
+      "en": "Flame wisp floating to the right, frame 1 of 2"
+    },
+    {
+      "name": "wisp_right_2",
+      "file": "wisp_right_2.png",
+      "tags": [
+        "character",
+        "enemy",
+        "topdown",
+        "animation"
+      ],
+      "de": "Flammengeist schwebt nach rechts, Bild 2 von 2",
+      "en": "Flame wisp floating to the right, frame 2 of 2"
+    },
+    {
+      "name": "crab_down_1",
+      "file": "crab_down_1.png",
+      "tags": [
+        "character",
+        "enemy",
+        "topdown",
+        "animation"
+      ],
+      "de": "Krabbe krabbelt nach unten (zum Betrachter), Bild 1 von 2",
+      "en": "Crab scuttling down (towards the viewer), frame 1 of 2"
+    },
+    {
+      "name": "crab_down_2",
+      "file": "crab_down_2.png",
+      "tags": [
+        "character",
+        "enemy",
+        "topdown",
+        "animation"
+      ],
+      "de": "Krabbe krabbelt nach unten (zum Betrachter), Bild 2 von 2",
+      "en": "Crab scuttling down (towards the viewer), frame 2 of 2"
+    },
+    {
+      "name": "crab_up_1",
+      "file": "crab_up_1.png",
+      "tags": [
+        "character",
+        "enemy",
+        "topdown",
+        "animation"
+      ],
+      "de": "Krabbe krabbelt nach oben (vom Betrachter weg), Bild 1 von 2",
+      "en": "Crab scuttling up (away from the viewer), frame 1 of 2"
+    },
+    {
+      "name": "crab_up_2",
+      "file": "crab_up_2.png",
+      "tags": [
+        "character",
+        "enemy",
+        "topdown",
+        "animation"
+      ],
+      "de": "Krabbe krabbelt nach oben (vom Betrachter weg), Bild 2 von 2",
+      "en": "Crab scuttling up (away from the viewer), frame 2 of 2"
+    },
+    {
+      "name": "crab_left_1",
+      "file": "crab_left_1.png",
+      "tags": [
+        "character",
+        "enemy",
+        "topdown",
+        "animation"
+      ],
+      "de": "Krabbe krabbelt nach links, Bild 1 von 2",
+      "en": "Crab scuttling to the left, frame 1 of 2"
+    },
+    {
+      "name": "crab_left_2",
+      "file": "crab_left_2.png",
+      "tags": [
+        "character",
+        "enemy",
+        "topdown",
+        "animation"
+      ],
+      "de": "Krabbe krabbelt nach links, Bild 2 von 2",
+      "en": "Crab scuttling to the left, frame 2 of 2"
+    },
+    {
+      "name": "crab_right_1",
+      "file": "crab_right_1.png",
+      "tags": [
+        "character",
+        "enemy",
+        "topdown",
+        "animation"
+      ],
+      "de": "Krabbe krabbelt nach rechts, Bild 1 von 2",
+      "en": "Crab scuttling to the right, frame 1 of 2"
+    },
+    {
+      "name": "crab_right_2",
+      "file": "crab_right_2.png",
+      "tags": [
+        "character",
+        "enemy",
+        "topdown",
+        "animation"
+      ],
+      "de": "Krabbe krabbelt nach rechts, Bild 2 von 2",
+      "en": "Crab scuttling to the right, frame 2 of 2"
+    },
+    {
+      "name": "golem_down_1",
+      "file": "golem_down_1.png",
+      "tags": [
+        "character",
+        "enemy",
+        "topdown",
+        "animation"
+      ],
+      "de": "Steingolem läuft nach unten (zum Betrachter), Bild 1 von 2",
+      "en": "Stone golem walking down (towards the viewer), frame 1 of 2"
+    },
+    {
+      "name": "golem_down_2",
+      "file": "golem_down_2.png",
+      "tags": [
+        "character",
+        "enemy",
+        "topdown",
+        "animation"
+      ],
+      "de": "Steingolem läuft nach unten (zum Betrachter), Bild 2 von 2",
+      "en": "Stone golem walking down (towards the viewer), frame 2 of 2"
+    },
+    {
+      "name": "golem_up_1",
+      "file": "golem_up_1.png",
+      "tags": [
+        "character",
+        "enemy",
+        "topdown",
+        "animation"
+      ],
+      "de": "Steingolem läuft nach oben (vom Betrachter weg), Bild 1 von 2",
+      "en": "Stone golem walking up (away from the viewer), frame 1 of 2"
+    },
+    {
+      "name": "golem_up_2",
+      "file": "golem_up_2.png",
+      "tags": [
+        "character",
+        "enemy",
+        "topdown",
+        "animation"
+      ],
+      "de": "Steingolem läuft nach oben (vom Betrachter weg), Bild 2 von 2",
+      "en": "Stone golem walking up (away from the viewer), frame 2 of 2"
+    },
+    {
+      "name": "golem_left_1",
+      "file": "golem_left_1.png",
+      "tags": [
+        "character",
+        "enemy",
+        "topdown",
+        "animation"
+      ],
+      "de": "Steingolem läuft nach links, Bild 1 von 2",
+      "en": "Stone golem walking to the left, frame 1 of 2"
+    },
+    {
+      "name": "golem_left_2",
+      "file": "golem_left_2.png",
+      "tags": [
+        "character",
+        "enemy",
+        "topdown",
+        "animation"
+      ],
+      "de": "Steingolem läuft nach links, Bild 2 von 2",
+      "en": "Stone golem walking to the left, frame 2 of 2"
+    },
+    {
+      "name": "golem_right_1",
+      "file": "golem_right_1.png",
+      "tags": [
+        "character",
+        "enemy",
+        "topdown",
+        "animation"
+      ],
+      "de": "Steingolem läuft nach rechts, Bild 1 von 2",
+      "en": "Stone golem walking to the right, frame 1 of 2"
+    },
+    {
+      "name": "golem_right_2",
+      "file": "golem_right_2.png",
+      "tags": [
+        "character",
+        "enemy",
+        "topdown",
+        "animation"
+      ],
+      "de": "Steingolem läuft nach rechts, Bild 2 von 2",
+      "en": "Stone golem walking to the right, frame 2 of 2"
+    }
+  ]
+}

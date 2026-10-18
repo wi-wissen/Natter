@@ -342,7 +342,7 @@ DIRS = ['down', 'up', 'left', 'right']
 
 
 def player(c):
-    """The 17 images of a player character as {name: image at working scale}."""
+    """The 16 images of a player character as {name: image at working scale}."""
     d = figs(f'{c}_down', 3, 1)
     u = figs(f'{c}_up', 3, 1)
     r = figs(f'{c}_side', 3, 1)
@@ -456,6 +456,49 @@ def contact():
             c.save(os.path.join(WORK, f'contact-{tag}-{zoom}x.png'))
 
 
+# ---- pack.json ----
+DIR_TXT = {'down': ('nach unten (zum Betrachter)', 'down (towards the viewer)'),
+           'up': ('nach oben (vom Betrachter weg)', 'up (away from the viewer)'),
+           'left': ('nach links', 'to the left'), 'right': ('nach rechts', 'to the right')}
+WHO = {'robo': ('Würfelroboter', 'Cube robot'), 'fuchs': ('Kleiner Fuchs', 'Little fox'), 'maus': ('Maus', 'Mouse'),
+       'pinguin': ('Pinguin', 'Penguin'), 'bug': ('Glänzender Käfer (von oben)', 'Shiny beetle (seen from above)'),
+       'wisp': ('Flammengeist', 'Flame wisp'), 'crab': ('Krabbe', 'Crab'), 'golem': ('Steingolem', 'Stone golem')}
+MOVE = {'wisp': ('schwebt', 'floating'), 'crab': ('krabbelt', 'scuttling')}
+
+
+def entries():
+    out = []
+    for c in CHARS:
+        de, en = WHO[c]
+        for d in DIRS:
+            for i in (1, 2, 3):
+                pose = (' (steht)', ' (standing)') if i == 2 else ('', '')
+                out.append((f'{c}_{d}_{i}', ['character', 'player', 'topdown', 'animation'],
+                            f'{de} geht {DIR_TXT[d][0]}, Bild {i} von 3{pose[0]}', f'{en} walking {DIR_TXT[d][1]}, frame {i} of 3{pose[1]}'))
+        for i in (1, 2):
+            out.append((f'{c}_idle_{i}', ['character', 'player', 'topdown', 'animation'],
+                        f'{de} wartet, schaut nach unten, Bild {i} von 2' + (' (blinzelt)' if i == 2 else ''),
+                        f'{en} idle, facing down, frame {i} of 2' + (' (blinking)' if i == 2 else '')))
+        out.append((f'{c}_happy', ['character', 'player', 'topdown'], f'{de} jubelt, schaut nach unten', f'{en} cheering, facing down'))
+        out.append((f'{c}_dizzy', ['character', 'player', 'topdown'], f'{de} ist benommen, Sterne um den Kopf', f'{en} dizzy, stars around the head'))
+    for f in FOES:
+        de, en = WHO[f]
+        mde, men = MOVE.get(f, ('läuft', 'walking'))
+        for d in DIRS:
+            for i in (1, 2):
+                out.append((f'{f}_{d}_{i}', ['character', 'enemy', 'topdown', 'animation'],
+                            f'{de} {mde} {DIR_TXT[d][0]}, Bild {i} von 2', f'{en} {men} {DIR_TXT[d][1]}, frame {i} of 2'))
+    return [{'name': n, 'file': n + '.png', 'tags': t, 'de': de, 'en': en} for n, t, de, en in out]
+
+
+def write_json():
+    pack = {'pack': 'grid_chars', 'title': {'de': 'Rasterfiguren (von oben)', 'en': 'Grid characters (top-down)'},
+            'format': 'png', 'assets': entries()}
+    with open(os.path.join(HERE, 'pack.json'), 'w', encoding='utf-8') as f:
+        json.dump(pack, f, ensure_ascii=False, indent=2)
+        f.write('\n')
+
+
 def save(im, name):
     im.save(os.path.join(HERE, name + '.png'), optimize=True)
 
@@ -489,5 +532,7 @@ if __name__ == '__main__':
                 print(s, r)
     elif cmd == 'cut':
         cut()
+    elif cmd == 'json':
+        write_json()
     elif cmd == 'sheet':
         contact()
