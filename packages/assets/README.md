@@ -24,7 +24,7 @@ sounds.coin.play()
 | `grid_tiles` | Rasterkacheln | 50 | 125 KB | `gt_ice`, `gt_key_red`, `gt_conveyor_up`, `gt_goal` |
 | `kara` | Kara der Marienkäfer | 17 | 75 KB | `kara`, `kara_tree`, `kara_mushroom`, `turtle_top` |
 | `nature` | Natur und Wetter | 51 | 237 KB | `nat_oak`, `nat_cloud_1`, `fruit_apple` |
-| `platformer` | Jump and Run | 73 | 505 KB | `pf_grass_mid`, `pf_coin_1`, `slug_walk_1`, `pf_bg_day` |
+| `platformer` | Jump and Run | 89 | 531 KB | `pf_grass_mid`, `pf_coin_1`, `pf_gem_blue_1`, `slug_walk_1`, `pf_bg_day` |
 | `sea` | Meer | 36 | 417 KB | `sea_sailboat`, `sea_fish_1`, `sea_bg` |
 | `space` | Weltraum | 41 | 293 KB | `sp_ship`, `sp_enemy_1`, `sp_explosion_1`, `sp_bg_space` |
 | `turtle` | Turtle (SVG) | 2 | 3 KB | `turtle`, `turtle_side` |

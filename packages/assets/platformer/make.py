@@ -5,7 +5,8 @@ python3 packages/assets/platformer/make.py cut [sheet ...]   # key, cut and scal
 python3 packages/assets/platformer/make.py json              # write pack.json
 
 The sheet `boy_ref` must be drawn first: it is the character reference for the boy sheets.
-Some frames are derived from one drawn image (coin spin = horizontal squash, spiky ball roll = rotation),
+Some frames are derived from one drawn image (coin spin = horizontal squash, spiky ball roll = rotation); the gem spin
+(`gem_spin`, 4 colours x 4 phases) is drawn as one sheet and keyed without magenta fringe (`clean_key`),
 the plain earth tile `pf_dirt` is filled with the colours of the drawn grass strip so that it tiles seamlessly.
 """
 import os, sys, json, base64, subprocess, tempfile
@@ -140,6 +141,18 @@ SHEETS = {
     'spiky': (STYLE + 'Draw ONE original cartoon enemy for a jump and run game: a round red-orange ball covered evenly with '
               'eight short cream-coloured cone spikes all around, two angry little eyes. Only this one object, centred. '
               + BG, [REF]),
+    'gem_spin': (STYLE + 'Draw a SPINNING GEMSTONE animation sprite sheet for a jump and run game: EXACTLY 16 gems in a grid of '
+                 '4 rows and 4 columns, evenly spaced, all the same height, with wide magenta gaps, none touching. '
+                 'Every gem is the same upright cut gemstone as the pink gem in the reference (a tall hexagonal crystal with '
+                 'pointed top and bottom and a lighter flat front facet), turning around its vertical axis. '
+                 'Row 1 blue gems, row 2 green gems, row 3 light bubblegum pink gems (lighter than the background, clearly pink, '
+                 'not magenta), row 4 red gems. The 4 columns are the 4 phases of the spin, the same in every row: '
+                 'column 1 seen from the front (the wide flat front facet in the middle, a narrower facet left and right), '
+                 'column 2 turned a quarter: the front facet moved to the RIGHT and narrower, a wide facet on the left, '
+                 'column 3 seen exactly edge-on: a narrow gem, two equal facets meeting in a vertical ridge in the middle, '
+                 'column 4 turned the other way: the front facet moved to the LEFT and narrower, a wide facet on the right. '
+                 'Top and bottom points always at the same height, each gem centred in its cell. One small white shine spot. '
+                 + BG, [REF]),
     'bg_day': ('Draw a wide background image for a side-scrolling jump and run game in the flat emoji style of the reference '
                '(flat shapes, no outlines, soft colours): a bright light-blue day sky, a few white flat clouds, rolling green '
                'hills in two layers in the lower third, a few round trees far away. Calm, not busy, no characters, no text, '
@@ -182,6 +195,10 @@ for i in range(1, 5):
     d(f'pf_coin_{i}', ITEM + ['animation'], f'Goldmünze dreht sich, Bild {i} von 4', f'Spinning gold coin, frame {i} of 4')
 for c, de, en in (('pink', 'rosa', 'pink'), ('blue', 'blau', 'blue'), ('green', 'grün', 'green')):
     d(f'pf_gem_{c}', ITEM, f'Edelstein, {de}', f'Gemstone, {en}')
+for c, de, en in (('blue', 'blauer', 'blue'), ('green', 'grüner', 'green'), ('pink', 'rosa', 'pink'), ('red', 'roter', 'red')):
+    for i in range(1, 5):
+        d(f'pf_gem_{c}_{i}', ITEM + ['animation'], f'{de[0].upper() + de[1:]} Edelstein dreht sich, Bild {i} von 4',
+          f'Spinning {en} gemstone, frame {i} of 4')
 d('pf_heart', ITEM, 'Rotes Herz (Extraleben)', 'Red heart (extra life)')
 d('pf_star', ITEM, 'Gelber Stern', 'Yellow star')
 d('pf_key', ITEM, 'Goldener Schlüssel', 'Golden key')
@@ -401,6 +418,57 @@ def cut_items_sheet():
     save(pad(fit(keyim, 42, 42)), 'pf_key')
 
 
+def clean_key(path):
+    """Key without magenta fringe (as in grid_chars): every magenta-hued pixel becomes pure key colour first,
+    then edge pixels take the colour of the nearest solid pixel instead of a magenta blend."""
+    a = np.asarray(Image.open(path).convert('RGB')).astype(np.int32)
+    r, g, b = a[..., 0], a[..., 1], a[..., 2]
+    lo, hi = np.minimum(r, b), np.maximum(r, b)
+    pinkish = (lo > 80) & (g < 0.35 * lo) & (np.abs(r - b) < 0.3 * hi)
+    a[pinkish] = (255, 0, 255)
+    rgba = key(Image.fromarray(a.astype(np.uint8), 'RGB'))
+    # dark pink facets lie near the key colour and come out half transparent: inside the outline everything is opaque
+    inner = ndimage.binary_erosion(ndimage.binary_fill_holes(rgba[..., 3] > 128), iterations=2)
+    rgba[inner, :3] = a[inner]
+    rgba[inner, 3] = 255
+    solid = ndimage.binary_erosion(rgba[..., 3] > 250, iterations=1) & ~pinkish
+    iy, ix = ndimage.distance_transform_edt(~solid, return_distances=False, return_indices=True)
+    rgba[..., :3] = rgba[iy, ix, :3]
+    rgba[..., :3][rgba[..., 3] == 0] = 0
+    return rgba
+
+
+GEM_COLOURS = ('blue', 'green', 'pink', 'red')  # sheet rows
+
+
+def cut_gem_spin():
+    """4x4 sheet: rows = colours, columns = spin phases (front, turned, edge-on, turned the other way).
+    All frames get the same height and one 40x40 canvas, centred; the turned frames are squeezed to the
+    mean width of front and edge so that the spin narrows and widens smoothly."""
+    rgba = clean_key(sheet('gem_spin'))
+    lab, _ = ndimage.label(ndimage.binary_dilation(rgba[..., 3] > 128, iterations=3))
+    comps = [(sl, i) for i, sl in enumerate(ndimage.find_objects(lab), 1) if (lab[sl] == i).sum() >= 1500]
+    if len(comps) != 16:
+        raise ValueError(f'gem_spin: found {len(comps)} objects, expected 16')
+    cy = [(c[0].start + c[0].stop) / 2 for c, _ in comps]
+    h = np.median([c[0].stop - c[0].start for c, _ in comps])
+    order = sorted(range(16), key=lambda k: (round(cy[k] / (h * 0.9)), comps[k][0][1].start))
+    gems = []
+    for k in order:
+        sl, i = comps[k]
+        crop = rgba[sl].copy()
+        crop[..., 3] = np.where(lab[sl] == i, crop[..., 3], 0)
+        im = Image.fromarray(crop, 'RGBA')
+        gems.append(fit(im.crop(im.getbbox()), h=36))
+    for row, colour in enumerate(GEM_COLOURS):
+        fr = gems[row * 4:row * 4 + 4]
+        mid = round((fr[0].width + fr[2].width) / 2)
+        fr[1] = fr[1].resize((mid, 36), Image.LANCZOS)
+        fr[3] = fr[3].resize((mid, 36), Image.LANCZOS)
+        for i, im in enumerate(fr, 1):
+            save(on_canvas(im, 40, 40, 'middle'), f'pf_gem_{colour}_{i}')
+
+
 def cut_doors():
     dc, do, cc, co = crops('doors', 4)
     s = min(64 / max(dc.width, do.width), 96 / max(dc.height, do.height))
@@ -462,7 +530,7 @@ def cut_bg(s):
 
 CUT = {
     'grass': cut_grass, 'blocks': cut_blocks, 'gadgets': cut_gadgets, 'items': cut_items_sheet, 'doors': cut_doors,
-    'flag': cut_flag, 'decor': cut_decor, 'scenery': cut_scenery, 'spiky': cut_spiky,
+    'gem_spin': cut_gem_spin, 'flag': cut_flag, 'decor': cut_decor, 'scenery': cut_scenery, 'spiky': cut_spiky,
     'slug': lambda: anim('slug', 'slug_walk', 44, 4),
     'bat': lambda: anim('bat', 'bat_fly', 48, 4),
     'blob': lambda: anim('blob', 'blob_hop', 48, 4),

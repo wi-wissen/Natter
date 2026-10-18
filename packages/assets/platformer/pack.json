@@ -224,6 +224,182 @@
       "en": "Gemstone, green"
     },
     {
+      "name": "pf_gem_blue_1",
+      "file": "pf_gem_blue_1.png",
+      "tags": [
+        "platformer",
+        "item",
+        "animation"
+      ],
+      "de": "Blauer Edelstein dreht sich, Bild 1 von 4",
+      "en": "Spinning blue gemstone, frame 1 of 4"
+    },
+    {
+      "name": "pf_gem_blue_2",
+      "file": "pf_gem_blue_2.png",
+      "tags": [
+        "platformer",
+        "item",
+        "animation"
+      ],
+      "de": "Blauer Edelstein dreht sich, Bild 2 von 4",
+      "en": "Spinning blue gemstone, frame 2 of 4"
+    },
+    {
+      "name": "pf_gem_blue_3",
+      "file": "pf_gem_blue_3.png",
+      "tags": [
+        "platformer",
+        "item",
+        "animation"
+      ],
+      "de": "Blauer Edelstein dreht sich, Bild 3 von 4",
+      "en": "Spinning blue gemstone, frame 3 of 4"
+    },
+    {
+      "name": "pf_gem_blue_4",
+      "file": "pf_gem_blue_4.png",
+      "tags": [
+        "platformer",
+        "item",
+        "animation"
+      ],
+      "de": "Blauer Edelstein dreht sich, Bild 4 von 4",
+      "en": "Spinning blue gemstone, frame 4 of 4"
+    },
+    {
+      "name": "pf_gem_green_1",
+      "file": "pf_gem_green_1.png",
+      "tags": [
+        "platformer",
+        "item",
+        "animation"
+      ],
+      "de": "Grüner Edelstein dreht sich, Bild 1 von 4",
+      "en": "Spinning green gemstone, frame 1 of 4"
+    },
+    {
+      "name": "pf_gem_green_2",
+      "file": "pf_gem_green_2.png",
+      "tags": [
+        "platformer",
+        "item",
+        "animation"
+      ],
+      "de": "Grüner Edelstein dreht sich, Bild 2 von 4",
+      "en": "Spinning green gemstone, frame 2 of 4"
+    },
+    {
+      "name": "pf_gem_green_3",
+      "file": "pf_gem_green_3.png",
+      "tags": [
+        "platformer",
+        "item",
+        "animation"
+      ],
+      "de": "Grüner Edelstein dreht sich, Bild 3 von 4",
+      "en": "Spinning green gemstone, frame 3 of 4"
+    },
+    {
+      "name": "pf_gem_green_4",
+      "file": "pf_gem_green_4.png",
+      "tags": [
+        "platformer",
+        "item",
+        "animation"
+      ],
+      "de": "Grüner Edelstein dreht sich, Bild 4 von 4",
+      "en": "Spinning green gemstone, frame 4 of 4"
+    },
+    {
+      "name": "pf_gem_pink_1",
+      "file": "pf_gem_pink_1.png",
+      "tags": [
+        "platformer",
+        "item",
+        "animation"
+      ],
+      "de": "Rosa Edelstein dreht sich, Bild 1 von 4",
+      "en": "Spinning pink gemstone, frame 1 of 4"
+    },
+    {
+      "name": "pf_gem_pink_2",
+      "file": "pf_gem_pink_2.png",
+      "tags": [
+        "platformer",
+        "item",
+        "animation"
+      ],
+      "de": "Rosa Edelstein dreht sich, Bild 2 von 4",
+      "en": "Spinning pink gemstone, frame 2 of 4"
+    },
+    {
+      "name": "pf_gem_pink_3",
+      "file": "pf_gem_pink_3.png",
+      "tags": [
+        "platformer",
+        "item",
+        "animation"
+      ],
+      "de": "Rosa Edelstein dreht sich, Bild 3 von 4",
+      "en": "Spinning pink gemstone, frame 3 of 4"
+    },
+    {
+      "name": "pf_gem_pink_4",
+      "file": "pf_gem_pink_4.png",
+      "tags": [
+        "platformer",
+        "item",
+        "animation"
+      ],
+      "de": "Rosa Edelstein dreht sich, Bild 4 von 4",
+      "en": "Spinning pink gemstone, frame 4 of 4"
+    },
+    {
+      "name": "pf_gem_red_1",
+      "file": "pf_gem_red_1.png",
+      "tags": [
+        "platformer",
+        "item",
+        "animation"
+      ],
+      "de": "Roter Edelstein dreht sich, Bild 1 von 4",
+      "en": "Spinning red gemstone, frame 1 of 4"
+    },
+    {
+      "name": "pf_gem_red_2",
+      "file": "pf_gem_red_2.png",
+      "tags": [
+        "platformer",
+        "item",
+        "animation"
+      ],
+      "de": "Roter Edelstein dreht sich, Bild 2 von 4",
+      "en": "Spinning red gemstone, frame 2 of 4"
+    },
+    {
+      "name": "pf_gem_red_3",
+      "file": "pf_gem_red_3.png",
+      "tags": [
+        "platformer",
+        "item",
+        "animation"
+      ],
+      "de": "Roter Edelstein dreht sich, Bild 3 von 4",
+      "en": "Spinning red gemstone, frame 3 of 4"
+    },
+    {
+      "name": "pf_gem_red_4",
+      "file": "pf_gem_red_4.png",
+      "tags": [
+        "platformer",
+        "item",
+        "animation"
+      ],
+      "de": "Roter Edelstein dreht sich, Bild 4 von 4",
+      "en": "Spinning red gemstone, frame 4 of 4"
+    },
+    {
       "name": "pf_heart",
       "file": "pf_heart.png",
       "tags": [
