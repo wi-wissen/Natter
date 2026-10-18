@@ -24,7 +24,7 @@
       <h1>Natter, a <span class="hl">small Python</span> for the classroom</h1>
       <p class="lead">A Python interpreter written in JavaScript. It loads fast, has a debugger built in, and an endless loop never freezes the page. Made for teaching.</p>
       <div class="links">
-        <a class="btn primary" href="https://github.com/wi-wissen/Natter">View on GitHub</a>
+        <a class="btn primary" href="#install">Get started</a>
         <a class="btn" href="#language">What it can do</a>
         <a class="btn" href="reference/">Reference</a>
         <a class="btn" href="sprites/">Sprites</a>
@@ -68,6 +68,7 @@ Hi Grace!
 
 <nav aria-label="Sections">
   <div class="wrap nav-inner">
+    <a href="#install">Get started</a>
     <a href="#why">Why</a>
     <a href="#how">How it works</a>
     <a href="#language">Language</a>
@@ -81,6 +82,43 @@ Hi Grace!
 </nav>
 
 <main id="main">
+<section id="install" class="wrap embed">
+  <div>
+    <p class="kicker">Get started</p>
+    <h2>Use Natter in your page</h2>
+    <p>Three ways, pick one. Natter runs entirely in the browser; there is no server to set up.</p>
+    <ul>
+      <li><b>CDN:</b> one HTML file, no tools. Copy the example, open it in a browser.</li>
+      <li><b>npm:</b> for projects with a bundler (Vite, esbuild, webpack) or for Node.</li>
+      <li><b>Download:</b> the zip of the web build from the <a href="https://github.com/wi-wissen/Natter/releases/latest">latest release</a>; put the folder next to your page and import <code>natter-web.js</code> from it.</li>
+    </ul>
+    <p>Packages: <a href="https://www.npmjs.com/package/@natterjs/web"><code>@natterjs/web</code></a> (browser host), <a href="https://www.npmjs.com/package/@natterjs/core"><code>@natterjs/core</code></a> (interpreter, runs in Node too), <a href="https://www.npmjs.com/package/@natterjs/assets"><code>@natterjs/assets</code></a> (images and sounds, <a href="sprites/">browse them</a>).</p>
+  </div>
+  <div>
+<pre class="codeblock" tabindex="0" aria-label="Load from a CDN"><code><span class="c">&lt;!-- index.html: save, open in a browser --&gt;</span>
+&lt;div id="console"&gt;&lt;/div&gt;
+&lt;script type="module"&gt;
+  <span class="k">import</span> { createRunner, createConsole } <span class="k">from</span>
+    <span class="s">"https://cdn.jsdelivr.net/npm/@natterjs/web@0.1/dist/natter-web.js"</span>;
+
+  <span class="k">const</span> runner = createRunner();
+  createConsole(document.getElementById(<span class="s">"console"</span>)).connect(runner);
+
+  <span class="k">await</span> runner.run(<span class="s">`
+for i in range(3):
+    print("Hello", i)
+`</span>);
+&lt;/script&gt;</code></pre>
+<pre class="codeblock" tabindex="0" aria-label="Install with npm"><code><span class="c"># in your project</span>
+npm install @natterjs/web          <span class="c"># browser host (includes the interpreter)</span>
+npm install @natterjs/assets       <span class="c"># optional: images and sounds for games</span>
+
+<span class="c"># Node only, no browser</span>
+npm install @natterjs/core</code></pre>
+<p><code>@0.1</code> in the URL means &ldquo;the newest 0.1.x&rdquo;; use <code>@0.1.1</code> to pin a version. More options, such as turtle, Kara, Pygame Zero and images, are in the <a href="reference/">reference</a> and in the <a href="#embedding">embedding section</a> below.</p>
+  </div>
+</section>
+
 <section id="why" class="wrap">
   <p class="kicker">01 &middot; Why</p>
   <h2>Why another Python?</h2>
@@ -181,7 +219,7 @@ npm install @natterjs/web
 npm install @natterjs/assets</code></pre>
 <pre class="codeblock" tabindex="0" aria-label="Embedding API"><code><span class="k">import</span> { createRunner, createConsole } <span class="k">from</span> <span class="s">"@natterjs/web"</span>;
 <span class="c">// no build step? Import the same from jsDelivr:</span>
-<span class="c">// "https://cdn.jsdelivr.net/npm/@natterjs/web@0.1.0/dist/natter-web.js"</span>
+<span class="c">// "https://cdn.jsdelivr.net/npm/@natterjs/web@0.1/dist/natter-web.js"</span>
 
 <span class="k">const</span> runner = createRunner();
 createConsole(document.querySelector(<span class="s">"#console"</span>)).connect(runner);
@@ -194,7 +232,7 @@ for i in range(3):
 <pre class="codeblock" tabindex="0" aria-label="Node"><code><span class="c">// Node 18+: npm install @natterjs/core</span>
 <span class="k">import</span> { runToEnd } <span class="k">from</span> <span class="s">"@natterjs/core"</span>;
 console.log(runToEnd(<span class="s">"print(1 + 1)"</span>).output);   <span class="c">// 2</span></code></pre>
-<p>Images for Pygame Zero and Kara: <code>createPgzero(el, { assets: { baseUrl: "https://cdn.jsdelivr.net/npm/@natterjs/assets@0.1.0/", catalog: "catalog.json" } })</code>. Self-hosting: copy the whole <code>dist/</code> folder (the start file loads its chunks from next to itself). Each <a href="https://github.com/wi-wissen/Natter/releases">GitHub release</a> also has <code>natter-web-&lt;version&gt;.zip</code> and the npm tarballs (<code>npm install https://github.com/wi-wissen/Natter/releases/download/v0.1.0/natterjs-web-0.1.0.tgz</code>), with checksums.</p>
+<p>Images for Pygame Zero and Kara: <code>createPgzero(el, { assets: { baseUrl: "https://cdn.jsdelivr.net/npm/@natterjs/assets@0.1/", catalog: "catalog.json" } })</code>. Self-hosting: copy the whole <code>dist/</code> folder (the start file loads its chunks from next to itself). Each <a href="https://github.com/wi-wissen/Natter/releases">GitHub release</a> also has <code>natter-web-&lt;version&gt;.zip</code> and the npm tarballs (<code>npm install https://github.com/wi-wissen/Natter/releases/download/v0.1.0/natterjs-web-0.1.0.tgz</code>), with checksums.</p>
 </div>
 </section>
 
