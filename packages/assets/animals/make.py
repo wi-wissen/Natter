@@ -75,26 +75,26 @@ SHEETS = {
         'The bee is seen from the side, facing RIGHT, yellow body with black stripes and small stinger, OPAQUE solid pale blue wings (not transparent, no see-through). '
         'Two frames in ONE horizontal row, widely spaced, same size, same body position: frame 1 wings raised UP, '
         'frame 2 wings pushed DOWN. ' + BG)),
-    'butterfly': dict(kind='frames', height=56, names=['an_butterfly_1', 'an_butterfly_2'], prompt=(
+    'butterfly': dict(kind='frames', height=56, anchor='dark', names=['an_butterfly_1', 'an_butterfly_2'], prompt=(
         f'Draw a 2-frame flying animation of the same butterfly {STYLE_TXT}'
         'Orange and yellow wings with a few round dark dots, small dark body with two antennae, seen exactly from the SIDE, '
-        'body horizontal, head on the RIGHT. Two frames in ONE horizontal row, widely spaced, the body identical in size, '
-        'angle and position in both frames, only the wings change: frame 1 wings raised high up above the body, '
-        'frame 2 wings swung down below the body. ' + BG)),
+        'body perfectly horizontal and straight, head on the RIGHT. Two frames in ONE horizontal row, widely spaced. '
+        'Frame 2 is an exact copy of frame 1 (the same body, same size, same horizontal angle, same height on the sheet) '
+        'with only the wings moved: frame 1 wings raised high up above the body, frame 2 wings swung down below the body. ' + BG)),
     'cat_walk': dict(kind='frames', height=72, ref2='an_cat', names=[f'an_cat_walk_{i}' for i in range(1, 5)], prompt=(
         'The second reference image shows a cat. Draw exactly this cat (same colours, same proportions) '
-        f'{STYLE_TXT}as a 4-frame WALK CYCLE sprite sheet seen from the side, facing RIGHT: 4 frames in ONE horizontal '
+        f'{STYLE_TXT}as a 4-frame WALK CYCLE sprite sheet seen from the side, facing RIGHT: exactly 4 frames (not 8), in ONE single horizontal '
         'row, evenly and widely spaced, same size, paws at the same height, each frame a different phase of a calm '
-        'walk (legs alternating). ' + BG)),
+        'walk with clearly visible leg movement: 1. right legs forward, 2. legs passing, 3. left legs forward, 4. legs passing. ' + BG)),
     'dog_walk': dict(kind='frames', height=80, ref2='an_dog', names=[f'an_dog_walk_{i}' for i in range(1, 5)], prompt=(
         'The second reference image shows a dog. Draw exactly this dog (same colours, same proportions) '
-        f'{STYLE_TXT}as a 4-frame WALK CYCLE sprite sheet seen from the side, facing RIGHT: 4 frames in ONE horizontal '
+        f'{STYLE_TXT}as a 4-frame WALK CYCLE sprite sheet seen from the side, facing RIGHT: exactly 4 frames (not 8), in ONE single horizontal '
         'row, evenly and widely spaced, same size, paws at the same height, each frame a different phase of a calm '
-        'walk (legs alternating). ' + BG)),
+        'walk with clearly visible leg movement: 1. right legs forward, 2. legs passing, 3. left legs forward, 4. legs passing. ' + BG)),
     'pet_cat': dict(kind='frames', height=96, ref2='an_cat', names=['pet_cat_happy', 'pet_cat_sleep', 'pet_cat_hungry',
                                                                     'pet_cat_eating', 'pet_cat_sad'], prompt=(
         'The second reference image shows a cat. Draw this same orange tabby cat '
-        f'{STYLE_TXT}as a virtual pet, seen from the FRONT, sitting, in 5 moods, all the same size, in ONE horizontal row, '
+        f'{STYLE_TXT}as a virtual pet, seen from the FRONT, sitting, in exactly 5 moods (5 cats, no more), all the same size, in ONE single horizontal row, '
         'widely spaced, left to right: 1. happy, big smile, eyes bright. 2. sleeping curled up, eyes closed, peaceful (no letters, no symbols). 3. hungry, mouth open, tongue licking lips, looking up. '
         '4. eating from a small blue bowl placed in front of it, head down. 5. sad, ears down, a small tear. ' + BG)),
 }
@@ -173,10 +173,34 @@ def do_cut(sheet):
             raise ValueError(f'{sheet}: found {len(fr)} frames, expected {len(s["names"])}')
         h = s['height']
         # align() scales to the tallest frame; scale with height so that the frame canvas stays near `h`
-        for name, im in zip(s['names'], keyslice.align(fr, h)):
-            bb = im.getchannel('A').getbbox()
+        out = align_dark(fr, h) if s.get('anchor') == 'dark' else keyslice.align(fr, h)
+        for name, im in zip(s['names'], out):
             im.save(os.path.join(HERE, name + '.png'), optimize=True)
     return sheet
+
+
+def align_dark(imgs, height, pad=2):
+    """Align frames on the centre of their dark pixels (the body), one scale for all: only the wings move."""
+    import numpy as np
+    scale = height / max(i.height for i in imgs)
+    small = [i.resize((max(1, round(i.width * scale)), max(1, round(i.height * scale))), Image.LANCZOS) for i in imgs]
+    cents = []
+    for im in small:
+        a = np.asarray(im).astype(np.float32)
+        m = (a[..., 3] > 128) & (a[..., :3].mean(-1) < 90)
+        ys, xs = np.nonzero(m)
+        cents.append((xs.mean(), ys.mean()))
+    left = max(c[0] for c in cents)
+    top = max(c[1] for c in cents)
+    right = max(im.width - c[0] for im, c in zip(small, cents))
+    bottom = max(im.height - c[1] for im, c in zip(small, cents))
+    w, h = int(left + right) + 2 * pad + 1, int(top + bottom) + 2 * pad + 1
+    res = []
+    for im, (cx, cy) in zip(small, cents):
+        c = Image.new('RGBA', (w, h), (0, 0, 0, 0))
+        c.paste(im, (int(round(pad + left - cx)), int(round(pad + top - cy))), im)
+        res.append(c)
+    return res
 
 
 def frame_desc(name):

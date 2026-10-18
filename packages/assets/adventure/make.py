@@ -70,6 +70,13 @@ SHEETS = {
         '7 a small green goblin with big pointy ears, a brown tunic and a mischievous grin; '
         '8 a small chubby green baby dragon with tiny wings and a yellow belly, standing. '
         + ORIG + STYLE_TXT + BG)),
+    'monsters2': dict(ref=STYLE, prompt=(
+        'Three separate cute cartoon monsters for a top-down role playing game, front view, in ONE row with wide gaps: '
+        '1 a round light green jelly slime blob with two eyes, a simple dome shape, about as wide as tall; '
+        '2 EXACTLY the same green slime blob, same eyes, same colours, only slightly squashed: about 10 percent lower and 10 percent wider; '
+        '3 a small chubby goblin with ORANGE skin, a round potato-shaped head, small rounded ears close to the head, '
+        'a wide toothy grin with one tooth showing, a messy tuft of dark red hair, a patched blue tunic and a little wooden club. '
+        + ORIG + STYLE_TXT + BG)),
     'tiles1': dict(ref=STYLE, prompt=(
         'Eight square ground tiles for a top-down role playing game seen straight from above, each a perfect square with sharp '
         'square corners, the pattern fills the whole square edge to edge and is seamless (tileable), flat simple pattern with few colours. '
@@ -124,8 +131,10 @@ HERO_NAMES = {h: [f'hero_{h}_{d}_{i}' for d in DIRS for i in (1, 2, 3)] for h in
 CUTS = {
     'npc': [('npc_wizard', 64), ('npc_knight', 64), ('npc_villager_1', 64), ('npc_villager_2', 64), ('npc_merchant', 64),
             ('npc_cat', 40), ('npc_dog', 44)],
-    'monsters': [('mon_slime_1', 48), ('mon_slime_2', 48), ('mon_ghost', 56), ('mon_bat_1', 52), ('mon_bat_2', 52),
-                 ('mon_skeleton', 64), ('mon_goblin', 60), ('mon_dragon', 64)],
+    # slimes and goblin of this sheet were redrawn in monsters2 (None = not used)
+    'monsters': [(None, 0), (None, 0), ('mon_ghost', 56), ('mon_bat_1', ('pair', 34)), ('mon_bat_2', ('pair', 34)),
+                 ('mon_skeleton', 64), (None, 0), ('mon_dragon', 64)],
+    'monsters2': [('mon_slime_1', ('pair', 44)), ('mon_slime_2', ('pair', 44)), ('mon_goblin', 60)],
     'tiles1': [(n, 'tile') for n in ('tile_grass', 'tile_path', 'tile_water', 'tile_sand', 'tile_stone',
                                      'tile_wood_floor', 'tile_dungeon_floor', 'tile_snow')],
     'tiles2': [(n, 'tile') for n in ('tile_lava', 'tile_wall', 'tile_dungeon_wall', 'tile_door_closed', 'tile_door_open',
@@ -179,10 +188,20 @@ def tile(im, size=64):
 def cut_named(s):
     names = CUTS[s]
     tmp = os.path.join(WORK, 'cut-' + s)
-    files = keyslice.cut_items(sheet_path(s), [n for n, _ in names], 512, tmp)
+    files = keyslice.cut_items(sheet_path(s), [n or f'unused_{k}' for k, (n, _) in enumerate(names)], 512, tmp)
+    pairs = {}
     for (n, size), f in zip(names, files):
+        if n is None:
+            continue
         im = Image.open(f).convert('RGBA')
-        save(tile(im) if size == 'tile' else fit(im.crop(im.getbbox()), size), n)
+        im = im.crop(im.getbbox())
+        if isinstance(size, tuple):  # animation frames: one shared canvas and scale
+            pairs.setdefault(size, []).append((n, im))
+        else:
+            save(tile(im) if size == 'tile' else fit(im, size), n)
+    for (_, h), group in pairs.items():
+        for (n, _), im in zip(group, keyslice.align([im for _, im in group], h)):
+            save(im, n)
 
 
 def cut_hero(h):
@@ -225,8 +244,8 @@ DESC = {
     'npc_merchant': ('Händler mit Rucksack', 'Merchant with a pack'),
     'npc_cat': ('Katze, sitzend', 'Cat, sitting'),
     'npc_dog': ('Hund', 'Dog'),
-    'mon_slime_1': ('Schleim, gestaucht (Bild 1 von 2)', 'Slime, squashed (frame 1 of 2)'),
-    'mon_slime_2': ('Schleim, gestreckt (Bild 2 von 2)', 'Slime, stretched (frame 2 of 2)'),
+    'mon_slime_1': ('Schleim (Bild 1 von 2)', 'Slime (frame 1 of 2)'),
+    'mon_slime_2': ('Schleim, leicht gestaucht (Bild 2 von 2)', 'Slime, slightly squashed (frame 2 of 2)'),
     'mon_ghost': ('Gespenst, freundlich-gruselig', 'Ghost, friendly-spooky'),
     'mon_bat_1': ('Fledermaus, Flügel oben (Bild 1 von 2)', 'Bat, wings up (frame 1 of 2)'),
     'mon_bat_2': ('Fledermaus, Flügel unten (Bild 2 von 2)', 'Bat, wings down (frame 2 of 2)'),
@@ -267,8 +286,10 @@ def entries():
                 out.append({'name': f'hero_{h}_{d}_{i}', 'tags': ['character', 'player', 'animation'],
                             'de': f'{de} geht {DIR_TXT[d][0]}, Bild {i} von 3{pose[0]}',
                             'en': f'{en} walking {DIR_TXT[d][1]}, frame {i} of 3{pose[1]}'})
-    for s in ('npc', 'monsters', 'tiles1', 'tiles2', 'items', 'props', 'buildings'):
+    for s in ('npc', 'monsters2', 'monsters', 'tiles1', 'tiles2', 'items', 'props', 'buildings'):
         for n, _ in CUTS[s]:
+            if n is None:
+                continue
             tags = list(TAGS[n.split('_')[0]])
             if n in PROP:
                 tags = ['object']

@@ -65,6 +65,46 @@
       "en": "Cat (side view, facing right)"
     },
     {
+      "name": "an_cat_walk_1",
+      "file": "an_cat_walk_1.png",
+      "tags": [
+        "animal",
+        "animation"
+      ],
+      "de": "Katze läuft, Bild 1 von 4 (nach rechts)",
+      "en": "Cat walking, frame 1 of 4 (facing right)"
+    },
+    {
+      "name": "an_cat_walk_2",
+      "file": "an_cat_walk_2.png",
+      "tags": [
+        "animal",
+        "animation"
+      ],
+      "de": "Katze läuft, Bild 2 von 4 (nach rechts)",
+      "en": "Cat walking, frame 2 of 4 (facing right)"
+    },
+    {
+      "name": "an_cat_walk_3",
+      "file": "an_cat_walk_3.png",
+      "tags": [
+        "animal",
+        "animation"
+      ],
+      "de": "Katze läuft, Bild 3 von 4 (nach rechts)",
+      "en": "Cat walking, frame 3 of 4 (facing right)"
+    },
+    {
+      "name": "an_cat_walk_4",
+      "file": "an_cat_walk_4.png",
+      "tags": [
+        "animal",
+        "animation"
+      ],
+      "de": "Katze läuft, Bild 4 von 4 (nach rechts)",
+      "en": "Cat walking, frame 4 of 4 (facing right)"
+    },
+    {
       "name": "an_chicken",
       "file": "an_chicken.png",
       "tags": [
@@ -90,6 +130,46 @@
       ],
       "de": "Hund (von der Seite, nach rechts)",
       "en": "Dog (side view, facing right)"
+    },
+    {
+      "name": "an_dog_walk_1",
+      "file": "an_dog_walk_1.png",
+      "tags": [
+        "animal",
+        "animation"
+      ],
+      "de": "Hund läuft, Bild 1 von 4 (nach rechts)",
+      "en": "Dog walking, frame 1 of 4 (facing right)"
+    },
+    {
+      "name": "an_dog_walk_2",
+      "file": "an_dog_walk_2.png",
+      "tags": [
+        "animal",
+        "animation"
+      ],
+      "de": "Hund läuft, Bild 2 von 4 (nach rechts)",
+      "en": "Dog walking, frame 2 of 4 (facing right)"
+    },
+    {
+      "name": "an_dog_walk_3",
+      "file": "an_dog_walk_3.png",
+      "tags": [
+        "animal",
+        "animation"
+      ],
+      "de": "Hund läuft, Bild 3 von 4 (nach rechts)",
+      "en": "Dog walking, frame 3 of 4 (facing right)"
+    },
+    {
+      "name": "an_dog_walk_4",
+      "file": "an_dog_walk_4.png",
+      "tags": [
+        "animal",
+        "animation"
+      ],
+      "de": "Hund läuft, Bild 4 von 4 (nach rechts)",
+      "en": "Dog walking, frame 4 of 4 (facing right)"
     },
     {
       "name": "an_duck",
@@ -290,6 +370,56 @@
       ],
       "de": "Körbchen für ein Haustier",
       "en": "Pet bed"
+    },
+    {
+      "name": "pet_cat_eating",
+      "file": "pet_cat_eating.png",
+      "tags": [
+        "animal",
+        "pet"
+      ],
+      "de": "Haustier-Katze, frisst (von vorn)",
+      "en": "Pet cat, eating (front view)"
+    },
+    {
+      "name": "pet_cat_happy",
+      "file": "pet_cat_happy.png",
+      "tags": [
+        "animal",
+        "pet"
+      ],
+      "de": "Haustier-Katze, fröhlich (von vorn)",
+      "en": "Pet cat, happy (front view)"
+    },
+    {
+      "name": "pet_cat_hungry",
+      "file": "pet_cat_hungry.png",
+      "tags": [
+        "animal",
+        "pet"
+      ],
+      "de": "Haustier-Katze, hungrig (von vorn)",
+      "en": "Pet cat, hungry (front view)"
+    },
+    {
+      "name": "pet_cat_sad",
+      "file": "pet_cat_sad.png",
+      "tags": [
+        "animal",
+        "pet"
+      ],
+      "de": "Haustier-Katze, traurig (von vorn)",
+      "en": "Pet cat, sad (front view)"
+    },
+    {
+      "name": "pet_cat_sleep",
+      "file": "pet_cat_sleep.png",
+      "tags": [
+        "animal",
+        "pet"
+      ],
+      "de": "Haustier-Katze, schläft (von vorn)",
+      "en": "Pet cat, sleeping (front view)"
     },
     {
       "name": "pet_fish_treat",

@@ -35,7 +35,8 @@ SHEETS = {
         'A sheet of 5 parts of a snake game, in ONE horizontal row, left to right: '
         '1) the head of a friendly green cartoon snake seen from directly above, a rounded square head pointing RIGHT, two big friendly eyes on top, a small red forked tongue sticking out to the right; '
         '2) one body segment of the same green snake seen from above: a rounded square, same width as the head, same green, a lighter green spot in the middle; '
-        '3) the tail of the same snake seen from above: same width on the right side, tapering to a rounded point on the LEFT; '
+        '3) the tail end of the same snake seen from above, lying STRAIGHT and flat (not curled, not bent): a horizontal piece whose right end is as wide as the body segment, '
+        'narrowing evenly to a small rounded point at the LEFT end, like a rounded triangle pointing left, same green, a small lighter spot; '
         '4) a shiny red apple with a small green leaf; '
         '5) a small grey cartoon mouse seen from the side facing right, pink ears, long thin pink tail.'),
         items=[('snake_head_right', (32, 32), 'fit'), ('snake_body', (32, 32), 'fit'), ('snake_tail', (32, 32), 'fit'),
@@ -94,12 +95,14 @@ SHEETS = {
         'then 8 card FRONTS, each a white card with one big centred picture: '
         '2) a friendly orange cat face; 3) a yellow star; 4) a yellow crescent moon; 5) a red heart; '
         '6) a smiling orange sun with rays; 7) a blue fish facing right; 8) a pink flower with a yellow centre; 9) a white and red rocket.'),
+        found=10, pick=[0, 2, 3, 4, 5, 6, 7, 8, 9],  # the model added a purple cat card
         items=[(n, (96, 96), 'fit') for n in ['memory_back', 'memory_cat', 'memory_star', 'memory_moon', 'memory_heart',
                                              'memory_sun', 'memory_fish', 'memory_flower', 'memory_rocket']]),
     'balloons': dict(prompt=HEAD + (
         'A sheet of 4 objects, in ONE horizontal row, left to right: '
         '1) a red party balloon with a small knot and a short curly string; 2) the same balloon in blue; 3) the same balloon in yellow; '
         '4) a red balloon bursting: a cartoon pop burst with jagged red rubber pieces flying outwards and small white star sparks.'),
+        grow=40,
         items=[('balloon_red', (48, 72), 'fit'), ('balloon_blue', (48, 72), 'fit'), ('balloon_yellow', (48, 72), 'fit'),
                ('balloon_pop', (72, 72), 'fit')]),
     'shoot': dict(prompt=HEAD + (
@@ -110,6 +113,7 @@ SHEETS = {
         '4) a round dark grey cannonball with a small white highlight; '
         '5) a golden trophy cup with two handles (a goal to reach); '
         '6) a cute round character: a simple round teal ball body with two big eyes and a smile, tiny feet, no arms.'),
+        found=8, pick=[0, 1, 2, 3, 4, 7],  # the model added a blue ball and a second cup
         items=[('target', (80, 80), 'fit'), ('dart', (64, 64), 'fit'), ('cannon', (96, 96), 'fit'),
                ('cannonball', (32, 32), 'fit'), ('maze_goal', (32, 32), 'fit'), ('maze_player', (32, 32), 'fit')]),
 }
@@ -180,10 +184,24 @@ ORDER = (['snake_head_right', 'snake_head_up', 'snake_head_left', 'snake_head_do
 ORDER = list(dict.fromkeys(ORDER))
 
 
-def components(path, count, min_area=1500):
-    rgba = key(Image.open(path))
+def defringe(rgba):
+    """Edge pixels that still look magenta take the colour of the nearest solid inner pixel."""
+    a = rgba[..., 3]
+    inner = ndimage.binary_erosion(a == 255, iterations=3)
+    edge = (a > 0) & ~ndimage.binary_erosion(a > 0, iterations=4)
+    c = rgba[..., :3].astype(np.int32)
+    m = np.minimum(c[..., 0], c[..., 2]) - c[..., 1]
+    bad = edge & (m > 12)
+    if inner.any() and bad.any():
+        _, (iy, ix) = ndimage.distance_transform_edt(~inner, return_indices=True)
+        rgba[..., :3][bad] = rgba[..., :3][iy[bad], ix[bad]]
+    return rgba
+
+
+def components(path, count, min_area=1500, grow=8):
+    rgba = defringe(key(Image.open(path)))
     alpha = rgba[..., 3] > 128
-    lab, n = ndimage.label(ndimage.binary_dilation(alpha, iterations=8))
+    lab, n = ndimage.label(ndimage.binary_dilation(alpha, iterations=grow))
     comps = [(sl, i) for i, sl in enumerate(ndimage.find_objects(lab), 1) if (lab[sl] == i).sum() >= min_area]
     if len(comps) != count:
         raise ValueError(f'{path}: found {len(comps)} objects, expected {count}')
@@ -231,7 +249,12 @@ def save(im, name):
 
 def cut(sheet):
     s = SHEETS[sheet]
-    crops = components(os.path.join(WORK, sheet + '.png'), len(s['items']))
+    # 'pick': indices of the wanted objects when the model drew extra ones (recorded per generated sheet);
+    # 'grow': merge radius for objects made of separate pieces
+    pick = s.get('pick')
+    crops = components(os.path.join(WORK, sheet + '.png'), s.get('found', len(s['items'])), grow=s.get('grow', 8))
+    if pick:
+        crops = [crops[k] for k in pick]
     for (name, box, mode), im in zip(s['items'], crops):
         out = place(im, box, mode)
         save(out, name)

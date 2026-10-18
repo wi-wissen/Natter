@@ -31,8 +31,10 @@ ANIM = {
             'frame 1 wings up, frame 2 wings level, frame 3 wings down.' + MAGENTA,
             ['fl_bee_1', 'fl_bee_2', 'fl_bee_3'], 48, STYLE),
     'dragon': (BASE + 'Draw a FLAP ANIMATION sprite sheet of a small friendly round baby dragon (soft orange body, cream belly, small rounded horns, '
-               'big friendly eye, short tail, purple bat wings) flying, seen from the side, facing RIGHT: exactly 4 frames in ONE horizontal row, evenly spaced, '
-               'same size, body at the same height; frame 1 wings fully up, frame 2 wings level, frame 3 wings fully down, frame 4 wings level again.' + MAGENTA,
+               'big friendly eye, short tail, ONE visible purple bat wing on its back) flying, seen from the side, facing RIGHT. '
+               'Exactly 4 frames, all in ONE single horizontal row (no second row, nothing else on the sheet), evenly spaced with wide gaps, identical body and pose, '
+               'body at the same height; only the wing changes: frame 1 wing pointing straight up, frame 2 wing spread out level backwards, '
+               'frame 3 wing pointing down below the belly, frame 4 wing spread out level backwards again.' + MAGENTA,
                ['fl_dragon_1', 'fl_dragon_2', 'fl_dragon_3', 'fl_dragon_4'], 80, STYLE),
     'coin': (BASE + 'Draw a SPINNING COIN animation sprite sheet: a round golden coin with a simple embossed star in the middle, exactly 4 frames in ONE '
              'horizontal row, evenly spaced, same height: frame 1 seen fully from the front (round), frame 2 turned (narrow oval), frame 3 seen edge-on '
@@ -188,6 +190,8 @@ def cut():
         if not have(sheet): continue
         rgba = keyslice.key(Image.open(os.path.join(WORK, sheet + '.png')))
         fr = keyslice.frames(rgba)
+        if len(fr) > len(names) and len(fr) % len(names) == 0:
+            fr = fr[:len(names)]  # the model sometimes repeats the cycle in a second row: take the first
         if len(fr) != len(names):
             raise ValueError(f'{sheet}: {len(fr)} frames, expected {len(names)}')
         for name, im in zip(names, align_flying(fr, h)):

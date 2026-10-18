@@ -66,8 +66,6 @@ Setzt `host.turtle(kind, args)` aus `docs/HOST-TURTLE-KARA.md` um: Ursprung in d
 
 ## Kara: `createKara(container, { stepSeconds, fit, maxScale })`
 
-Programme schreiben Kara wie im Buch (`world(...)` und `move()` ohne Import, dafür `karaGlobals()` als `globals`) oder mit `import kara`. Für alte python.jetzt-Links gibt es den Objektstil `k = kara.Kara(welt)`, `k.move()`, `k.putLeaf()`/`k.removeLeaf()`/`k.onLeaf()` (= Beeren), `k.sleep(s)`: eine kleine Klasse in Python über denselben Funktionen, der Debugger springt darüber, Fehler zeigen auf die Zeile des Programms.
-
 Wiese von 3×3 bis 30×20 (Zellen passen sich an), Bäume, Beeren, Pilze (grün, wenn alle auf Beeren liegen), Marienkäfer mit Blickrichtung. `move`, `push`, `turn`, `put`, `remove` sind animiert (`stepSeconds`, Standard 0,3; auch später über `kara.stepSeconds` änderbar), `crash` zeigt den Zusammenstoß, der Fehler kommt wie jeder andere.
 
 ## Pygame Zero: `createPgzero(container, options)`

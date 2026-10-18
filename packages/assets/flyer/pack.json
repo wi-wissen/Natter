@@ -51,6 +51,16 @@
       "en": "Round teal bird flapping, frame 4 of 4 (facing right)"
     },
     {
+      "name": "fl_bird_dead",
+      "file": "fl_bird_dead.png",
+      "tags": [
+        "flyer",
+        "player"
+      ],
+      "de": "Türkiser Vogel liegt k.o. auf dem Rücken",
+      "en": "Teal bird knocked out, lying on its back"
+    },
+    {
       "name": "fl_bee_1",
       "file": "fl_bee_1.png",
       "tags": [
@@ -82,6 +92,318 @@
       ],
       "de": "Biene fliegt, Bild 3 von 3 (nach rechts)",
       "en": "Bee flying, frame 3 of 3 (facing right)"
+    },
+    {
+      "name": "fl_dragon_1",
+      "file": "fl_dragon_1.png",
+      "tags": [
+        "flyer",
+        "animal",
+        "animation"
+      ],
+      "de": "Kleiner Drache flattert, Bild 1 von 4 (nach rechts)",
+      "en": "Little dragon flapping, frame 1 of 4 (facing right)"
+    },
+    {
+      "name": "fl_dragon_2",
+      "file": "fl_dragon_2.png",
+      "tags": [
+        "flyer",
+        "animal",
+        "animation"
+      ],
+      "de": "Kleiner Drache flattert, Bild 2 von 4 (nach rechts)",
+      "en": "Little dragon flapping, frame 2 of 4 (facing right)"
+    },
+    {
+      "name": "fl_dragon_3",
+      "file": "fl_dragon_3.png",
+      "tags": [
+        "flyer",
+        "animal",
+        "animation"
+      ],
+      "de": "Kleiner Drache flattert, Bild 3 von 4 (nach rechts)",
+      "en": "Little dragon flapping, frame 3 of 4 (facing right)"
+    },
+    {
+      "name": "fl_dragon_4",
+      "file": "fl_dragon_4.png",
+      "tags": [
+        "flyer",
+        "animal",
+        "animation"
+      ],
+      "de": "Kleiner Drache flattert, Bild 4 von 4 (nach rechts)",
+      "en": "Little dragon flapping, frame 4 of 4 (facing right)"
+    },
+    {
+      "name": "fl_balloon",
+      "file": "fl_balloon.png",
+      "tags": [
+        "flyer",
+        "vehicle"
+      ],
+      "de": "Heißluftballon, rot-weiß gestreift",
+      "en": "Hot air balloon, red and white stripes"
+    },
+    {
+      "name": "fl_plane",
+      "file": "fl_plane.png",
+      "tags": [
+        "flyer",
+        "vehicle"
+      ],
+      "de": "Kleines rotes Propellerflugzeug (nach rechts)",
+      "en": "Little red propeller plane (facing right)"
+    },
+    {
+      "name": "fl_pillar_top",
+      "file": "fl_pillar_top.png",
+      "tags": [
+        "obstacle"
+      ],
+      "de": "Holzsäule, hängt von oben herab (80x240)",
+      "en": "Wooden pillar hanging from the top (80x240)"
+    },
+    {
+      "name": "fl_pillar_bottom",
+      "file": "fl_pillar_bottom.png",
+      "tags": [
+        "obstacle"
+      ],
+      "de": "Holzsäule, steht unten (80x240)",
+      "en": "Wooden pillar standing at the bottom (80x240)"
+    },
+    {
+      "name": "fl_icicle_top",
+      "file": "fl_icicle_top.png",
+      "tags": [
+        "obstacle",
+        "winter"
+      ],
+      "de": "Eiszapfen, hängt von oben herab",
+      "en": "Icicle hanging from the top"
+    },
+    {
+      "name": "fl_icicle_bottom",
+      "file": "fl_icicle_bottom.png",
+      "tags": [
+        "obstacle",
+        "winter"
+      ],
+      "de": "Eissäule, steht unten mit Spitze nach oben",
+      "en": "Ice spike standing at the bottom"
+    },
+    {
+      "name": "fl_cloud_obstacle",
+      "file": "fl_cloud_obstacle.png",
+      "tags": [
+        "obstacle"
+      ],
+      "de": "Dunkle Gewitterwolke mit Blitz",
+      "en": "Dark storm cloud with lightning"
+    },
+    {
+      "name": "fl_tree_trunk",
+      "file": "fl_tree_trunk.png",
+      "tags": [
+        "obstacle"
+      ],
+      "de": "Hoher Baumstamm, aufrecht",
+      "en": "Tall upright tree trunk"
+    },
+    {
+      "name": "fl_coin_1",
+      "file": "fl_coin_1.png",
+      "tags": [
+        "pickup",
+        "item",
+        "animation"
+      ],
+      "de": "Goldmünze dreht sich, Bild 1 von 4",
+      "en": "Gold coin spinning, frame 1 of 4"
+    },
+    {
+      "name": "fl_coin_2",
+      "file": "fl_coin_2.png",
+      "tags": [
+        "pickup",
+        "item",
+        "animation"
+      ],
+      "de": "Goldmünze dreht sich, Bild 2 von 4",
+      "en": "Gold coin spinning, frame 2 of 4"
+    },
+    {
+      "name": "fl_coin_3",
+      "file": "fl_coin_3.png",
+      "tags": [
+        "pickup",
+        "item",
+        "animation"
+      ],
+      "de": "Goldmünze dreht sich, Bild 3 von 4",
+      "en": "Gold coin spinning, frame 3 of 4"
+    },
+    {
+      "name": "fl_coin_4",
+      "file": "fl_coin_4.png",
+      "tags": [
+        "pickup",
+        "item",
+        "animation"
+      ],
+      "de": "Goldmünze dreht sich, Bild 4 von 4",
+      "en": "Gold coin spinning, frame 4 of 4"
+    },
+    {
+      "name": "fl_star",
+      "file": "fl_star.png",
+      "tags": [
+        "pickup",
+        "item"
+      ],
+      "de": "Goldener Stern",
+      "en": "Golden star"
+    },
+    {
+      "name": "fl_feather",
+      "file": "fl_feather.png",
+      "tags": [
+        "pickup",
+        "item"
+      ],
+      "de": "Hellblaue Feder",
+      "en": "Light blue feather"
+    },
+    {
+      "name": "fl_ground",
+      "file": "fl_ground.png",
+      "tags": [
+        "ground",
+        "tile"
+      ],
+      "de": "Bodenstreifen aus Gras und Erde, nebeneinander kachelbar (128x64)",
+      "en": "Ground strip of grass and soil, tiles side by side (128x64)"
+    },
+    {
+      "name": "fl_ground_snow",
+      "file": "fl_ground_snow.png",
+      "tags": [
+        "ground",
+        "tile",
+        "winter"
+      ],
+      "de": "Bodenstreifen mit Schnee, nebeneinander kachelbar (128x64)",
+      "en": "Snowy ground strip, tiles side by side (128x64)"
+    },
+    {
+      "name": "fl_bg_day",
+      "file": "fl_bg_day.png",
+      "tags": [
+        "background"
+      ],
+      "de": "Hintergrund: Himmel am Tag mit Hügeln (800x480)",
+      "en": "Background: daytime sky with hills (800x480)"
+    },
+    {
+      "name": "fl_bg_sunset",
+      "file": "fl_bg_sunset.png",
+      "tags": [
+        "background"
+      ],
+      "de": "Hintergrund: Sonnenuntergang (800x480)",
+      "en": "Background: sunset (800x480)"
+    },
+    {
+      "name": "fl_bg_night",
+      "file": "fl_bg_night.png",
+      "tags": [
+        "background"
+      ],
+      "de": "Hintergrund: Nacht mit Mond und Sternen (800x480)",
+      "en": "Background: night with moon and stars (800x480)"
+    },
+    {
+      "name": "fl_bg_snow",
+      "file": "fl_bg_snow.png",
+      "tags": [
+        "background",
+        "winter"
+      ],
+      "de": "Hintergrund: Winterlandschaft mit Schnee (800x480)",
+      "en": "Background: snowy winter landscape (800x480)"
+    },
+    {
+      "name": "fall_apple",
+      "file": "fall_apple.png",
+      "tags": [
+        "falling",
+        "item"
+      ],
+      "de": "Fallender roter Apfel",
+      "en": "Falling red apple"
+    },
+    {
+      "name": "fall_bomb",
+      "file": "fall_bomb.png",
+      "tags": [
+        "falling",
+        "item"
+      ],
+      "de": "Runde Comic-Bombe mit Zündschnur",
+      "en": "Round cartoon bomb with fuse"
+    },
+    {
+      "name": "fall_star",
+      "file": "fall_star.png",
+      "tags": [
+        "falling",
+        "item"
+      ],
+      "de": "Fallender goldener Stern",
+      "en": "Falling golden star"
+    },
+    {
+      "name": "fall_gift",
+      "file": "fall_gift.png",
+      "tags": [
+        "falling",
+        "item"
+      ],
+      "de": "Geschenk mit Schleife",
+      "en": "Gift box with bow"
+    },
+    {
+      "name": "fall_raindrop",
+      "file": "fall_raindrop.png",
+      "tags": [
+        "falling",
+        "item"
+      ],
+      "de": "Blauer Regentropfen",
+      "en": "Blue raindrop"
+    },
+    {
+      "name": "fall_meteor",
+      "file": "fall_meteor.png",
+      "tags": [
+        "falling",
+        "item"
+      ],
+      "de": "Meteor mit Flammenschweif (fällt nach unten)",
+      "en": "Meteor with flame tail (falling down)"
+    },
+    {
+      "name": "fall_basket",
+      "file": "fall_basket.png",
+      "tags": [
+        "falling",
+        "player"
+      ],
+      "de": "Korb zum Auffangen",
+      "en": "Basket for catching"
     }
   ]
 }
