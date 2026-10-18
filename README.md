@@ -50,7 +50,7 @@ Example programs are in `packages/core/test/cases/*.py` with the output of CPyth
 
 ## Website
 
-A static overview page lives in [`docs/`](docs/). To publish it with GitHub Pages, set the source to the `main` branch and the `/docs` folder.
+A static overview page lives in [`docs/`](docs/), published with GitHub Pages (source: `main`, folder `/docs`) at <https://natter.wi7.net/> (`docs/CNAME`).
 
 The **command reference** ([`docs/reference/index.html`](docs/reference/index.html)) lists the language, the builtins, every standard module, `turtle`, `kara` (commands and world format), Pygame Zero (hooks, `screen`, `Actor`, `keyboard`, sounds, music, `clock`, images from the asset library), `guizero`, numpy, pyplot, `requests` with CORS, files and the asset library, each with a runnable example. It is generated from the interpreter: `scripts/build-reference.mjs` reads the module registries, builtins, stdlib, messages and `packages/assets` and adds the English text from `scripts/reference/content.mjs`. Every example and every language snippet runs while building. After changing a module, run
 
@@ -60,6 +60,81 @@ npm run reference   # rewrite docs/reference/index.html
 
 `packages/core/test/reference.test.js` fails when the page is stale, when a described name no longer exists or when an example stops working.
 
+## Einbinden
+
+Drei Pakete auf npm, eine Version für alle:
+
+| Paket | Inhalt |
+|---|---|
+| [`@natterjs/core`](https://www.npmjs.com/package/@natterjs/core) | Interpreter (Quelltext, ES-Module mit JSDoc), Node 18+ und Browser; `@natterjs/core/browser` ist der kleine Start ohne die in Python geschriebenen Module |
+| [`@natterjs/web`](https://www.npmjs.com/package/@natterjs/web) | Browser-Host als fertiger Build `dist/natter-web.js` mit nachgeladenen Teilen (Kern eingebaut) |
+| [`@natterjs/assets`](https://www.npmjs.com/package/@natterjs/assets) | Bilder, Klänge, `catalog.json` (CC0, siehe `packages/assets/LICENSE-ASSETS.md`) |
+
+**Mit npm und Bundler** (Vite, esbuild, webpack):
+
+```bash
+npm install @natterjs/web @natterjs/assets
+```
+
+```js
+import { createRunner, createConsole } from '@natterjs/web';
+const runner = createRunner();
+createConsole(document.querySelector('#console')).connect(runner);
+await runner.run('print(1 + 1)');
+```
+
+**In Node** (Tests, Werkzeuge):
+
+```js
+import { runToEnd } from '@natterjs/core';   // npm install @natterjs/core
+console.log(runToEnd('print(1 + 1)').output); // 2
+```
+
+**Statische Seite ohne Build, über jsDelivr** (immer mit fester Version):
+
+```html
+<div id="console"></div>
+<script type="module">
+  import { createRunner, createConsole, createPgzero } from 'https://cdn.jsdelivr.net/npm/@natterjs/web@0.1.0/dist/natter-web.js';
+  const runner = createRunner();
+  createConsole(document.querySelector('#console')).connect(runner);
+  await runner.run('for i in range(3):\n    print("Hallo", i)');
+  // Bildbibliothek für Pygame Zero und Kara:
+  // createPgzero(el, { assets: { baseUrl: 'https://cdn.jsdelivr.net/npm/@natterjs/assets@0.1.0/', catalog: 'catalog.json' } })
+</script>
+```
+
+`natter-web.js` lädt seine Teile (`stdlib-…js`, `numpy-…js` …) von seinem eigenen Ort nach. Wer selbst hostet, kopiert den ganzen Ordner `dist/` (aus `node_modules/@natterjs/web/dist/` oder aus `natter-web-<version>.zip` der [GitHub-Releases](https://github.com/wi-wissen/Natter/releases)) und für Bilder den Inhalt von `@natterjs/assets`. `import { assetsOption } from '@natterjs/assets'` liefert `{ baseUrl, catalog }` relativ zum Paket, wenn es so ausgeliefert wird, wie es ist.
+
+**Ohne npm-Registry, aus dem GitHub-Release:** jedes Release hat die npm-Tarballs als Anhang (mit `SHA256SUMS.txt`):
+
+```bash
+npm install https://github.com/wi-wissen/Natter/releases/download/v0.1.0/natterjs-core-0.1.0.tgz \
+            https://github.com/wi-wissen/Natter/releases/download/v0.1.0/natterjs-web-0.1.0.tgz
+```
+
+(`@natterjs/web` hängt von `@natterjs/core` ab, darum beide.) jsDelivr direkt aus GitHub (`https://cdn.jsdelivr.net/gh/wi-wissen/Natter@v0.1.0/…`) liefert nur, was im Repository liegt: die Bibliothek (`…/packages/assets/catalog.json`) und den Quelltext, aber nicht `dist/`, das nicht eingecheckt ist. Für den Browser-Build also die npm-Adresse oben nehmen.
+
+## Veröffentlichen (Release)
+
+Ein Tag `v<version>` startet `.github/workflows/release.yml`: Lizenz- und Versionsprüfung (`scripts/release-check.mjs`), `npm ci`, Tests, Build, Größenbericht, `npm pack` und `npm publish --provenance` für `@natterjs/assets`, `@natterjs/core`, `@natterjs/web` (in dieser Reihenfolge; was schon auf npm liegt, wird übersprungen, ein fehlgeschlagener Lauf lässt sich neu starten), dann ein GitHub-Release mit erzeugten Notizen, `natter-web-<version>.zip`, den drei Tarballs und `SHA256SUMS.txt`. Von Hand geht es auch: Actions → Release → „Run workflow“ mit der Version (legt den Tag an). Bei jedem Push und Pull Request laufen Tests, Build und Größenbericht (`.github/workflows/ci.yml`).
+
+Neue Version:
+
+```bash
+node scripts/set-version.mjs 0.2.0   # alle package.json und die internen Abhängigkeiten
+npm install                          # package-lock.json
+git commit -am "Release 0.2.0" && git tag v0.2.0 && git push origin main v0.2.0
+```
+
+Checkliste für die Inhaberin bzw. den Inhaber (einmalig):
+
+1. Auf npmjs.com ein **Granular Access Token** anlegen: Pakete und Scopes `@natterjs` (bzw. Organisation `natterjs`), Berechtigung **Read and write**, kurze Laufzeit (z. B. 7 Tage). Es als Repository-Secret **`NPM_TOKEN`** speichern (Settings → Secrets and variables → Actions). Nötig, weil npm einen Trusted Publisher erst für ein bestehendes Paket einrichten lässt.
+2. In `LICENSE` steht der Name des Rechteinhabers (der Release-Lauf bricht ab, solange dort ein Platzhalter steht).
+3. Erstes Release: `git tag v0.1.0 && git push origin v0.1.0`. Der Lauf veröffentlicht mit dem Token.
+4. Danach für **jedes** der drei Pakete auf npmjs.com → Paket → Settings → **Trusted Publisher** → GitHub Actions: Organisation/Benutzer `wi-wissen`, Repository `Natter`, Workflow `release.yml` (Environment leer). Optional dort „Require two-factor authentication and disallow tokens“ wählen.
+5. Das Token auf npmjs.com löschen und das Secret `NPM_TOKEN` im Repository entfernen. Ab jetzt meldet sich der Workflow per OIDC an (`id-token: write`, npm ab 11.5.1), ohne Geheimnis; die Provenienz zeigt npm am Paket an.
+
 ## License
 
-Not decided yet.
+Code: MIT, see [`LICENSE`](LICENSE) (with the notices of the third-party code in `packages/core`). Images and sounds in `packages/assets`: CC0, see [`packages/assets/LICENSE-ASSETS.md`](packages/assets/LICENSE-ASSETS.md).
