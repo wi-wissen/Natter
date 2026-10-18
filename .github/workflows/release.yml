@@ -1,7 +1,7 @@
 # Publish @natterjs/assets, @natterjs/core and @natterjs/web to npm and create a GitHub release.
 # Start: push a tag `v<version>` (the version in packages/*/package.json), or run the workflow by hand with that version.
 # Auth: npm Trusted Publishing (OIDC, no secret) once it is set up per package on npmjs.com; until then, or for a
-# package that does not exist yet, the repository secret NPM_INIT_TOKEN is used. See README, "Veröffentlichen (Release)".
+# package that does not exist yet, the repository secret NPM_TOKEN (or the older NPM_INIT_TOKEN) is used. See README, "Veröffentlichen (Release)".
 name: Release
 
 on:
@@ -83,9 +83,9 @@ jobs:
       # skipped, so a failed run can simply be started again.
       - name: Publish to npm
         env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_INIT_TOKEN }}
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN || secrets.NPM_INIT_TOKEN }}
         run: |
-          if [ -n "$NODE_AUTH_TOKEN" ]; then echo "Using NPM_INIT_TOKEN (Trusted Publishing is tried first where configured)."; else echo "No NPM_INIT_TOKEN: Trusted Publishing (OIDC) only."; fi
+          if [ -n "$NODE_AUTH_TOKEN" ]; then echo "Using the npm token secret (NPM_TOKEN, or the older NPM_INIT_TOKEN)."; else echo "No npm token secret: Trusted Publishing (OIDC) only."; fi
           for ws in assets core web; do
             name="@natterjs/$ws"
             if npm view "$name@$VERSION" version >/dev/null 2>&1; then
