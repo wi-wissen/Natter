@@ -47,7 +47,7 @@ describe('command reference', () => {
     if (r.error) bad.push(`builtins: ${JSON.stringify(r.error.params)}`);
     for (const n of b.missing) if (!runToEnd(`x = ${n}`).error) bad.push(`builtin ${n} is listed as missing but exists`);
     const sample = { str: '""', list: '[]', tuple: '()', dict: '{}', set: 'set()', frozenset: 'frozenset()' };
-    for (const t of byId('methoden').methods) bad.push(...missing(`x = ${sample[t.type]}`, 'x', t.entries.map((e) => e.name)));
+    for (const t of byId('methods').methods) bad.push(...missing(`x = ${sample[t.type]}`, 'x', t.entries.map((e) => e.name)));
     bad.push(...missing('import kara', 'kara', byId('kara').kara.entries.map((e) => e.name)));
     const g = byId('pgzero').pgz;
     const setup = 'from pgzero_builtins import *\nfrom pgzero_audio import Sound';

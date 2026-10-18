@@ -1,6 +1,6 @@
 // Command reference of Natter (docs/reference/index.html), generated from the interpreter itself.
 // The names, signatures, members, constants, world characters, error texts, hooks and asset game types come from the
-// source (module registries, builtins, stdlib, messages, assets); scripts/reference/content.mjs adds the German
+// source (module registries, builtins, stdlib, messages, assets); scripts/reference/content.mjs adds the English
 // explanations, examples and notes. Every example and every language snippet is run while building, so the page
 // cannot claim what Natter does not do. A test (packages/core/test/reference.test.js) fails when the page is stale.
 //
@@ -17,7 +17,7 @@ import {
 import { BUILTINS, METHODS, CLASS_GLOBALS } from '../packages/core/src/builtins.js';
 import { KARA_NAMES, KARA_CHARS, worldText } from '../packages/core/src/stdlib/kara.js';
 import { PGZ_NATIVES, PGZ_BUILTIN_NAMES, pgzHostModules, installPgzero, pgzFrame, pgzStart } from '../packages/core/src/stdlib/pgzero.js';
-import { de as MSG_DE } from '../packages/core/src/messages.js';
+import { en as MSG_EN } from '../packages/core/src/messages.js';
 import { PACKS } from '../packages/core/src/stdlib/packs.js';
 import { SECTIONS, PAGE } from './reference/content.mjs';
 
@@ -109,7 +109,7 @@ function moduleEntries(name, { keepModules = [] } = {}) {
 
 const problems = [];
 const problem = (where, text) => problems.push(`${where}: ${text}`);
-const errText = (e) => { const t = scriptErrorText(e, { lang: 'de' }); return `${e.kind ?? ''}: ${t.text}`; };
+const errText = (e) => { const t = scriptErrorText(e, { lang: 'en' }); return `${e.kind ?? ''}: ${t.text}`; };
 
 /** Sizes of the images of the asset library (for running Pygame Zero examples like the browser would). */
 const IMAGE_SIZE = Object.fromEntries(CATALOG.images.map((i) => [i.name, [i.w, i.h]]));
@@ -185,8 +185,8 @@ function annotate(sec, entries, { check = true } = {}) {
   }
   for (const e of entries) {
     const d = desc[`${e.owner}.${e.name}`] ?? desc[e.name];
-    if (typeof d === 'string') e.de = d;
-    else if (d) { e.de = d.de; if (d.sig) e.sig = d.sig; }
+    if (typeof d === 'string') e.text = d;
+    else if (d) { e.text = d.text; if (d.sig) e.sig = d.sig; }
   }
   return entries;
 }
@@ -194,12 +194,12 @@ function annotate(sec, entries, { check = true } = {}) {
 /** Group entries of a module by kind. */
 function groupEntries(entries) {
   const groups = [
-    ['Funktionen', entries.filter((e) => e.kind === 'function' && !e.stub)],
-    ['Klassen', entries.filter((e) => e.kind === 'class' && !e.exception)],
-    ['Objekte', entries.filter((e) => e.kind === 'object' || e.kind === 'module')],
-    ['Ausnahmen', entries.filter((e) => e.kind === 'class' && e.exception)],
-    ['Konstanten', entries.filter((e) => e.kind === 'constant')],
-    ['Nur als Platzhalter (NotImplementedError)', entries.filter((e) => e.stub)],
+    ['Functions', entries.filter((e) => e.kind === 'function' && !e.stub)],
+    ['Classes', entries.filter((e) => e.kind === 'class' && !e.exception)],
+    ['Objects', entries.filter((e) => e.kind === 'object' || e.kind === 'module')],
+    ['Exceptions', entries.filter((e) => e.kind === 'class' && e.exception)],
+    ['Constants', entries.filter((e) => e.kind === 'constant')],
+    ['Placeholders only (raise NotImplementedError)', entries.filter((e) => e.stub)],
   ];
   return groups.filter(([, list]) => list.length).map(([title, list]) => ({ title, entries: list }));
 }
@@ -210,7 +210,7 @@ function classBlock(sec, owner, cls, opts = {}) {
   const desc = sec.members?.[owner] ?? {};
   const names = new Set(members.map((m) => m.name));
   for (const k of Object.keys(desc)) if (!names.has(k)) problem(sec.id, `described member ${owner}.${k} does not exist`);
-  for (const m of members) if (desc[m.name]) m.de = desc[m.name];
+  for (const m of members) if (desc[m.name]) m.text = desc[m.name];
   return members;
 }
 
@@ -261,19 +261,19 @@ function collectMethods(sec) {
     if (!names.length) problem(sec.id, `type ${t} has no methods`);
     const desc = sec.members?.[t] ?? {};
     for (const k of Object.keys(desc)) if (!names.includes(k)) problem(sec.id, `described method ${t}.${k} does not exist`);
-    return { type: t, entries: names.map((n) => ({ name: n, kind: 'method', owner: t, params: (() => { const s = /params\(\s*'[^']*'\s*,\s*\w+\s*,\s*\w+\s*,\s*\[([^\]]*)\]/.exec(METHODS[t][n].toString()); return s ? s[1].split(',').map((x) => x.trim().replace(/^'|'$/g, '')).filter(Boolean).map((p) => (p.startsWith('?') ? `${p.slice(1)}=…` : p)) : null; })(), de: desc[n] })) };
+    return { type: t, entries: names.map((n) => ({ name: n, kind: 'method', owner: t, params: (() => { const s = /params\(\s*'[^']*'\s*,\s*\w+\s*,\s*\w+\s*,\s*\[([^\]]*)\]/.exec(METHODS[t][n].toString()); return s ? s[1].split(',').map((x) => x.trim().replace(/^'|'$/g, '')).filter(Boolean).map((p) => (p.startsWith('?') ? `${p.slice(1)}=…` : p)) : null; })(), text: desc[n] })) };
   });
 }
 
 function collectKara(sec) {
   const entries = annotate(sec, KARA_NAMES.map((n) => ({ name: n, kind: 'function', params: nativeParams(`kara.${n}`) ?? [], owner: 'kara' })));
-  const charDe = sec.chars ?? {};
-  for (const c of Object.keys(charDe)) if (!(c in KARA_CHARS)) problem(sec.id, `world character ${JSON.stringify(c)} does not exist`);
+  const charText = sec.chars ?? {};
+  for (const c of Object.keys(charText)) if (!(c in KARA_CHARS)) problem(sec.id, `world character ${JSON.stringify(c)} does not exist`);
   const chars = Object.entries(KARA_CHARS).map(([ch, what]) => {
-    if (!charDe[ch]) problem(sec.id, `world character ${JSON.stringify(ch)} (${what}) is not explained`);
-    return { ch, what, de: charDe[ch] ?? what };
+    if (!charText[ch]) problem(sec.id, `world character ${JSON.stringify(ch)} (${what}) is not explained`);
+    return { ch, what, text: charText[ch] ?? what };
   });
-  const errors = Object.entries(MSG_DE).filter(([k]) => k.startsWith('err.script.kara.')).map(([k, v]) => ({ key: k.slice('err.script.kara.'.length), de: v }));
+  const errors = Object.entries(MSG_EN).filter(([k]) => k.startsWith('err.script.kara.')).map(([k, v]) => ({ key: k.slice('err.script.kara.'.length), text: v }));
   return { entries, chars, errors };
 }
 
@@ -283,10 +283,10 @@ function collectPgzero(sec) {
   for (const n of PGZ_BUILTIN_NAMES) {
     const v = getattr(b, n);
     const d = describe(v);
-    const o = { name: n, ...d, owner: 'pgzero', de: sec.desc?.[n] };
+    const o = { name: n, ...d, owner: 'pgzero', text: sec.desc?.[n] };
     if (v instanceof PyClass) o.members = classBlock(sec, n, v, { stopAt: ['object'] });
     else if (v instanceof PyInstance && !['keys', 'keymods', 'mouse'].includes(n)) o.members = classBlock(sec, n, v.cls);
-    else if (v instanceof PyModule) o.members = vm.moduleNames(v).filter((k) => !/^[A-Z]/.test(k) && k !== 'clock').map((k) => ({ name: k, ...describe(getattr(v, k)), de: sec.members?.[n]?.[k] }));
+    else if (v instanceof PyModule) o.members = vm.moduleNames(v).filter((k) => !/^[A-Z]/.test(k) && k !== 'clock').map((k) => ({ name: k, ...describe(getattr(v, k)), text: sec.members?.[n]?.[k] }));
     if (['keys', 'keymods', 'mouse'].includes(n)) o.consts = [...v.dict.keys()].filter((k) => !k.startsWith('_'));
     objects.push(o);
   }
@@ -304,16 +304,16 @@ function collectPgzero(sec) {
   const hooks = [...spell.ns.get('HOOKS').items].map((h) => {
     const d = sec.hooks?.[h];
     if (!d) problem(sec.id, `hook ${h} is not explained`);
-    return { name: h, params: d?.params ?? valid.get(h)?.items ?? [], de: d?.de };
+    return { name: h, params: d?.params ?? valid.get(h)?.items ?? [], text: d?.text };
   });
   for (const h of Object.keys(sec.hooks ?? {})) if (!hooks.some((x) => x.name === h)) problem(sec.id, `hook ${h} does not exist`);
   return { objects, extra, hooks };
 }
 
 function collectAssets() {
-  const packs = CATALOG.packs.map((p) => ({ pack: p.pack, kind: p.kind, title: p.title?.de ?? p.pack }));
-  const types = GAMETYPES.types.map((t) => ({ id: t.id, de: t.de, hint: t.hint?.de ?? '', packs: t.packs, starter: t.starter }));
-  return { packs, types, sounds: CATALOG.sounds.map((s) => ({ name: s.name, de: s.de ?? '' })) };
+  const packs = CATALOG.packs.map((p) => ({ pack: p.pack, kind: p.kind, title: p.title?.en ?? p.pack }));
+  const types = GAMETYPES.types.map((t) => ({ id: t.id, text: t.en, hint: t.hint?.en ?? '', packs: t.packs, starter: t.starter }));
+  return { packs, types, sounds: CATALOG.sounds.map((s) => ({ name: s.name, text: s.en ?? '' })) };
 }
 
 function collectLanguage(sec) {
@@ -381,19 +381,19 @@ function highlight(code) {
 }
 
 const sigText = (e) => e.sig ?? (e.kind === 'function' || e.kind === 'method' || e.kind === 'class' ? `${e.name}(${(e.params ?? (e.kind === 'class' ? [] : ['…'])).join(', ')})` : e.name);
-const kindTag = (e) => e.tag ? `<span class="rk">${e.tag}</span>` : e.kind === 'property' ? `<span class="rk">${e.writable ? 'Eigenschaft' : 'nur lesen'}</span>` : e.kind === 'constant' && e.value !== undefined ? `<span class="rv">= ${esc(e.value.length > 40 ? e.value.slice(0, 38) + '…' : e.value)}</span>` : e.kind === 'object' && e.type ? `<span class="rk">${esc(e.type)}</span>` : '';
+const kindTag = (e) => e.tag ? `<span class="rk">${e.tag}</span>` : e.kind === 'property' ? `<span class="rk">${e.writable ? 'property' : 'read-only'}</span>` : e.kind === 'constant' && e.value !== undefined ? `<span class="rv">= ${esc(e.value.length > 40 ? e.value.slice(0, 38) + '…' : e.value)}</span>` : e.kind === 'object' && e.type ? `<span class="rk">${esc(e.type)}</span>` : '';
 
 /** One searchable entry. Described entries get a row, the others a compact chip. */
 function entry(e, prefix) {
   const id = `${prefix}${e.name}`;
-  const q = `${id} ${e.name} ${e.de ?? ''}`.toLowerCase();
-  if (e.de) return `<div class="re" id="${esc(id)}" data-q="${esc(q)}"><code class="sig">${esc(sigText(e))}</code>${kindTag(e)}<p>${md(e.de)}</p></div>`;
+  const q = `${id} ${e.name} ${e.text ?? ''}`.toLowerCase();
+  if (e.text) return `<div class="re" id="${esc(id)}" data-q="${esc(q)}"><code class="sig">${esc(sigText(e))}</code>${kindTag(e)}<p>${md(e.text)}</p></div>`;
   return `<li class="re" id="${esc(id)}" data-q="${esc(q)}"><code>${esc(sigText(e))}</code>${kindTag(e)}</li>`;
 }
 
 function entryList(list, prefix) {
-  const described = list.filter((e) => e.de);
-  const plain = list.filter((e) => !e.de);
+  const described = list.filter((e) => e.text);
+  const plain = list.filter((e) => !e.text);
   let h = '';
   if (described.length) h += `<div class="rlist">${described.map((e) => entry(e, prefix)).join('')}</div>`;
   if (plain.length) h += `<ul class="chips">${plain.map((e) => entry(e, prefix)).join('')}</ul>`;
@@ -408,7 +408,7 @@ function membersBlock(owner, members, prefix) {
   if (inh.length) {
     const byBase = new Map();
     for (const m of inh) { if (!byBase.has(m.from)) byBase.set(m.from, []); byBase.get(m.from).push(m); }
-    h += `<p class="inh">Geerbt von ${[...byBase.keys()].map((b) => `<code>${esc(b)}</code>`).join(', ')}:</p><ul class="chips">${inh.map((m) => entry(m, `${prefix}${owner}.`).replace('<li class="re"', '<li class="re"')).join('')}</ul>`;
+    h += `<p class="inh">Inherited from ${[...byBase.keys()].map((b) => `<code>${esc(b)}</code>`).join(', ')}:</p><ul class="chips">${inh.map((m) => entry(m, `${prefix}${owner}.`).replace('<li class="re"', '<li class="re"')).join('')}</ul>`;
   }
   return h + '</div>';
 }
@@ -417,18 +417,18 @@ function exampleBlock(sec) {
   const ex = sec.example;
   if (!ex) return '';
   const s = sec.shown ?? {};
-  let h = `<figure class="ex"><figcaption>Beispiel${ex.title ? `: ${md(ex.title)}` : ''}</figcaption><pre class="codeblock" tabindex="0"><code>${highlight(ex.code.replace(/\n$/, ''))}</code></pre>`;
-  if (s.output) h += `<div class="out-label">Ausgabe</div><pre class="out" tabindex="0"><code>${esc(s.output.replace(/\n$/, ''))}</code></pre>`;
-  if (s.world) h += `<div class="out-label">Wiese am Ende</div><pre class="out" tabindex="0"><code>${esc(s.world)}</code></pre>`;
-  if (s.files) for (const [f, t] of Object.entries(s.files)) h += `<div class="out-label">Datei ${esc(f)}</div><pre class="out" tabindex="0"><code>${esc(t.replace(/\n$/, ''))}</code></pre>`;
-  if (s.svg) h += `<div class="out-label">Bild (von Natter erzeugt)</div><div class="plot">${s.svg}</div>`;
+  let h = `<figure class="ex"><figcaption>Example${ex.title ? `: ${md(ex.title)}` : ''}</figcaption><pre class="codeblock" tabindex="0"><code>${highlight(ex.code.replace(/\n$/, ''))}</code></pre>`;
+  if (s.output) h += `<div class="out-label">Output</div><pre class="out" tabindex="0"><code>${esc(s.output.replace(/\n$/, ''))}</code></pre>`;
+  if (s.world) h += `<div class="out-label">Meadow at the end</div><pre class="out" tabindex="0"><code>${esc(s.world)}</code></pre>`;
+  if (s.files) for (const [f, t] of Object.entries(s.files)) h += `<div class="out-label">File ${esc(f)}</div><pre class="out" tabindex="0"><code>${esc(t.replace(/\n$/, ''))}</code></pre>`;
+  if (s.svg) h += `<div class="out-label">Image (drawn by Natter)</div><div class="plot">${s.svg}</div>`;
   if (ex.note) h += `<p class="ex-note">${md(ex.note)}</p>`;
   return h + '</figure>';
 }
 
 function notesBlock(sec) {
   let h = '';
-  for (const [title, list] of [[sec.notesTitle ?? 'Grenzen und Abweichungen von CPython', sec.notes], ['Im Browser', sec.host]]) {
+  for (const [title, list] of [[sec.notesTitle ?? 'Limits and differences from CPython', sec.notes], ['In the browser', sec.host]]) {
     if (list?.length) h += `<div class="notes"><h3>${title}</h3><ul>${list.map((n) => `<li>${md(n)}</li>`).join('')}</ul></div>`;
   }
   return h;
@@ -450,20 +450,20 @@ function renderBody(sec) {
   if (sec.builtins) {
     const b = sec.builtins;
     h += `<h4>Funktionen</h4>${entryList(b.entries, 'builtins.')}`;
-    h += `<h4>Ausnahmen</h4><p class="small">${b.exceptions.map((x) => `<code title="erbt von ${esc(x.base ?? '')}">${esc(x.name)}</code>`).join(' ')}</p>`;
-    if (b.missing.length) h += `<h4>Fehlt gegenüber CPython</h4><p class="small">${b.missing.map((n) => `<code class="no">${esc(n)}</code>`).join(' ')}</p>`;
+    h += `<h4>Exceptions</h4><p class="small">${b.exceptions.map((x) => `<code title="inherits from ${esc(x.base ?? '')}">${esc(x.name)}</code>`).join(' ')}</p>`;
+    if (b.missing.length) h += `<h4>Missing compared with CPython</h4><p class="small">${b.missing.map((n) => `<code class="no">${esc(n)}</code>`).join(' ')}</p>`;
   }
   if (sec.methods) for (const t of sec.methods) h += `<h4><code>${t.type}</code></h4>${entryList(t.entries, `${t.type}.`)}`;
   if (sec.kara) {
     const k = sec.kara;
-    h += `<h4>Befehle</h4>${entryList(k.entries, 'kara.')}`;
-    h += `<h4>Zeichen der Wiese</h4><div class="scroll"><table class="rt"><thead><tr><th>Zeichen</th><th>Bedeutung</th></tr></thead><tbody>${k.chars.map((c) => `<tr><td><code class="wc">${c.ch === ' ' ? '␣' : esc(c.ch)}</code></td><td>${md(c.de)}</td></tr>`).join('')}</tbody></table></div>`;
-    h += `<h4>Fehlermeldungen</h4><ul class="errs">${k.errors.map((e) => `<li><code>${esc(e.key)}</code> ${esc(e.de)}</li>`).join('')}</ul>`;
+    h += `<h4>Commands</h4>${entryList(k.entries, 'kara.')}`;
+    h += `<h4>World characters</h4><div class="scroll"><table class="rt"><thead><tr><th>Character</th><th>Meaning</th></tr></thead><tbody>${k.chars.map((c) => `<tr><td><code class="wc">${c.ch === ' ' ? '␣' : esc(c.ch)}</code></td><td>${md(c.text)}</td></tr>`).join('')}</tbody></table></div>`;
+    h += `<h4>Error messages</h4><ul class="errs">${k.errors.map((e) => `<li><code>${esc(e.key)}</code> ${esc(e.text)}</li>`).join('')}</ul>`;
   }
   if (sec.pgz) {
     const g = sec.pgz;
-    h += `<h4>Hooks (Funktionen, die du schreibst)</h4><div class="rlist">${g.hooks.map((x) => `<div class="re" id="pgzero.${x.name}" data-q="${esc(`pgzero ${x.name} ${x.de ?? ''}`.toLowerCase())}"><code class="sig">def ${x.name}(${x.params.join(', ')})</code><p>${md(x.de ?? '')}</p></div>`).join('')}</div>`;
-    h += `<h4>Vordefinierte Namen</h4>${entryList(g.objects.map((o) => ({ ...o, members: undefined, consts: undefined })), 'pgzero.')}`;
+    h += `<h4>Hooks (functions you write)</h4><div class="rlist">${g.hooks.map((x) => `<div class="re" id="pgzero.${x.name}" data-q="${esc(`pgzero ${x.name} ${x.text ?? ''}`.toLowerCase())}"><code class="sig">def ${x.name}(${x.params.join(', ')})</code><p>${md(x.text ?? '')}</p></div>`).join('')}</div>`;
+    h += `<h4>Predefined names</h4>${entryList(g.objects.map((o) => ({ ...o, members: undefined, consts: undefined })), 'pgzero.')}`;
     for (const o of [...g.objects, ...g.extra]) {
       if (o.members?.length) h += `<h5 class="cls"><code>${esc(o.name)}</code></h5>${membersBlock(o.name, o.members, 'pgzero.')}`;
       if (o.consts?.length) h += `<h5 class="cls"><code>${esc(o.name)}</code></h5><ul class="chips">${o.consts.map((c) => `<li class="re" data-q="${esc(`${o.name}.${c}`.toLowerCase())}"><code>${esc(o.name)}.${esc(c)}</code></li>`).join('')}</ul>`;
@@ -471,14 +471,14 @@ function renderBody(sec) {
   }
   if (sec.assets) {
     const a = sec.assets;
-    h += `<h4>Spielarten mit Startauswahl</h4><div class="scroll"><table class="rt"><thead><tr><th>Spielart</th><th>Pakete und Startbilder</th></tr></thead><tbody>${a.types.map((t) => `<tr class="re" data-q="${esc(`${t.id} ${t.de} ${t.hint} ${t.packs.join(' ')} ${t.starter.join(' ')}`.toLowerCase())}"><td><b>${esc(t.de)}</b><br><code>${esc(t.id)}</code></td><td>${esc(t.hint)}<br><span class="small">Pakete: ${t.packs.map((p) => `<code>${esc(p)}</code>`).join(' ')}</span><br>${t.starter.map((s) => `<code class="img">${esc(s)}</code>`).join(' ')}</td></tr>`).join('')}</tbody></table></div>`;
-    h += `<h4>Pakete</h4><ul class="chips">${a.packs.map((p) => `<li class="re" data-q="${esc(`${p.pack} ${p.title}`.toLowerCase())}"><code>${esc(p.pack)}</code> ${esc(p.title)}</li>`).join('')}</ul>`;
-    h += `<h4>Klänge</h4><ul class="chips">${a.sounds.map((s) => `<li class="re" data-q="${esc(`sounds.${s.name} ${s.de}`.toLowerCase())}"><code>sounds.${esc(s.name)}</code> ${esc(s.de)}</li>`).join('')}</ul>`;
+    h += `<h4>Game types with starter sets</h4><div class="scroll"><table class="rt"><thead><tr><th>Game type</th><th>Packs and starter images</th></tr></thead><tbody>${a.types.map((t) => `<tr class="re" data-q="${esc(`${t.id} ${t.text} ${t.hint} ${t.packs.join(' ')} ${t.starter.join(' ')}`.toLowerCase())}"><td><b>${esc(t.text)}</b><br><code>${esc(t.id)}</code></td><td>${esc(t.hint)}<br><span class="small">Packs: ${t.packs.map((p) => `<code>${esc(p)}</code>`).join(' ')}</span><br>${t.starter.map((s) => `<code class="img">${esc(s)}</code>`).join(' ')}</td></tr>`).join('')}</tbody></table></div>`;
+    h += `<h4>Packs</h4><ul class="chips">${a.packs.map((p) => `<li class="re" data-q="${esc(`${p.pack} ${p.title}`.toLowerCase())}"><code>${esc(p.pack)}</code> ${esc(p.title)}</li>`).join('')}</ul>`;
+    h += `<h4>Sounds</h4><ul class="chips">${a.sounds.map((s) => `<li class="re" data-q="${esc(`sounds.${s.name} ${s.text}`.toLowerCase())}"><code>sounds.${esc(s.name)}</code> ${esc(s.text)}</li>`).join('')}</ul>`;
   }
   if (sec.rows) {
-    h += `<div class="scroll"><table class="rt lang"><thead><tr><th>Bereich</th><th>Was geht</th><th>Was nicht geht</th></tr></thead><tbody>`;
+    h += `<div class="scroll"><table class="rt lang"><thead><tr><th>Area</th><th>What works</th><th>What does not</th></tr></thead><tbody>`;
     for (const r of sec.rows) {
-      h += `<tr class="re" data-q="${esc(`${r.area} ${r.de} ${r.not ?? ''} ${[].concat(r.ok ?? []).join(' ')}`.toLowerCase())}"><td><b>${esc(r.area)}</b></td><td>${md(r.de)}${[].concat(r.ok ?? []).length ? `<pre class="snip"><code>${highlight([].concat(r.ok)[0])}</code></pre>` : ''}</td><td>${md(r.not ?? '')}${r.noResults.map((n) => `<pre class="snip no"><code>${highlight(n.code)}</code></pre><p class="msg">${esc(n.message.split('\n').slice(-1)[0])}</p>`).join('')}</td></tr>`;
+      h += `<tr class="re" data-q="${esc(`${r.area} ${r.text} ${r.not ?? ''} ${[].concat(r.ok ?? []).join(' ')}`.toLowerCase())}"><td><b>${esc(r.area)}</b></td><td>${md(r.text)}${[].concat(r.ok ?? []).length ? `<pre class="snip"><code>${highlight([].concat(r.ok)[0])}</code></pre>` : ''}</td><td>${md(r.not ?? '')}${r.noResults.map((n) => `<pre class="snip no"><code>${highlight(n.code)}</code></pre><p class="msg">${esc(n.message.split('\n').slice(-1)[0])}</p>`).join('')}</td></tr>`;
     }
     h += '</tbody></table></div>';
   }
@@ -488,7 +488,7 @@ function renderBody(sec) {
 
 function renderSection(sec, i) {
   const imp = sec.imports ? `<code class="chip">${esc(sec.imports)}</code>` : '';
-  const pack = sec.pack && sec.pack !== 'stdlib' ? `<span class="pack" title="Wird erst geladen, wenn ein Programm es importiert">Paket ${esc(sec.pack)}</span>` : '';
+  const pack = sec.pack && sec.pack !== 'stdlib' ? `<span class="pack" title="Loaded only when a program imports it">Pack ${esc(sec.pack)}</span>` : '';
   return `<section class="rs" id="${esc(sec.id)}" data-title="${esc(sec.title.toLowerCase())}">
 <p class="kicker">${String(i + 1).padStart(2, '0')} &middot; ${esc(sec.group)}</p>
 <h2>${esc(sec.title)}</h2>
@@ -550,7 +550,7 @@ const SCRIPT = `
     document.body.classList.toggle('searching', q.length > 0);
     var total = run(q, words(q));
     if (q && !total) total = run(q, inside(q));
-    count.textContent = q ? (total + ' Treffer') : '';
+    count.textContent = q ? (total + (total === 1 ? ' hit' : ' hits')) : '';
     [].slice.call(document.querySelectorAll('.side .sg')).forEach(function (g) {
       var list = g.nextElementSibling;
       g.hidden = !!list && !list.querySelector('li:not([hidden])');
@@ -574,11 +574,11 @@ const SCRIPT = `
 
 function render(sections) {
   return `<!doctype html>
-<html lang="de">
+<html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Natter-Referenz</title>
+<title>Natter Reference</title>
 <meta name="description" content="${esc(PAGE.description)}">
 <meta name="color-scheme" content="light dark">
 <link rel="icon" href="../natter-small.svg" type="image/svg+xml">
@@ -587,37 +587,37 @@ function render(sections) {
 </head>
 <body class="ref">
 <!-- Generated by scripts/build-reference.mjs from the Natter source. Do not edit; run: npm run reference -->
-<a class="skip" href="#inhalt">Zum Inhalt</a>
+<a class="skip" href="#content">Skip to content</a>
 <header class="ref-top">
   <div class="wrap topbar">
-    <a class="brand" href="../index.html" aria-label="Natter, Startseite"><img src="../natter-small.svg" width="32" height="32" alt="">Natter</a>
+    <a class="brand" href="../index.html" aria-label="Natter, home page"><img src="../natter-small.svg" width="32" height="32" alt="">Natter</a>
     <a class="gh-small" href="https://github.com/wi-wissen/Natter">GitHub</a>
   </div>
   <div class="wrap ref-hero">
-    <p class="eyebrow">Befehlsreferenz</p>
-    <h1>Was Natter <span class="hl">kann</span></h1>
+    <p class="eyebrow">Command reference</p>
+    <h1>What Natter <span class="hl">can do</span></h1>
     ${PAGE.intro.map((x) => `<p class="lead">${md(x)}</p>`).join('')}
   </div>
 </header>
 <div class="searchbar"><div class="wrap sb-inner">
-  <label class="sr" for="q">Suchen</label>
-  <input id="q" type="search" placeholder="Suchen: print, forward, Actor, sounds …  (Taste /)" autocomplete="off" spellcheck="false">
+  <label class="sr" for="q">Search</label>
+  <input id="q" type="search" placeholder="Search: print, forward, Actor, sounds …  (key /)" autocomplete="off" spellcheck="false">
   <span id="qn" class="qn" aria-live="polite"></span>
 </div></div>
 <div class="wrap ref-grid">
   <details class="side" id="menu" open>
-    <summary>Inhalt</summary>
-    <div class="toc" role="navigation" aria-label="Module">${renderNav(sections)}</div>
+    <summary>Contents</summary>
+    <div class="toc" role="navigation" aria-label="Modules">${renderNav(sections)}</div>
   </details>
-  <main id="inhalt">
+  <main id="content">
 ${sections.map(renderSection).join('\n')}
-<p class="gen">Diese Seite wird aus dem Quelltext von Natter erzeugt (<code>npm run reference</code>, <code>scripts/build-reference.mjs</code>): Namen, Parameter, Konstanten, Fehlermeldungen und Bildnamen stammen aus dem Interpreter selbst, jedes Beispiel ist beim Erzeugen gelaufen. Ein Test schlägt fehl, wenn sie nicht mehr zum Code passt.</p>
+<p class="gen">This page is generated from the Natter source (<code>npm run reference</code>, <code>scripts/build-reference.mjs</code>): names, parameters, constants, error messages and image names come from the interpreter itself, and every example ran while the page was built. A test fails when the page no longer matches the code.</p>
   </main>
 </div>
 <footer>
   <div class="wrap foot">
     <img class="foot-mark" src="../natter.svg" width="64" height="64" alt="">
-    <p>Natter ist Open Source. <a href="../index.html">Zur Übersicht</a> &middot; <a href="https://github.com/wi-wissen/Natter">Quelltext</a></p>
+    <p>Natter is open source. <a href="../index.html">Overview</a> &middot; <a href="https://github.com/wi-wissen/Natter">Source code</a></p>
   </div>
 </footer>
 <script>${SCRIPT}</script>
