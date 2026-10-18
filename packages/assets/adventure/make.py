@@ -34,19 +34,28 @@ BOY = ('a boy in the same style as the girl of the reference image: short black 
        'blue jacket over a white shirt, grey trousers, orange sneakers, same proportions and size as the girl')
 
 
-def walk_prompt(who):
-    return (f'Sprite sheet for a top-down role playing game: {who}. Full body, same size in every frame. '
-            'Exactly 12 figures in a grid of 4 rows and 3 columns, evenly spaced, all feet on the same height within a row. '
-            'Row 1: front view, walking towards the viewer (frame 1 left foot forward, frame 2 standing still with both feet together, frame 3 right foot forward). '
-            'Row 2: back view, walking away from the viewer, we see the back of the head (same three phases). '
-            'Row 3: side view, facing and walking to the LEFT (same three phases). '
-            'Row 4: side view, facing and walking to the RIGHT (same three phases). '
+def fb_prompt(who):
+    return (f'Sprite sheet for a top-down role playing game: {who}. Full body, same size in every figure. '
+            'Exactly 6 figures in a grid of 2 rows and 3 columns, evenly spaced, all feet on the same height within a row. '
+            'Row 1: FRONT view, facing the viewer, walking towards the viewer: frame 1 left foot forward, '
+            'frame 2 standing still with both feet together, frame 3 right foot forward. '
+            'Row 2: BACK view, we see only the back of the head and the back, walking away from the viewer (same three phases). '
+            + STYLE_TXT + BG)
+
+
+def side_prompt(who):
+    return (f'Sprite sheet for a top-down role playing game: {who}. Full body, same size in every figure. '
+            'Exactly 3 figures in ONE horizontal row, evenly spaced, all feet on the same height. '
+            'ALL THREE in pure SIDE VIEW (profile), facing and walking to the RIGHT, none of them looks at the viewer: '
+            'frame 1 left leg forward in a step, frame 2 standing still in profile with legs together, frame 3 right leg forward in a step. '
             + STYLE_TXT + BG)
 
 
 SHEETS = {
-    'girl': dict(ref=STYLE, prompt=walk_prompt(GIRL)),
-    'boy': dict(ref=STYLE, prompt=walk_prompt(BOY)),
+    'girl_fb': dict(ref=STYLE, prompt=fb_prompt(GIRL)),
+    'girl_side': dict(ref=STYLE, prompt=side_prompt(GIRL)),
+    'boy_fb': dict(ref=STYLE, prompt=fb_prompt(BOY)),
+    'boy_side': dict(ref=STYLE, prompt=side_prompt(BOY)),
     'npc': dict(ref=STYLE, prompt=(
         'Seven separate characters for a top-down role playing game, full body, front view, standing, friendly faces, '
         'in ONE row from left to right with wide gaps: '
@@ -139,11 +148,12 @@ CUTS = {
                                      'tile_wood_floor', 'tile_dungeon_floor', 'tile_snow')],
     'tiles2': [(n, 'tile') for n in ('tile_lava', 'tile_wall', 'tile_dungeon_wall', 'tile_door_closed', 'tile_door_open',
                                      'tile_stairs_down', 'tile_stairs_up', 'tile_bridge')],
+    # the model drew a few objects twice; None skips the duplicate
     'items': [('adv_chest_closed', 48), ('adv_chest_open', 48), ('adv_key', 36), ('adv_potion_red', 36), ('adv_potion_blue', 36),
-              ('adv_potion_green', 36), ('adv_sword', 48), ('adv_shield', 42), ('adv_torch', 44), ('adv_coin', 32),
-              ('adv_heart', 32), ('adv_scroll', 40), ('adv_book', 40)],
-    'props': [('adv_sign', 56), ('adv_well', 80), ('adv_fence', 64), ('adv_tree', 112), ('adv_barrel', 48), ('adv_crate', 48),
-              ('adv_bridge_post', 48), ('adv_gravestone', 52), ('adv_portal', 96)],
+              ('adv_potion_green', 36), ('adv_sword', 48), ('adv_shield', 42), (None, 0), ('adv_torch', 44), ('adv_coin', 32),
+              ('adv_heart', 32), ('adv_scroll', 40), (None, 0), ('adv_book', 40)],
+    'props': [('adv_sign', 56), ('adv_well', 80), ('adv_fence', 64), (None, 0), ('adv_tree', 112), ('adv_barrel', 48),
+              ('adv_crate', 48), (None, 0), ('adv_bridge_post', 48), ('adv_gravestone', 52), ('adv_portal', 96), (None, 0)],
     'buildings': [('adv_house', 128), ('adv_castle', 160)],
 }
 
@@ -204,14 +214,19 @@ def cut_named(s):
             save(im, n)
 
 
+def hero_frames(sheet, n):
+    fr = keyslice.frames(keyslice.key(Image.open(sheet_path(sheet))))
+    if len(fr) != n:
+        raise ValueError(f'{sheet}: found {len(fr)} frames, expected {n}')
+    return [f.crop(f.getbbox()) for f in fr]
+
+
 def cut_hero(h):
-    rgba = keyslice.key(Image.open(sheet_path(h)))
-    fr = keyslice.frames(rgba)
-    if len(fr) != 12:
-        raise ValueError(f'{h}: found {len(fr)} frames, expected 12')
-    fr = [f.crop(f.getbbox()) for f in fr]
+    fb = hero_frames(h + '_fb', 6)
+    right = hero_frames(h + '_side', 3)
+    left = [f.transpose(Image.FLIP_LEFT_RIGHT) for f in right]  # left is the mirrored right walk
     # all 12 frames share one canvas so that turning around does not jump
-    for name, im in zip(HERO_NAMES[h], keyslice.align(fr, 64)):
+    for name, im in zip(HERO_NAMES[h], keyslice.align(fb + left + right, 64)):
         save(im, name)
 
 
@@ -226,6 +241,8 @@ def cut_campfire():
 def do_cut(s):
     if s in HERO_NAMES:
         cut_hero(s)
+    elif s in SHEETS and s.split('_')[0] in HERO_NAMES:
+        cut_hero(s.split('_')[0])
     elif s == 'campfire':
         cut_campfire()
     else:
@@ -335,7 +352,7 @@ if __name__ == '__main__':
             for s, r in ex.map(do_gen, args or list(SHEETS)):
                 print(s, r)
     elif cmd == 'cut':
-        for s in args or list(SHEETS):
+        for s in args or ['girl', 'boy'] + [k for k in SHEETS if '_' not in k]:
             try:
                 do_cut(s)
                 print(s, 'ok')

@@ -39,7 +39,8 @@ SHEETS = {
         'narrowing evenly to a small rounded point at the LEFT end, like a rounded triangle pointing left, same green, a small lighter spot; '
         '4) a shiny red apple with a small green leaf; '
         '5) a small grey cartoon mouse seen from the side facing right, pink ears, long thin pink tail.'),
-        items=[('snake_head_right', (32, 32), 'fit'), ('snake_body', (32, 32), 'fit'), ('snake_tail', (32, 32), 'fit'),
+        mirror=['snake_head_right'],  # the recorded sheet drew the head facing left
+        items=[('snake_head_right', (32, 32), 'stretch'), ('snake_body', (32, 32), 'stretch'), ('snake_tail', (32, 26), 'stretch'),
                ('snake_apple', (32, 32), 'fit'), ('snake_mouse', (32, 32), 'fit')]),
     'paddles': dict(prompt=HEAD + (
         'A sheet of 4 objects for ball-and-paddle games, in ONE horizontal row, left to right: '
@@ -236,6 +237,11 @@ def place(im, box, mode, pad=2):
         out = unpremul_resize(im, (w, h))
         a = np.asarray(out).copy()
         return Image.fromarray(a, 'RGBA')
+    if mode == 'stretch':  # fill the box minus the margin (snake parts must match the 32 px grid)
+        im = unpremul_resize(im, (w - 2 * pad, h - 2 * pad))
+        canvas = Image.new('RGBA', (w, h), (0, 0, 0, 0))
+        canvas.paste(im, (pad, pad), im)
+        return canvas
     s = min((w - 2 * pad) / im.width, (h - 2 * pad) / im.height)
     im = unpremul_resize(im, (max(1, round(im.width * s)), max(1, round(im.height * s))))
     canvas = Image.new('RGBA', (im.width + 2 * pad, im.height + 2 * pad), (0, 0, 0, 0))
@@ -256,6 +262,8 @@ def cut(sheet):
     if pick:
         crops = [crops[k] for k in pick]
     for (name, box, mode), im in zip(s['items'], crops):
+        if name in s.get('mirror', ()):
+            im = im.transpose(Image.FLIP_LEFT_RIGHT)
         out = place(im, box, mode)
         save(out, name)
         if name == 'snake_head_right':
