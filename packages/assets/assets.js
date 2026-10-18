@@ -136,7 +136,46 @@ export function buildCatalog(root = ROOT) {
     }
     packs.push({ pack: 'sounds', kind: 'sounds', title: list.title, format: 'wav', count: list.sounds?.length ?? 0, bytes });
   }
-  return { version: 1, packs, images, sounds, groups: findGroups(images) };
+  return { version: 1, packs, images, sounds, groups: findGroups(images), gametypes: readGametypes(root) };
+}
+
+/**
+ * The game types (packages/assets/gametypes.json): id, de, en, hint {de, en}, packs, starter (image names). The gallery
+ * of python.jetzt is ordered by them. Empty when the file is missing.
+ */
+export function readGametypes(root = ROOT) {
+  const file = join(root, 'gametypes.json');
+  if (!existsSync(file)) return [];
+  return JSON.parse(readFileSync(file, 'utf8')).types.map(({ id, de, en, hint, packs, starter }) => ({ id, de, en, hint, packs, starter }));
+}
+
+/** Problems of the game types against the catalog (unknown packs or names, starter sets of the wrong size). */
+export function gametypeProblems(catalog, { min = 8, max = 16 } = {}) {
+  const problems = [];
+  const packs = new Set(catalog.packs.filter((p) => p.kind === 'images').map((p) => p.pack));
+  const packOf = new Map(catalog.images.map((a) => [a.name, a.pack]));
+  const ids = new Set();
+  const covered = new Set();
+  for (const t of catalog.gametypes ?? []) {
+    if (!NAME_RE.test(t.id ?? '')) problems.push(`bad id ${t.id}`);
+    if (ids.has(t.id)) problems.push(`duplicate id ${t.id}`);
+    ids.add(t.id);
+    if (!t.de || !t.en || !t.hint?.de || !t.hint?.en) problems.push(`${t.id}: de, en and hint {de, en} are needed`);
+    if (!t.packs?.length) problems.push(`${t.id}: no packs`);
+    for (const p of t.packs ?? []) {
+      if (!packs.has(p)) problems.push(`${t.id}: unknown pack ${p}`);
+      covered.add(p);
+    }
+    const starter = t.starter ?? [];
+    if (starter.length < min || starter.length > max) problems.push(`${t.id}: ${starter.length} starter images (${min} to ${max})`);
+    if (new Set(starter).size !== starter.length) problems.push(`${t.id}: a starter image twice`);
+    for (const n of starter) {
+      if (!packOf.has(n)) problems.push(`${t.id}: unknown image ${n}`);
+      else if (!t.packs?.includes(packOf.get(n))) problems.push(`${t.id}: ${n} is in pack ${packOf.get(n)}, not in the packs of the type`);
+    }
+  }
+  for (const p of packs) if (!covered.has(p)) problems.push(`pack ${p} belongs to no game type`);
+  return problems;
 }
 
 /** The catalog as text: one entry per line (small diffs, still compact). */

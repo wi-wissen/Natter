@@ -1,0 +1,89 @@
+{
+  "about": "Game types of the library: the gallery of python.jetzt shows them first, each with a hand-picked starter set (8 to 16 image names; a frame name like heroine_run_1 stands for its animation), the packs hold the rest. Checked by test/gametypes.test.js, copied into catalog.json.",
+  "types": [
+    {
+      "id": "platformer",
+      "de": "Plattformspiel", "en": "Platformer",
+      "hint": { "de": "Laufen, springen, Münzen sammeln – von der Seite gesehen", "en": "Run, jump, collect coins – seen from the side" },
+      "packs": ["platformer", "characters"],
+      "starter": ["heroine_run_1", "heroine_idle_1", "heroine_jump", "enemy_walk_1", "slug_walk_1", "pf_grass_left", "pf_grass_mid", "pf_grass_right", "pf_crate", "pf_spikes", "pf_spring_1", "pf_coin_1", "pf_gem_blue", "pf_flag_1", "pf_bg_day"]
+    },
+    {
+      "id": "space",
+      "de": "Weltraum", "en": "Space",
+      "hint": { "de": "Raumschiff, Aliens, Asteroiden und Laser", "en": "Spaceship, aliens, asteroids and lasers" },
+      "packs": ["space"],
+      "starter": ["sp_ship", "sp_ship_fire_1", "sp_enemy_1", "sp_alien", "sp_ufo", "sp_boss", "sp_asteroid_m", "sp_asteroid_l", "sp_laser_blue", "sp_bullet", "sp_explosion_1", "sp_power_shield", "sp_planet_1", "sp_bg_space"]
+    },
+    {
+      "id": "sea",
+      "de": "Meer", "en": "Sea",
+      "hint": { "de": "Boote, Fische und Schätze unter Wasser", "en": "Boats, fish and treasure under water" },
+      "packs": ["sea"],
+      "starter": ["sea_submarine", "sea_pirate_ship", "sea_sailboat", "sea_fish_1", "sea_fish_2", "sea_shark", "sea_jellyfish", "sea_octopus", "sea_crab", "sea_starfish", "sea_chest", "sea_bubble", "sea_coral_1", "sea_bg"]
+    },
+    {
+      "id": "nature",
+      "de": "Natur & Garten", "en": "Nature & garden",
+      "hint": { "de": "Bäume, Blumen, Obst, Gemüse und Wetter", "en": "Trees, flowers, fruit, vegetables and weather" },
+      "packs": ["nature"],
+      "starter": ["nat_oak", "nat_pine", "nat_apple_tree", "nat_bush", "nat_sunflower", "nat_tulip", "nat_mushroom_brown", "nat_rock_1", "nat_seedling", "nat_carrot", "fruit_apple", "fruit_strawberry", "nat_sun", "nat_cloud_1", "nat_raindrop"]
+    },
+    {
+      "id": "animals",
+      "de": "Tiere", "en": "Animals",
+      "hint": { "de": "Haus- und Wildtiere, dazu ein Haustier zum Pflegen", "en": "Pets and wild animals, and a pet to look after" },
+      "packs": ["animals"],
+      "starter": ["an_cat", "an_dog", "an_rabbit", "an_duck", "an_chicken", "an_cow", "an_pig", "an_horse", "an_frog", "an_owl", "an_penguin", "an_bee_1", "an_butterfly_1", "pet_cat_happy", "pet_food_bowl"]
+    },
+    {
+      "id": "flyer",
+      "de": "Flieger & Fallendes", "en": "Flyers & falling things",
+      "hint": { "de": "Durch Lücken fliegen oder Fallendes auffangen", "en": "Fly through gaps or catch what falls" },
+      "packs": ["flyer"],
+      "starter": ["fl_bird_1", "fl_plane", "fl_balloon", "fl_dragon_1", "fl_pillar_top", "fl_pillar_bottom", "fl_cloud_obstacle", "fl_coin_1", "fl_star", "fl_ground", "fl_bg_day", "fall_basket", "fall_apple", "fall_bomb"]
+    },
+    {
+      "id": "arcade",
+      "de": "Arcade", "en": "Arcade",
+      "hint": { "de": "Snake, Pong, Breakout, Autorennen und Zielwerfen", "en": "Snake, Pong, Breakout, car racing and target throwing" },
+      "packs": ["arcade"],
+      "starter": ["snake_head_right", "snake_body", "snake_apple", "pong_paddle", "pong_ball", "breakout_paddle", "brick_red", "block_cyan", "car_red", "car_police", "cone", "balloon_red", "target", "cannon", "maze_player"]
+    },
+    {
+      "id": "puzzle",
+      "de": "Rätsel & Brettspiele", "en": "Puzzles & board games",
+      "hint": { "de": "Schach, Dame, 2048, Würfel, Memory und Tic-Tac-Toe", "en": "Chess, checkers, 2048, dice, memory and tic-tac-toe" },
+      "packs": ["grid_puzzle", "arcade"],
+      "starter": ["chess_king_w", "chess_knight_b", "chess_square_light", "chess_square_dark", "check_red", "check_black_king", "num_tile_2", "num_tile_2048", "life_alive", "dice_6", "ttt_x", "ttt_o", "c4_red", "memory_back", "memory_star"]
+    },
+    {
+      "id": "grid",
+      "de": "Von oben & im Gitter", "en": "Top-down & grid games",
+      "hint": { "de": "Kisten schieben, Bomben, Türme verteidigen, Farm, Frosch über die Straße, Minen, Rohre", "en": "Push crates, bombs, tower defense, farm, frog across the road, mines, pipes" },
+      "packs": ["grid_chars", "grid_tiles", "grid_action", "grid_puzzle"],
+      "starter": ["robo_down_1", "fuchs_down_1", "gp_floor", "gp_wall", "gp_crate", "gp_target", "bomb_1", "bomb_blast_center", "td_tower_arrow_1", "td_enemy_1", "farm_carrot_4", "cross_frog_up", "cross_car_1", "ms_hidden", "pipe_corner_ne_wet", "gt_key_red"]
+    },
+    {
+      "id": "adventure",
+      "de": "Abenteuer", "en": "Adventure",
+      "hint": { "de": "Held, Monster, Kacheln und Schätze – von oben gesehen", "en": "Hero, monsters, tiles and treasure – seen from above" },
+      "packs": ["adventure"],
+      "starter": ["hero_girl_down_1", "hero_boy_down_1", "npc_wizard", "mon_slime_1", "mon_ghost", "mon_dragon", "tile_grass", "tile_path", "tile_water", "tile_wall", "tile_door_closed", "adv_chest_closed", "adv_key", "adv_sword", "adv_potion_red", "adv_heart"]
+    },
+    {
+      "id": "book",
+      "de": "Buch, Kara & Turtle", "en": "Book, Kara & turtle",
+      "hint": { "de": "Ente, Küken und Boot aus dem Buch, Kara der Marienkäfer, die Turtle", "en": "Duck, chick and boat of the book, Kara the ladybug, the turtle" },
+      "packs": ["book", "kara", "turtle"],
+      "starter": ["ente", "ente_links", "kueken", "boot", "seerose", "frosch", "fisch_1", "teich_hintergrund", "kara", "kara_blueberry", "kara_tree", "kara_mushroom", "turtle"]
+    },
+    {
+      "id": "ui",
+      "de": "Oberfläche", "en": "Interface",
+      "hint": { "de": "Herzen, Punkte, Knöpfe, Balken und Sprechblasen", "en": "Hearts, score digits, buttons, bars and speech bubbles" },
+      "packs": ["ui"],
+      "starter": ["ui_heart_full", "ui_heart_empty", "ui_star_full", "ui_coin", "ui_trophy", "ui_0", "ui_play", "ui_pause", "ui_restart", "ui_sound_on", "ui_button_green", "ui_panel", "ui_speech_bubble", "ui_bar_green", "ui_arrow_left", "ui_dpad"]
+    }
+  ]
+}
