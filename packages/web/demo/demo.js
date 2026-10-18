@@ -5,6 +5,7 @@ import { FORMS_EXAMPLES } from './examples-forms.js';
 import { createPgzero } from '../dist/natter-web.js';
 import { PGZ_EXAMPLES } from './examples-pgzero.js';
 import { addPondPlaceholders } from './pgzero-placeholders.js';
+import { attachHighlight } from './highlight.js';
 
 EXAMPLES.push(...FORMS_EXAMPLES);
 EXAMPLES.push(...PGZ_EXAMPLES);
@@ -12,6 +13,7 @@ EXAMPLES.push(...PGZ_EXAMPLES);
 const $ = (id) => document.getElementById(id);
 const code = /** @type {HTMLTextAreaElement} */ ($('code'));
 const status = $('status');
+const editor = attachHighlight(code, $('hl'));
 const STATES = { idle: 'bereit', running: 'läuft …', waiting: 'wartet …', paused: 'angehalten', done: 'fertig', error: 'Fehler', stopped: 'gestoppt' };
 
 const runner = createRunner();
@@ -39,8 +41,18 @@ runner.on('state', (s) => {
   $('stop').disabled = !active;
 });
 
-function show(mods) {
+/** Rows / columns of the world("""...""") in a Kara program, or 0 (the phone layout fits the stage to it). */
+function worldRatio(src) {
+  const m = /world\(\s*[rR]?("""|''')([\s\S]*?)\1/.exec(src);
+  const rows = m ? m[2].split('\n').filter((l) => l.trim()) : [];
+  return rows.length ? rows.length / Math.max(...rows.map((l) => l.length)) : 0;
+}
+
+function show(mods, src = code.value) {
   $('stage').hidden = !mods.length;
+  const ratio = mods.includes('kara') && !mods.includes('turtle') ? worldRatio(src) : 0;
+  $('stage').style.setProperty('--world-ratio', String(ratio));
+  $('stage').classList.toggle('fit', ratio > 0);
   $('turtle').hidden = !mods.includes('turtle');
   $('kara').hidden = !mods.includes('kara') || mods.includes('turtle');
   $('forms').hidden = !mods.includes('forms');
@@ -78,6 +90,7 @@ function load(id) {
   const ex = EXAMPLES.find((e) => e.id === id) ?? EXAMPLES[0];
   $('examples').value = ex.id;
   code.value = ex.code;
+  editor.refresh();
   show(detectModules(ex.code));
 }
 $('examples').addEventListener('change', (e) => load(e.target.value));
@@ -85,9 +98,8 @@ $('run').addEventListener('click', () => run());
 $('stop').addEventListener('click', () => runner.stop());
 code.addEventListener('keydown', (e) => {
   if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) { e.preventDefault(); run(); }
-  if (e.key === 'Tab') { e.preventDefault(); code.setRangeText('    ', code.selectionStart, code.selectionEnd, 'end'); }
 });
 load(new URLSearchParams(location.search).get('example') ?? 'square');
 
 // for the browser tests
-window.demo = { runner, con, turtle, kara, forms, plot, pgz, run, load, setCode: (s) => { code.value = s; } };
+window.demo = { runner, con, turtle, kara, forms, plot, pgz, run, load, setCode: (s) => { code.value = s; editor.refresh(); } };

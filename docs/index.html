@@ -27,7 +27,7 @@
         <a class="btn" href="#language">What it can do</a>
       </div>
       <div class="notice" role="note">
-        <p><b>Status: early development.</b> The language and most of the standard library work and are tested against CPython. Drawing in the browser (turtle, games, forms) comes next. Everything on this page is marked as
+        <p><b>Status: nearly complete.</b> The language, the standard library and the browser hosts (console, turtle, Kara, Pygame Zero, forms, numpy and plots, with an image library of about 900 sprites) work and are tested against CPython and the real libraries. Still open: the packaged release for embedding. Everything on this page is marked as
         <span class="tag t-have">in the base</span> <span class="tag t-plan">planned</span> or <span class="tag t-no">not planned</span>.</p>
       </div>
     </div>
@@ -138,10 +138,10 @@ Hi Grace!
     <tr><td>random</td><td><code>randint</code>, <code>choice</code>, <code>choices</code>, <code>sample</code>, <code>shuffle</code>, <code>uniform</code>, <code>gauss</code>, <code>seed</code> &hellip;</td><td><span class="tag t-have">in the base</span></td></tr>
     <tr><td>stdlib</td><td><code>time</code> (virtual clock, no real waiting), <code>datetime</code>, <code>json</code>, <code>statistics</code>, <code>collections</code>, <code>itertools</code>, <code>functools</code>, <code>string</code>, <code>copy</code>, <code>sys</code>, <code>re</code>, <code>pprint</code>, <code>textwrap</code>, and all of <code>math</code> (<code>sin</code>, <code>cos</code>, <code>exp</code>, <code>log</code> &hellip;)</td><td><span class="tag t-have">in the base</span></td></tr>
     
-    <tr><td>turtle</td><td>Draw with a turtle, several turtles, colors, fill, speed. The movement and commands are done and match CPython; the drawing surface comes with the browser host</td><td><span class="tag t-plan">planned</span></td></tr>
-    <tr><td>kara</td><td>A small ladybug that learns to move, turn and sense. The rules and commands are done; the drawing surface comes with the browser host</td><td><span class="tag t-plan">planned</span></td></tr>
-    <tr><td>pgzero</td><td>The full <a href="https://pygame-zero.readthedocs.io/en/stable/">Pygame Zero</a> reference: <code>draw()</code>, <code>update()</code>, event hooks, <code>Actor</code>, <code>Rect</code>, <code>keyboard</code>, <code>screen</code>, images, sounds, music, <code>clock</code>, <code>animate</code>, <code>tone</code>, text formatting. Runs with or without <code>import pgzrun</code>. The game logic is done and matches real Pygame Zero 1.2.1; drawing comes with the browser host.</td><td><span class="tag t-plan">planned</span></td></tr>
-    <tr><td>forms</td><td>Windows with buttons, text boxes and lists using the <a href="https://lawsie.github.io/guizero/">guizero</a> API (a subset), laid out on a grid that grows with its content. The widgets, layout and events are done and match real guizero; drawing comes with the browser host.</td><td><span class="tag t-plan">planned</span></td></tr>
+    <tr><td>turtle</td><td>Draw with a turtle, several turtles, colors, fill, speed. The movement and commands are done and match CPython; drawn in the browser</td><td><span class="tag t-have">in the base</span></td></tr>
+    <tr><td>kara</td><td>A small ladybug that learns to move, turn and sense. The rules and commands are done; drawn in the browser</td><td><span class="tag t-have">in the base</span></td></tr>
+    <tr><td>pgzero</td><td>The full <a href="https://pygame-zero.readthedocs.io/en/stable/">Pygame Zero</a> reference: <code>draw()</code>, <code>update()</code>, event hooks, <code>Actor</code>, <code>Rect</code>, <code>keyboard</code>, <code>screen</code>, images, sounds, music, <code>clock</code>, <code>animate</code>, <code>tone</code>, text formatting. Runs with or without <code>import pgzrun</code>. The game logic is done and matches real Pygame Zero 1.2.1; drawn in the browser by the web host</td><td><span class="tag t-have">in the base</span></td></tr>
+    <tr><td>forms</td><td>Windows with buttons, text boxes and lists using the <a href="https://lawsie.github.io/guizero/">guizero</a> API (a subset), laid out on a grid that grows with its content. The widgets, layout and events are done and match real guizero; drawn in the browser by the web host</td><td><span class="tag t-have">in the base</span></td></tr>
     <tr><td>numpy, plots</td><td>A subset of numpy arrays (printing, indexing, statistics and random numbers match numpy) and matplotlib charts drawn as SVG. Done and compared with the real libraries; the page shows the figure through the browser host</td><td><span class="tag t-have">in the base</span></td></tr>
     <tr><td>requests</td><td><code>requests.get(url).json()</code> through the browser, for servers that allow it (CORS). The calls and the CORS explanation are done; the page does the actual fetch</td><td><span class="tag t-have">in the base</span></td></tr>
     <tr><td>Server code, scraping, ML</td><td><code>bottle</code>, <code>sqlite3</code>, <code>BeautifulSoup</code>, <code>keras</code></td><td><span class="tag t-no">not planned</span></td></tr>
@@ -166,19 +166,19 @@ Hi Grace!
   <div>
     <p class="kicker">06 &middot; Embedding</p>
     <h2>Embedding</h2>
-    <p>A sketch of the planned API. Names may still change.</p>
-    <p class="tag t-plan">planned</p>
+    <p>The browser host in <code>packages/web</code> runs a program in a page: time slices so a loop never freezes it, console, turtle, Kara, forms, plots and the debugger. Heavy parts load only when imported.</p>
+    <p class="tag t-have">in the base</p>
   </div>
-<pre class="codeblock" tabindex="0" aria-label="Planned embedding API"><code><span class="k">import</span> { Natter } <span class="k">from</span> <span class="s">"natter"</span>;
+<pre class="codeblock" tabindex="0" aria-label="Embedding API"><code><span class="k">import</span> { createRunner, createConsole } <span class="k">from</span> <span class="s">"./natter-web.js"</span>;
 
-<span class="k">const</span> py = <span class="k">new</span> Natter({ seed: 42, budget: 20000 });
-py.onOutput((text) =&gt; console.log(text));
+<span class="k">const</span> runner = createRunner();
+createConsole(document.querySelector(<span class="s">"#console"</span>)).connect(runner);
 
-<span class="k">const</span> task = py.run(<span class="s">`
+<span class="k">await</span> runner.run(<span class="s">`
 for i in range(3):
     print("Hello", i)
-`</span>);
-<span class="c">// task.pause(), task.step("over"), task.variables(), task.stop()</span></code></pre>
+`</span>, { seed: 42 });
+<span class="c">// runner.pause(), runner.step("over"), runner.inspect(), runner.stop()</span></code></pre>
 </section>
 
 <section id="roadmap" class="wrap">

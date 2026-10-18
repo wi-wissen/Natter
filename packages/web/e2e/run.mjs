@@ -315,6 +315,68 @@ const tests = [
     assertEq(JSON.stringify(changes.at(-1)), '["a.txt","hi"]', 'fsChanged');
     assert((await output(page)).includes('von vorher'), 'files option');
   }],
+  ['editor: Python highlighting stays aligned, typing, Tab and undo work', async ({ page }) => {
+    await page.evaluate(() => window.demo.load('kara-sokoban'));
+    await frame(page);
+    const spans = await page.evaluate(() => Object.fromEntries(['kw', 'str', 'com', 'bi', 'def', 'num'].map((k) => [k, [...document.querySelectorAll('#hl .hl-' + k)].map((e) => e.textContent)])));
+    assert(['def', 'for', 'in'].every((k) => spans.kw.includes(k)), 'keywords: ' + spans.kw);
+    assert(spans.str.some((s) => s.startsWith('"""')) && spans.str.includes('"Beide Pilze liegen auf den Beeren!"'), 'strings: ' + spans.str);
+    assert(spans.com.some((s) => s.startsWith('# Schiebe')), 'comments: ' + spans.com);
+    assert(spans.bi.includes('print') && spans.bi.includes('range') && spans.def.includes('schritte') && spans.num.includes('4'), 'builtins, def, numbers');
+    // same box, same font metrics: the coloured text lies exactly under the transparent textarea text
+    const m = await page.evaluate(() => {
+      const c = document.getElementById('code'), h = document.getElementById('hl');
+      const cs = getComputedStyle(c), hs = getComputedStyle(h), rc = c.getBoundingClientRect(), rh = h.getBoundingClientRect();
+      return { font: [cs.font, hs.font], pad: [cs.padding, hs.padding], dx: rc.left - rh.left, dy: rc.top - rh.top, sh: [c.scrollHeight, h.scrollHeight] };
+    });
+    assertEq(m.font[0], m.font[1], 'font');
+    assertEq(m.pad[0], m.pad[1], 'padding');
+    assert(Math.abs(m.dx) < 0.5 && Math.abs(m.dy) < 0.5, 'same position: ' + JSON.stringify(m));
+    assert(Math.abs(m.sh[0] - m.sh[1]) <= 2, 'same text height: ' + m.sh);
+    await page.evaluate(() => { window.demo.setCode('# Zeile\n'.repeat(80) + 'print("Ende")'); document.getElementById('code').scrollTop = 1e6; });
+    await frame(page);
+    const sc = await page.evaluate(() => [document.getElementById('code').scrollTop, document.getElementById('hl').scrollTop]);
+    assert(sc[0] > 0 && sc[0] === sc[1], 'scroll in step: ' + sc);
+    // typing, Tab, undo
+    await page.evaluate(() => window.demo.setCode('x = 1\n'));
+    await page.click('#code');
+    await page.keyboard.press('Control+End');
+    await page.keyboard.type('if x:\n');
+    await page.keyboard.press('Tab');
+    await page.keyboard.type('print("neu")  # Kommentar');
+    await frame(page);
+    assertEq(await page.inputValue('#code'), 'x = 1\nif x:\n    print("neu")  # Kommentar', 'typed text');
+    const hl = await page.evaluate(() => [document.getElementById('hl').textContent, [...document.querySelectorAll('#hl .hl-com, #hl .hl-str, #hl .hl-kw')].map((e) => e.textContent)]);
+    assert(hl[0].startsWith(await page.inputValue('#code')), 'overlay text follows typing');
+    assert(['if', '"neu"', '# Kommentar'].every((t) => hl[1].includes(t)), 'typed code is highlighted: ' + hl[1]);
+    await page.screenshot({ path: join(OUT, 'desktop-editor-typed.png'), clip: { x: 0, y: 0, width: 720, height: 200 } });
+    for (let i = 0; i < 40 && (await page.inputValue('#code')).includes('print'); i++) await page.keyboard.press('Control+z');
+    const undone = await page.inputValue('#code');
+    assert(!undone.includes('print') && undone.startsWith('x = 1'), 'undo works: ' + JSON.stringify(undone));
+  }],
+  ['console: placeholder instead of an empty box, compact until there is output', async ({ page }) => {
+    for (const id of ['kara-sokoban', 'square', 'forms-counter', 'pgz-pond']) {
+      await page.evaluate((id) => { window.demo.load(id); window.demo.con.clear(); }, id);
+      await frame(page);
+      const g = await page.evaluate(() => {
+        const out = document.querySelector('#console .nw-out');
+        return { ph: getComputedStyle(out, '::before').content, con: document.getElementById('console').getBoundingClientRect().height, stage: document.getElementById('stage').getBoundingClientRect().height };
+      });
+      assertEq(g.ph, '"Ausgabe erscheint hier"', id + ' placeholder');
+      assert(g.con < 100 && g.stage > 650, `${id}: compact console, big stage: ${JSON.stringify(g)}`);
+    }
+    await start(page, 'kara-sokoban');
+    await page.waitForTimeout(300);
+    await page.screenshot({ path: join(OUT, 'desktop-kara-running.png') });
+    await finished(page);
+    await frame(page);
+    assertEq(await page.evaluate(() => getComputedStyle(document.querySelector('#console .nw-out'), '::before').content), 'none', 'placeholder gone with output');
+    await page.screenshot({ path: join(OUT, 'desktop-kara-done.png') });
+    await page.evaluate(() => window.demo.load('input'));
+    await frame(page);
+    const alone = await page.evaluate(() => document.getElementById('console').getBoundingClientRect().height);
+    assert(alone > 600, 'without a stage the console fills the column: ' + alone);
+  }],
   ['phone (Pixel 7): layout fits, touch tap counts as click, screenshots', async ({ browser, base }) => {
     const ctx = await browser.newContext({ viewport: { width: 412, height: 915 }, deviceScaleFactor: 2.625, isMobile: true, hasTouch: true });
     const p = await ctx.newPage();
@@ -328,6 +390,9 @@ const tests = [
     const ratio = await p.evaluate(() => { const c = window.demo.turtle.canvas; return c.width / c.clientWidth; });
     assert(Math.abs(ratio - 2.625) < 0.05, 'crisp on the phone: ' + ratio);
     await p.screenshot({ path: join(OUT, 'phone-turtle.png'), fullPage: true });
+    const pc = await p.evaluate(() => [document.getElementById('console').getBoundingClientRect().height, getComputedStyle(document.querySelector('#console .nw-out'), '::before').content]);
+    assert(pc[0] < 100 && pc[1] === '"Ausgabe erscheint hier"', 'no empty box on the phone: ' + pc);
+    assert((await p.locator('#hl .hl-kw').count()) > 0, 'highlighting on the phone');
     await p.evaluate(() => window.demo.load('keys'));
     await p.click('#run');
     await p.waitForFunction(() => document.body.dataset.state === 'waiting');
