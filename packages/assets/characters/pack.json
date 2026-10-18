@@ -1,0 +1,424 @@
+{
+  "pack": "characters",
+  "title": {
+    "de": "Figuren",
+    "en": "Characters"
+  },
+  "format": "png",
+  "assets": [
+    {
+      "name": "heroine_run_1",
+      "file": "heroine_run_1.png",
+      "tags": [
+        "character",
+        "player",
+        "animation"
+      ],
+      "de": "Heldin läuft, Bild 1 von 8 (nach rechts)",
+      "en": "Heroine running, frame 1 of 8 (facing right)"
+    },
+    {
+      "name": "heroine_run_2",
+      "file": "heroine_run_2.png",
+      "tags": [
+        "character",
+        "player",
+        "animation"
+      ],
+      "de": "Heldin läuft, Bild 2 von 8 (nach rechts)",
+      "en": "Heroine running, frame 2 of 8 (facing right)"
+    },
+    {
+      "name": "heroine_run_3",
+      "file": "heroine_run_3.png",
+      "tags": [
+        "character",
+        "player",
+        "animation"
+      ],
+      "de": "Heldin läuft, Bild 3 von 8 (nach rechts)",
+      "en": "Heroine running, frame 3 of 8 (facing right)"
+    },
+    {
+      "name": "heroine_run_4",
+      "file": "heroine_run_4.png",
+      "tags": [
+        "character",
+        "player",
+        "animation"
+      ],
+      "de": "Heldin läuft, Bild 4 von 8 (nach rechts)",
+      "en": "Heroine running, frame 4 of 8 (facing right)"
+    },
+    {
+      "name": "heroine_run_5",
+      "file": "heroine_run_5.png",
+      "tags": [
+        "character",
+        "player",
+        "animation"
+      ],
+      "de": "Heldin läuft, Bild 5 von 8 (nach rechts)",
+      "en": "Heroine running, frame 5 of 8 (facing right)"
+    },
+    {
+      "name": "heroine_run_6",
+      "file": "heroine_run_6.png",
+      "tags": [
+        "character",
+        "player",
+        "animation"
+      ],
+      "de": "Heldin läuft, Bild 6 von 8 (nach rechts)",
+      "en": "Heroine running, frame 6 of 8 (facing right)"
+    },
+    {
+      "name": "heroine_run_7",
+      "file": "heroine_run_7.png",
+      "tags": [
+        "character",
+        "player",
+        "animation"
+      ],
+      "de": "Heldin läuft, Bild 7 von 8 (nach rechts)",
+      "en": "Heroine running, frame 7 of 8 (facing right)"
+    },
+    {
+      "name": "heroine_run_8",
+      "file": "heroine_run_8.png",
+      "tags": [
+        "character",
+        "player",
+        "animation"
+      ],
+      "de": "Heldin läuft, Bild 8 von 8 (nach rechts)",
+      "en": "Heroine running, frame 8 of 8 (facing right)"
+    },
+    {
+      "name": "heroine_idle_1",
+      "file": "heroine_idle_1.png",
+      "tags": [
+        "character",
+        "player",
+        "animation"
+      ],
+      "de": "Heldin steht, Bild 1 von 4",
+      "en": "Heroine standing, frame 1 of 4"
+    },
+    {
+      "name": "heroine_idle_2",
+      "file": "heroine_idle_2.png",
+      "tags": [
+        "character",
+        "player",
+        "animation"
+      ],
+      "de": "Heldin steht, Bild 2 von 4",
+      "en": "Heroine standing, frame 2 of 4"
+    },
+    {
+      "name": "heroine_idle_3",
+      "file": "heroine_idle_3.png",
+      "tags": [
+        "character",
+        "player",
+        "animation"
+      ],
+      "de": "Heldin steht, Bild 3 von 4",
+      "en": "Heroine standing, frame 3 of 4"
+    },
+    {
+      "name": "heroine_idle_4",
+      "file": "heroine_idle_4.png",
+      "tags": [
+        "character",
+        "player",
+        "animation"
+      ],
+      "de": "Heldin steht, Bild 4 von 4",
+      "en": "Heroine standing, frame 4 of 4"
+    },
+    {
+      "name": "heroine_jump",
+      "file": "heroine_jump.png",
+      "tags": [
+        "character",
+        "player"
+      ],
+      "de": "Heldin springt (steigt)",
+      "en": "Heroine jumping (rising)"
+    },
+    {
+      "name": "heroine_fall",
+      "file": "heroine_fall.png",
+      "tags": [
+        "character",
+        "player"
+      ],
+      "de": "Heldin fällt",
+      "en": "Heroine falling"
+    },
+    {
+      "name": "heroine_land",
+      "file": "heroine_land.png",
+      "tags": [
+        "character",
+        "player"
+      ],
+      "de": "Heldin landet",
+      "en": "Heroine landing"
+    },
+    {
+      "name": "heroine_hurt",
+      "file": "heroine_hurt.png",
+      "tags": [
+        "character",
+        "player"
+      ],
+      "de": "Heldin erschrocken oder getroffen",
+      "en": "Heroine surprised or hurt"
+    },
+    {
+      "name": "heroine_walk_1",
+      "file": "heroine_walk_1.png",
+      "tags": [
+        "character",
+        "player",
+        "animation"
+      ],
+      "de": "Heldin geht, Bild 1 von 6 (nach rechts)",
+      "en": "Heroine walking, frame 1 of 6 (facing right)"
+    },
+    {
+      "name": "heroine_walk_2",
+      "file": "heroine_walk_2.png",
+      "tags": [
+        "character",
+        "player",
+        "animation"
+      ],
+      "de": "Heldin geht, Bild 2 von 6 (nach rechts)",
+      "en": "Heroine walking, frame 2 of 6 (facing right)"
+    },
+    {
+      "name": "heroine_walk_3",
+      "file": "heroine_walk_3.png",
+      "tags": [
+        "character",
+        "player",
+        "animation"
+      ],
+      "de": "Heldin geht, Bild 3 von 6 (nach rechts)",
+      "en": "Heroine walking, frame 3 of 6 (facing right)"
+    },
+    {
+      "name": "heroine_walk_4",
+      "file": "heroine_walk_4.png",
+      "tags": [
+        "character",
+        "player",
+        "animation"
+      ],
+      "de": "Heldin geht, Bild 4 von 6 (nach rechts)",
+      "en": "Heroine walking, frame 4 of 6 (facing right)"
+    },
+    {
+      "name": "heroine_walk_5",
+      "file": "heroine_walk_5.png",
+      "tags": [
+        "character",
+        "player",
+        "animation"
+      ],
+      "de": "Heldin geht, Bild 5 von 6 (nach rechts)",
+      "en": "Heroine walking, frame 5 of 6 (facing right)"
+    },
+    {
+      "name": "heroine_walk_6",
+      "file": "heroine_walk_6.png",
+      "tags": [
+        "character",
+        "player",
+        "animation"
+      ],
+      "de": "Heldin geht, Bild 6 von 6 (nach rechts)",
+      "en": "Heroine walking, frame 6 of 6 (facing right)"
+    },
+    {
+      "name": "enemy_walk_1",
+      "file": "enemy_walk_1.png",
+      "tags": [
+        "character",
+        "enemy",
+        "animation"
+      ],
+      "de": "Gegner läuft, Bild 1 von 8 (nach rechts)",
+      "en": "Enemy walking, frame 1 of 8 (facing right)"
+    },
+    {
+      "name": "enemy_walk_left_1",
+      "file": "enemy_walk_left_1.png",
+      "tags": [
+        "character",
+        "enemy",
+        "animation"
+      ],
+      "de": "Gegner läuft, Bild 1 von 8 (nach links)",
+      "en": "Enemy walking, frame 1 of 8 (facing left)"
+    },
+    {
+      "name": "enemy_walk_2",
+      "file": "enemy_walk_2.png",
+      "tags": [
+        "character",
+        "enemy",
+        "animation"
+      ],
+      "de": "Gegner läuft, Bild 2 von 8 (nach rechts)",
+      "en": "Enemy walking, frame 2 of 8 (facing right)"
+    },
+    {
+      "name": "enemy_walk_left_2",
+      "file": "enemy_walk_left_2.png",
+      "tags": [
+        "character",
+        "enemy",
+        "animation"
+      ],
+      "de": "Gegner läuft, Bild 2 von 8 (nach links)",
+      "en": "Enemy walking, frame 2 of 8 (facing left)"
+    },
+    {
+      "name": "enemy_walk_3",
+      "file": "enemy_walk_3.png",
+      "tags": [
+        "character",
+        "enemy",
+        "animation"
+      ],
+      "de": "Gegner läuft, Bild 3 von 8 (nach rechts)",
+      "en": "Enemy walking, frame 3 of 8 (facing right)"
+    },
+    {
+      "name": "enemy_walk_left_3",
+      "file": "enemy_walk_left_3.png",
+      "tags": [
+        "character",
+        "enemy",
+        "animation"
+      ],
+      "de": "Gegner läuft, Bild 3 von 8 (nach links)",
+      "en": "Enemy walking, frame 3 of 8 (facing left)"
+    },
+    {
+      "name": "enemy_walk_4",
+      "file": "enemy_walk_4.png",
+      "tags": [
+        "character",
+        "enemy",
+        "animation"
+      ],
+      "de": "Gegner läuft, Bild 4 von 8 (nach rechts)",
+      "en": "Enemy walking, frame 4 of 8 (facing right)"
+    },
+    {
+      "name": "enemy_walk_left_4",
+      "file": "enemy_walk_left_4.png",
+      "tags": [
+        "character",
+        "enemy",
+        "animation"
+      ],
+      "de": "Gegner läuft, Bild 4 von 8 (nach links)",
+      "en": "Enemy walking, frame 4 of 8 (facing left)"
+    },
+    {
+      "name": "enemy_walk_5",
+      "file": "enemy_walk_5.png",
+      "tags": [
+        "character",
+        "enemy",
+        "animation"
+      ],
+      "de": "Gegner läuft, Bild 5 von 8 (nach rechts)",
+      "en": "Enemy walking, frame 5 of 8 (facing right)"
+    },
+    {
+      "name": "enemy_walk_left_5",
+      "file": "enemy_walk_left_5.png",
+      "tags": [
+        "character",
+        "enemy",
+        "animation"
+      ],
+      "de": "Gegner läuft, Bild 5 von 8 (nach links)",
+      "en": "Enemy walking, frame 5 of 8 (facing left)"
+    },
+    {
+      "name": "enemy_walk_6",
+      "file": "enemy_walk_6.png",
+      "tags": [
+        "character",
+        "enemy",
+        "animation"
+      ],
+      "de": "Gegner läuft, Bild 6 von 8 (nach rechts)",
+      "en": "Enemy walking, frame 6 of 8 (facing right)"
+    },
+    {
+      "name": "enemy_walk_left_6",
+      "file": "enemy_walk_left_6.png",
+      "tags": [
+        "character",
+        "enemy",
+        "animation"
+      ],
+      "de": "Gegner läuft, Bild 6 von 8 (nach links)",
+      "en": "Enemy walking, frame 6 of 8 (facing left)"
+    },
+    {
+      "name": "enemy_walk_7",
+      "file": "enemy_walk_7.png",
+      "tags": [
+        "character",
+        "enemy",
+        "animation"
+      ],
+      "de": "Gegner läuft, Bild 7 von 8 (nach rechts)",
+      "en": "Enemy walking, frame 7 of 8 (facing right)"
+    },
+    {
+      "name": "enemy_walk_left_7",
+      "file": "enemy_walk_left_7.png",
+      "tags": [
+        "character",
+        "enemy",
+        "animation"
+      ],
+      "de": "Gegner läuft, Bild 7 von 8 (nach links)",
+      "en": "Enemy walking, frame 7 of 8 (facing left)"
+    },
+    {
+      "name": "enemy_walk_8",
+      "file": "enemy_walk_8.png",
+      "tags": [
+        "character",
+        "enemy",
+        "animation"
+      ],
+      "de": "Gegner läuft, Bild 8 von 8 (nach rechts)",
+      "en": "Enemy walking, frame 8 of 8 (facing right)"
+    },
+    {
+      "name": "enemy_walk_left_8",
+      "file": "enemy_walk_left_8.png",
+      "tags": [
+        "character",
+        "enemy",
+        "animation"
+      ],
+      "de": "Gegner läuft, Bild 8 von 8 (nach links)",
+      "en": "Enemy walking, frame 8 of 8 (facing left)"
+    }
+  ]
+}

@@ -1,43 +1,44 @@
 # Asset conventions
 
-Game graphics for Natter's Pygame Zero module and for python.jetzt. All files are original work, free to use (CC0). Nothing may copy or closely imitate an existing game, film or brand character.
+Game graphics for Natter's Pygame Zero module and for python.jetzt. All files are original work, free to use (CC0): drawn by an image model from our own prompts, in one style. Nothing may copy or closely imitate an existing game, film or brand character.
+
+## Look
+
+**Flat emoji style** (reference: `scripts/asset-gen/style-emoji.png`, which also fixes the main characters): clear flat shapes without outlines, very few colours per object, rounded friendly forms, instantly readable, appealing to girls and boys. Light comes from nowhere: no hard shading, no gradients beyond a hint. Characters face right unless the name says `_left`.
 
 ## Layout
 
 ```
-packages/assets/<pack>/<name>.svg     one file per image
-packages/assets/<pack>/pack.json      the list of the pack (see below)
+packages/assets/<pack>/<name>.png     one file per image, transparent background
+packages/assets/<pack>/pack.json      the list of the pack
+packages/assets/sounds/               wav effects (sounds.json)
 ```
 
 ## pack.json
 
 ```json
 {
-  "pack": "platformer",
-  "title": { "de": "Plattformspiel", "en": "Platformer" },
+  "pack": "characters",
+  "title": { "de": "Figuren", "en": "Characters" },
+  "format": "png",
   "assets": [
-    { "name": "girl_idle", "file": "girl_idle.svg",
-      "tags": ["character", "player"],
-      "de": "Heldin steht", "en": "Heroine standing" }
+    { "name": "heroine_idle_1", "file": "heroine_idle_1.png", "tags": ["character", "player"],
+      "de": "Heldin steht, Bild 1 von 4", "en": "Heroine standing, frame 1 of 4" }
   ]
 }
 ```
 
-- `name` is what a student writes: `Actor("girl_idle")`. Lowercase ASCII letters, digits and `_`, starting with a letter, globally unique over all packs. Animation frames: `girl_run_1`, `girl_run_2` ...
-- `file` must exist in the pack folder; every SVG in the folder must be listed.
-- `de`/`en`: a short description (what is it, which way does it look).
+- `name` is what a student writes: `Actor("heroine_idle_1")`. Lowercase ASCII letters, digits and `_`, starting with a letter, unique over all packs. Animation frames: `<thing>_<action>_<n>` starting at 1. Generic words that other packs may use (tree, cloud, coin, star, heart, bush, rock, fish, sun, flower, key, chest ...) carry a pack-specific word (`meadow_tree`, `sea_cloud`).
+- `tags` include `background` for opaque backdrops (they need no alpha channel); every other image has an alpha channel.
+- `de`/`en`: a short description (what it is, which way it looks).
 
-## SVG rules
+## PNG rules
 
-- Root `<svg xmlns="http://www.w3.org/2000/svg" width="W" height="H" viewBox="0 0 W H">` with integer W, H. W x H is the natural size in game pixels (the size an Actor has). Typical: characters 48 to 96, tiles 64x64, small items 24 to 48, backgrounds 800x600 or 800x480.
-- Transparent background (except full backgrounds and tiles that are meant to fill their cell).
-- Self-contained: no `<script>`, no `<image>`, no external URLs or fonts, no `<style>` with `@import`, no `<foreignObject>`, no animation (SMIL or CSS) unless the asset is explicitly an animated mascot. Text must be converted to paths.
-- File size: under 20 KB each, under 200 KB per pack. Prefer simple paths and basic shapes. Gradients are fine but use them sparingly.
-- Anchor: the image is drawn centred on the Actor position, so draw characters standing with feet near the bottom edge and keep the visual centre near the middle. Facing direction: right, unless the name says otherwise (`_left`). Provide `_left` only where a plain horizontal flip is not enough.
-- Tiles that repeat (ground, water, wall) must tile seamlessly left-right (and top-bottom where the name says so).
+- Transparent background (RGBA), tightly cropped plus a 2 px margin; animation frames of one character share one canvas size, with the feet at the same height and the body centred, so that swapping frames does not jump.
+- Sizes (pixels, natural size in a game): characters about 96 high, enemies and animals 48 to 96, tiles 64x64, items 32 to 48, big objects (houses, ships, trees) up to 160, backgrounds 800x480. At most 1024 on the long side, at most 80 KB per file and 3 MB per pack.
+- Edges clean: no magenta fringe (check on a dark and a light background).
+- Readable at half size.
 
-## Look (so that packs work together in one game)
+## Making images
 
-The reference for the look are the Kara drawings in `/tmp/claude-0/-home-user/82af8643-7fd2-511f-b912-5aee8d74fb4e/scratchpad/mockups-v2-src/src/libs.js` (and what they look like in `/tmp/claude-0/-home-user/82af8643-7fd2-511f-b912-5aee8d74fb4e/scratchpad/mockups-v2/desktop.html`): friendly, flat, clean, not childish and not realistic. Look at them and continue in that spirit.
-
-Flat vector shapes, one darker outline of about 3 units in a dark, slightly saturated colour (not pure black) on characters and items, simple highlights, two to three tones per colour. Readable on a light and on a dark background, readable at half size. Friendly, appeals to girls and boys equally, no violence beyond cartoon bumps, no blood, no weapons that look realistic.
+`scripts/asset-gen` (see its README): `gen.py` asks the image model for a sheet on a flat magenta background, with the style reference image attached; `keyslice.py` keys the background out and cuts the sheet into the named files. Prompts and the list of names of every pack are kept in `packages/assets/<pack>/make.py` so that a pack can be redrawn.

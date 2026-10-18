@@ -7,6 +7,15 @@ export const ROOT = dirname(fileURLToPath(import.meta.url));
 export const NAME_RE = /^[a-z][a-z0-9_]*$/;
 export const MAX_FILE = 20 * 1024;
 export const MAX_PACK = 200 * 1024;
+export const MAX_PNG = 80 * 1024;
+export const MAX_PNG_PACK = 3 * 1024 * 1024;
+
+/** Size and colour type of a PNG file (from its header), or null if it is not a PNG. */
+export function pngInfo(buf) {
+  const sig = [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a];
+  if (buf.length < 33 || sig.some((b, i) => buf[i] !== b) || buf.toString('latin1', 12, 16) !== 'IHDR') return null;
+  return { width: buf.readUInt32BE(16), height: buf.readUInt32BE(20), bitDepth: buf[24], colorType: buf[25], hasAlpha: buf[25] === 6 || buf[25] === 4 };
+}
 
 /** All pack folders (those with a pack.json). */
 export const packDirs = () => readdirSync(ROOT).filter((d) => existsSync(join(ROOT, d, 'pack.json'))).sort();

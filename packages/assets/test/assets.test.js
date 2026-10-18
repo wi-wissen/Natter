@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { ROOT, NAME_RE, MAX_FILE, MAX_PACK, packDirs, readPack, svgProblems, svgSize, fileSize, join, readdirSync, readFileSync, existsSync } from '../assets.js';
+import { ROOT, NAME_RE, MAX_FILE, MAX_PACK, MAX_PNG, MAX_PNG_PACK, pngInfo, packDirs, readPack, svgProblems, svgSize, fileSize, join, readdirSync, readFileSync, existsSync } from '../assets.js';
 
 describe('svgProblems', () => {
   const ok = '<svg xmlns="http://www.w3.org/2000/svg" width="8" height="8" viewBox="0 0 8 8"><rect width="8" height="8"/></svg>';
@@ -28,7 +28,8 @@ describe('asset packs', () => {
   for (const dir of dirs) {
     describe(dir, () => {
       const pack = readPack(dir);
-      const files = readdirSync(join(ROOT, dir)).filter((f) => f.endsWith('.svg'));
+      const png = pack.format === 'png';
+      const files = readdirSync(join(ROOT, dir)).filter((f) => f.endsWith(png ? '.png' : '.svg'));
 
       it('pack.json is complete', () => {
         expect(pack.pack).toBe(dir);
@@ -40,24 +41,34 @@ describe('asset packs', () => {
         expect(pack.assets.map((a) => a.file).sort()).toEqual(files.sort());
       });
       it('pack size is within the limit', () => {
-        expect(files.reduce((n, f) => n + fileSize(join(ROOT, dir, f)), 0)).toBeLessThanOrEqual(MAX_PACK);
+        expect(files.reduce((n, f) => n + fileSize(join(ROOT, dir, f)), 0)).toBeLessThanOrEqual(png ? MAX_PNG_PACK : MAX_PACK);
       });
       for (const a of pack.assets) {
         it(`${a.name}: entry and svg are valid`, () => {
           expect(a.name, 'name').toMatch(NAME_RE);
-          expect(a.file).toBe(`${a.name}.svg`);
+          expect(a.file).toBe(`${a.name}.${png ? 'png' : 'svg'}`);
           expect(a.de, 'de').toBeTruthy();
           expect(a.en, 'en').toBeTruthy();
           expect(Array.isArray(a.tags)).toBe(true);
           const p = join(ROOT, dir, a.file);
           expect(existsSync(p)).toBe(true);
-          expect(fileSize(p)).toBeLessThanOrEqual(MAX_FILE);
-          const text = readFileSync(p, 'utf8');
-          expect(svgProblems(text, { animated: !!a.animated })).toEqual([]);
-          const [w, h] = svgSize(text);
-          expect(w).toBeGreaterThan(0);
-          expect(h).toBeGreaterThan(0);
-          expect(w * h).toBeLessThanOrEqual(800 * 600);
+          if (png) {
+            expect(fileSize(p)).toBeLessThanOrEqual(MAX_PNG);
+            const info = pngInfo(readFileSync(p));
+            expect(info, 'a PNG file').not.toBeNull();
+            expect(info.width).toBeGreaterThan(0);
+            expect(Math.max(info.width, info.height)).toBeLessThanOrEqual(1024);
+            // everything except backgrounds has transparent surroundings
+            if (!a.tags.includes('background')) expect(info.hasAlpha, 'alpha channel').toBe(true);
+          } else {
+            expect(fileSize(p)).toBeLessThanOrEqual(MAX_FILE);
+            const text = readFileSync(p, 'utf8');
+            expect(svgProblems(text, { animated: !!a.animated })).toEqual([]);
+            const [w, h] = svgSize(text);
+            expect(w).toBeGreaterThan(0);
+            expect(h).toBeGreaterThan(0);
+            expect(w * h).toBeLessThanOrEqual(800 * 600);
+          }
           if (allNames.has(a.name)) throw new Error(`name ${a.name} is in ${allNames.get(a.name)} and ${dir}`);
           allNames.set(a.name, dir);
         });
