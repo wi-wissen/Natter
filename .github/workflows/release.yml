@@ -33,10 +33,10 @@ jobs:
         if: github.event_name == 'push'
         run: echo "VERSION=${GITHUB_REF_NAME#v}" >> "$GITHUB_ENV"
 
-      - name: LICENSE must name the copyright holder
+      - name: LICENSE must not contain a placeholder
         run: |
-          if grep -q COPYRIGHT_HOLDER LICENSE; then
-            echo "::error file=LICENSE::LICENSE still contains the placeholder COPYRIGHT_HOLDER. Put in the name before releasing."
+          if grep -nEi 'COPYRIGHT_HOLDER|\[(year|fullname|name)\]|<(year|name|copyright holders?)>' LICENSE; then
+            echo "::error file=LICENSE::LICENSE still contains a placeholder instead of the copyright holder."
             exit 1
           fi
 
