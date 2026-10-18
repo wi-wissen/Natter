@@ -106,7 +106,10 @@ def keyed(name):
     from keyslice import key
     from scipy import ndimage
     rgba = key(Image.open(sheet(name)))
-    solid = rgba[..., 3] >= 250
+    c = rgba[..., :3].astype(int)
+    near = ndimage.binary_dilation(rgba[..., 3] < 250, iterations=4)
+    tinted = near & (c[..., 0] - c[..., 1] > 25) & (c[..., 2] - c[..., 1] > 25)
+    solid = (rgba[..., 3] >= 250) & ~tinted
     _, (iy, ix) = ndimage.distance_transform_edt(~solid, return_indices=True)
     edge = ~solid & (rgba[..., 3] > 0)
     rgba[edge, :3] = rgba[iy[edge], ix[edge], :3]

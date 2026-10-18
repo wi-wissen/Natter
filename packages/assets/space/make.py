@@ -1,9 +1,9 @@
-"""Redraw the `space` pack: python3 make.py gen [sheet ...] | cut | json
+"""Redraw the `space` pack: WORK=<scratch dir> python3 make.py gen [sheet ...] | cut | json
 Sheets are generated into WORK (scratch), then cut into this folder."""
 import sys, os, json
 from concurrent.futures import ThreadPoolExecutor
 import numpy as np
-from PIL import Image
+from PIL import Image, ImageFilter
 from scipy import ndimage
 
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -188,7 +188,58 @@ def cut():
         nw = round(H * 5 / 3); bg = bg.crop(((W - nw) // 2, 0, (W - nw) // 2 + nw, H))
     else:
         nh = round(W * 3 / 5); bg = bg.crop((0, (H - nh) // 2, W, (H - nh) // 2 + nh))
-    bg.resize((800, 480), Image.LANCZOS).save(os.path.join(HERE, 'sp_bg_space.png'), optimize=True)
+    # the model output is slightly noisy: smooth and reduce to 32 colours so the file stays under 80 KB
+    bg = bg.resize((800, 480), Image.LANCZOS).filter(ImageFilter.MedianFilter(5))
+    bg.quantize(32, method=Image.MEDIANCUT, dither=Image.NONE).save(os.path.join(HERE, 'sp_bg_space.png'), optimize=True)
+
+
+T = {  # name: (tags, de, en)
+    'sp_ship': (['ship', 'player'], 'Raumschiff des Spielers, Spitze nach oben', 'Player rocket ship, nose pointing up'),
+    'sp_ship_left': (['ship', 'player'], 'Raumschiff neigt sich nach links', 'Player ship banking left'),
+    'sp_ship_right': (['ship', 'player'], 'Raumschiff neigt sich nach rechts', 'Player ship banking right'),
+    'sp_enemy_1': (['enemy', 'ship'], 'Lila Feindschiff mit Flügeln, Spitze nach unten', 'Purple winged enemy ship, pointing down'),
+    'sp_enemy_2': (['enemy', 'ship'], 'Grünes Stachel-Feindschiff, Spitze nach unten', 'Green spiky enemy ship, pointing down'),
+    'sp_enemy_3': (['enemy', 'ship'], 'Orange Pfeil-Feindschiff, Spitze nach unten', 'Orange arrowhead enemy ship, pointing down'),
+    'sp_alien': (['enemy', 'character'], 'Freundlicher grüner Alien-Kopf mit drei Augen', 'Friendly green alien head with three eyes'),
+    'sp_ufo': (['enemy', 'ship'], 'Fliegende Untertasse mit Glaskuppel', 'Flying saucer with a glass dome'),
+    'sp_asteroid_s': (['obstacle', 'asteroid'], 'Kleiner Asteroid', 'Small asteroid'),
+    'sp_asteroid_m': (['obstacle', 'asteroid'], 'Mittlerer Asteroid', 'Medium asteroid'),
+    'sp_asteroid_l': (['obstacle', 'asteroid'], 'Großer Asteroid', 'Large asteroid'),
+    'sp_planet_1': (['planet', 'decoration'], 'Planet mit Ring', 'Ringed planet'),
+    'sp_planet_2': (['planet', 'decoration'], 'Erdähnlicher Planet', 'Earth-like planet'),
+    'sp_planet_3': (['planet', 'decoration'], 'Roter Wüstenplanet', 'Red desert planet'),
+    'sp_planet_4': (['planet', 'decoration'], 'Eisplanet', 'Ice planet'),
+    'sp_star_1': (['star', 'decoration'], 'Kleiner gelber Funkelstern', 'Tiny yellow twinkle star'),
+    'sp_star_2': (['star', 'decoration'], 'Kleiner weißer Funkelstern', 'Tiny white twinkle star'),
+    'sp_star_3': (['star', 'decoration'], 'Kleiner hellblauer Stern', 'Tiny light-blue star'),
+    'sp_laser_blue': (['shot'], 'Blauer Laserstrahl, senkrecht', 'Blue laser bolt, vertical'),
+    'sp_laser_red': (['shot'], 'Roter Laserstrahl, senkrecht', 'Red laser bolt, vertical'),
+    'sp_bullet': (['shot'], 'Kleine Energiekugel', 'Small energy bullet'),
+    'sp_missile': (['shot'], 'Rakete, Spitze nach oben', 'Missile, pointing up'),
+    'sp_power_shield': (['item', 'powerup'], 'Extra: Schild (blaue Münze)', 'Power-up: shield (blue badge)'),
+    'sp_power_rapid': (['item', 'powerup'], 'Extra: Schnellfeuer (orange Münze)', 'Power-up: rapid fire (orange badge)'),
+    'sp_power_life': (['item', 'powerup'], 'Extra: Leben (grüne Münze mit Herz)', 'Power-up: extra life (green badge with heart)'),
+    'sp_power_bomb': (['item', 'powerup'], 'Extra: Bombe (rote Münze)', 'Power-up: bomb (red badge)'),
+    'sp_shield_bubble': (['effect'], 'Schutzschild-Blase (Ring, innen durchsichtig)', 'Shield bubble (ring, see-through inside)'),
+    'sp_boss': (['enemy', 'boss', 'ship'], 'Großes Mutterschiff (Endgegner), Spitze nach unten', 'Big mothership (boss), pointing down'),
+    'sp_astronaut': (['character'], 'Schwebende Astronautin', 'Floating astronaut'),
+    'sp_satellite': (['decoration'], 'Satellit mit Solarflügeln', 'Satellite with solar panels'),
+    'sp_comet': (['obstacle'], 'Komet mit Schweif nach rechts oben', 'Comet with its tail to the upper right'),
+    'sp_bg_space': (['background'], 'Weltraum-Hintergrund mit Sternen und Nebel (800x480)', 'Space background with stars and a nebula (800x480)'),
+}
+for i in range(1, 4):
+    T[f'sp_ship_fire_{i}'] = (['ship', 'player', 'animation'], f'Raumschiff mit Flamme, Bild {i} von 3', f'Player ship with engine flame, frame {i} of 3')
+for i in range(1, 7):
+    T[f'sp_explosion_{i}'] = (['effect', 'animation'], f'Explosion, Bild {i} von 6', f'Explosion, frame {i} of 6')
+
+
+def write_json():
+    order = ['sp_ship', 'sp_ship_left', 'sp_ship_right'] + [f'sp_ship_fire_{i}' for i in range(1, 4)] + \
+        [n for n in T if not n.startswith(('sp_ship', 'sp_explosion'))]
+    order[order.index('sp_missile') + 1:order.index('sp_missile') + 1] = [f'sp_explosion_{i}' for i in range(1, 7)]
+    assets = [{'name': n, 'file': n + '.png', 'tags': ['space'] + T[n][0], 'de': T[n][1], 'en': T[n][2]} for n in order]
+    pack = {'pack': 'space', 'title': {'de': 'Weltraum', 'en': 'Space'}, 'format': 'png', 'assets': assets}
+    json.dump(pack, open(os.path.join(HERE, 'pack.json'), 'w'), ensure_ascii=False, indent=2)
 
 
 if __name__ == '__main__':
@@ -201,3 +252,5 @@ if __name__ == '__main__':
                 print(s, r)
     elif cmd == 'cut':
         cut()
+    elif cmd == 'json':
+        write_json()

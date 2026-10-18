@@ -87,7 +87,9 @@ describe('book assets', () => {
   it('the boat is 120 px wide as the book says', () => {
     if (!dirs.includes('book')) return;
     const a = readPack('book').assets.find((x) => x.name === 'boot');
-    expect(svgSize(readFileSync(join(ROOT, 'book', a.file), 'utf8'))[0]).toBe(120);
+    const p = join(ROOT, 'book', a.file);
+    const width = a.file.endsWith('.png') ? pngInfo(readFileSync(p)).width : svgSize(readFileSync(p, 'utf8'))[0];
+    expect(width).toBe(120);
   });
 });
 

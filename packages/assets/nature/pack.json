@@ -1,0 +1,564 @@
+{
+  "pack": "nature",
+  "title": {
+    "de": "Natur und Wetter",
+    "en": "Nature and weather"
+  },
+  "format": "png",
+  "assets": [
+    {
+      "name": "nat_oak",
+      "file": "nat_oak.png",
+      "tags": [
+        "nature",
+        "plant",
+        "tree"
+      ],
+      "de": "Eiche mit runder, grüner Krone",
+      "en": "Oak tree with a round green crown"
+    },
+    {
+      "name": "nat_pine",
+      "file": "nat_pine.png",
+      "tags": [
+        "nature",
+        "plant",
+        "tree"
+      ],
+      "de": "Nadelbaum (Tanne)",
+      "en": "Pine tree (fir)"
+    },
+    {
+      "name": "nat_palm",
+      "file": "nat_palm.png",
+      "tags": [
+        "nature",
+        "plant",
+        "tree"
+      ],
+      "de": "Palme mit Fächerblättern",
+      "en": "Palm tree with fan leaves"
+    },
+    {
+      "name": "nat_apple_tree",
+      "file": "nat_apple_tree.png",
+      "tags": [
+        "nature",
+        "plant",
+        "tree"
+      ],
+      "de": "Apfelbaum mit roten Äpfeln",
+      "en": "Apple tree with red apples"
+    },
+    {
+      "name": "nat_birch",
+      "file": "nat_birch.png",
+      "tags": [
+        "nature",
+        "plant",
+        "tree"
+      ],
+      "de": "Birke mit weißem Stamm",
+      "en": "Birch tree with a white trunk"
+    },
+    {
+      "name": "nat_dead_tree",
+      "file": "nat_dead_tree.png",
+      "tags": [
+        "nature",
+        "plant",
+        "tree"
+      ],
+      "de": "Kahler, abgestorbener Baum",
+      "en": "Bare dead tree"
+    },
+    {
+      "name": "nat_bush",
+      "file": "nat_bush.png",
+      "tags": [
+        "nature",
+        "plant"
+      ],
+      "de": "Runder grüner Busch",
+      "en": "Round green bush"
+    },
+    {
+      "name": "nat_stump",
+      "file": "nat_stump.png",
+      "tags": [
+        "nature",
+        "plant",
+        "wood"
+      ],
+      "de": "Baumstumpf",
+      "en": "Tree stump"
+    },
+    {
+      "name": "nat_fern",
+      "file": "nat_fern.png",
+      "tags": [
+        "nature",
+        "plant"
+      ],
+      "de": "Farn mit gefiederten Wedeln",
+      "en": "Fern with feathery fronds"
+    },
+    {
+      "name": "nat_cactus",
+      "file": "nat_cactus.png",
+      "tags": [
+        "nature",
+        "plant"
+      ],
+      "de": "Kaktus mit zwei Armen",
+      "en": "Cactus with two arms"
+    },
+    {
+      "name": "nat_sunflower",
+      "file": "nat_sunflower.png",
+      "tags": [
+        "nature",
+        "plant",
+        "flower"
+      ],
+      "de": "Sonnenblume",
+      "en": "Sunflower"
+    },
+    {
+      "name": "nat_tulip",
+      "file": "nat_tulip.png",
+      "tags": [
+        "nature",
+        "plant",
+        "flower"
+      ],
+      "de": "Rote Tulpe",
+      "en": "Red tulip"
+    },
+    {
+      "name": "nat_daisy",
+      "file": "nat_daisy.png",
+      "tags": [
+        "nature",
+        "plant",
+        "flower"
+      ],
+      "de": "Gänseblümchen",
+      "en": "Daisy"
+    },
+    {
+      "name": "nat_rose",
+      "file": "nat_rose.png",
+      "tags": [
+        "nature",
+        "plant",
+        "flower"
+      ],
+      "de": "Rote Rose",
+      "en": "Red rose"
+    },
+    {
+      "name": "nat_grass_tuft",
+      "file": "nat_grass_tuft.png",
+      "tags": [
+        "nature",
+        "plant"
+      ],
+      "de": "Kleines Grasbüschel",
+      "en": "Small tuft of grass"
+    },
+    {
+      "name": "nat_tall_grass",
+      "file": "nat_tall_grass.png",
+      "tags": [
+        "nature",
+        "plant"
+      ],
+      "de": "Hohes Gras",
+      "en": "Tall grass"
+    },
+    {
+      "name": "nat_vine",
+      "file": "nat_vine.png",
+      "tags": [
+        "nature",
+        "plant"
+      ],
+      "de": "Hängende Ranke mit Blättern",
+      "en": "Hanging vine with leaves"
+    },
+    {
+      "name": "nat_mushroom_brown",
+      "file": "nat_mushroom_brown.png",
+      "tags": [
+        "nature",
+        "plant",
+        "mushroom"
+      ],
+      "de": "Brauner Pilz",
+      "en": "Brown mushroom"
+    },
+    {
+      "name": "nat_mushroom_blue",
+      "file": "nat_mushroom_blue.png",
+      "tags": [
+        "nature",
+        "plant",
+        "mushroom"
+      ],
+      "de": "Blauer Zierpilz",
+      "en": "Blue decorative mushroom"
+    },
+    {
+      "name": "nat_log",
+      "file": "nat_log.png",
+      "tags": [
+        "nature",
+        "plant",
+        "wood"
+      ],
+      "de": "Liegender Baumstamm",
+      "en": "Lying log"
+    },
+    {
+      "name": "nat_rock_1",
+      "file": "nat_rock_1.png",
+      "tags": [
+        "nature",
+        "rock"
+      ],
+      "de": "Runder grauer Stein",
+      "en": "Round grey rock"
+    },
+    {
+      "name": "nat_rock_2",
+      "file": "nat_rock_2.png",
+      "tags": [
+        "nature",
+        "rock"
+      ],
+      "de": "Flacher grauer Felsbrocken",
+      "en": "Flat grey rock"
+    },
+    {
+      "name": "nat_rock_3",
+      "file": "nat_rock_3.png",
+      "tags": [
+        "nature",
+        "rock"
+      ],
+      "de": "Felsgruppe aus drei Steinen",
+      "en": "Group of three rocks"
+    },
+    {
+      "name": "nat_leaf",
+      "file": "nat_leaf.png",
+      "tags": [
+        "nature",
+        "plant"
+      ],
+      "de": "Grünes Blatt",
+      "en": "Green leaf"
+    },
+    {
+      "name": "nat_carrot",
+      "file": "nat_carrot.png",
+      "tags": [
+        "nature",
+        "plant",
+        "garden",
+        "vegetable"
+      ],
+      "de": "Karotte mit grünem Kraut",
+      "en": "Carrot with green leaves"
+    },
+    {
+      "name": "nat_tomato",
+      "file": "nat_tomato.png",
+      "tags": [
+        "nature",
+        "plant",
+        "garden",
+        "vegetable"
+      ],
+      "de": "Rote Tomate",
+      "en": "Red tomato"
+    },
+    {
+      "name": "nat_pumpkin",
+      "file": "nat_pumpkin.png",
+      "tags": [
+        "nature",
+        "plant",
+        "garden",
+        "vegetable"
+      ],
+      "de": "Orangefarbener Kürbis",
+      "en": "Orange pumpkin"
+    },
+    {
+      "name": "nat_corn",
+      "file": "nat_corn.png",
+      "tags": [
+        "nature",
+        "plant",
+        "garden",
+        "vegetable"
+      ],
+      "de": "Maiskolben",
+      "en": "Corn cob"
+    },
+    {
+      "name": "nat_seedling",
+      "file": "nat_seedling.png",
+      "tags": [
+        "nature",
+        "plant",
+        "garden"
+      ],
+      "de": "Keimling mit zwei Blättern",
+      "en": "Seedling with two leaves"
+    },
+    {
+      "name": "nat_flowerpot",
+      "file": "nat_flowerpot.png",
+      "tags": [
+        "nature",
+        "plant",
+        "garden",
+        "flower"
+      ],
+      "de": "Blumentopf mit Blume",
+      "en": "Flowerpot with a flower"
+    },
+    {
+      "name": "nat_snowman",
+      "file": "nat_snowman.png",
+      "tags": [
+        "nature",
+        "weather",
+        "winter"
+      ],
+      "de": "Schneemann mit Mütze (nach rechts)",
+      "en": "Snowman with a hat (facing right)"
+    },
+    {
+      "name": "nat_moon",
+      "file": "nat_moon.png",
+      "tags": [
+        "nature",
+        "sky"
+      ],
+      "de": "Mondsichel",
+      "en": "Crescent moon"
+    },
+    {
+      "name": "fruit_apple",
+      "file": "fruit_apple.png",
+      "tags": [
+        "nature",
+        "fruit",
+        "item"
+      ],
+      "de": "Roter Apfel",
+      "en": "Red apple"
+    },
+    {
+      "name": "fruit_cherry",
+      "file": "fruit_cherry.png",
+      "tags": [
+        "nature",
+        "fruit",
+        "item"
+      ],
+      "de": "Zwei Kirschen",
+      "en": "Two cherries"
+    },
+    {
+      "name": "fruit_orange",
+      "file": "fruit_orange.png",
+      "tags": [
+        "nature",
+        "fruit",
+        "item"
+      ],
+      "de": "Orange",
+      "en": "Orange"
+    },
+    {
+      "name": "fruit_banana",
+      "file": "fruit_banana.png",
+      "tags": [
+        "nature",
+        "fruit",
+        "item"
+      ],
+      "de": "Banane",
+      "en": "Banana"
+    },
+    {
+      "name": "fruit_strawberry",
+      "file": "fruit_strawberry.png",
+      "tags": [
+        "nature",
+        "fruit",
+        "item"
+      ],
+      "de": "Erdbeere",
+      "en": "Strawberry"
+    },
+    {
+      "name": "fruit_grapes",
+      "file": "fruit_grapes.png",
+      "tags": [
+        "nature",
+        "fruit",
+        "item"
+      ],
+      "de": "Weintrauben",
+      "en": "Grapes"
+    },
+    {
+      "name": "fruit_watermelon",
+      "file": "fruit_watermelon.png",
+      "tags": [
+        "nature",
+        "fruit",
+        "item"
+      ],
+      "de": "Melonenscheibe",
+      "en": "Watermelon slice"
+    },
+    {
+      "name": "fruit_pear",
+      "file": "fruit_pear.png",
+      "tags": [
+        "nature",
+        "fruit",
+        "item"
+      ],
+      "de": "Grüne Birne",
+      "en": "Green pear"
+    },
+    {
+      "name": "nat_cloud_1",
+      "file": "nat_cloud_1.png",
+      "tags": [
+        "nature",
+        "sky",
+        "cloud"
+      ],
+      "de": "Weiße Wolke, rund",
+      "en": "White cloud, round"
+    },
+    {
+      "name": "nat_cloud_2",
+      "file": "nat_cloud_2.png",
+      "tags": [
+        "nature",
+        "sky",
+        "cloud"
+      ],
+      "de": "Weiße Wolke, lang",
+      "en": "White cloud, long"
+    },
+    {
+      "name": "nat_cloud_3",
+      "file": "nat_cloud_3.png",
+      "tags": [
+        "nature",
+        "sky",
+        "cloud"
+      ],
+      "de": "Kleine weiße Wolke",
+      "en": "Small white cloud"
+    },
+    {
+      "name": "nat_sun",
+      "file": "nat_sun.png",
+      "tags": [
+        "nature",
+        "sky",
+        "weather"
+      ],
+      "de": "Sonne mit Strahlen",
+      "en": "Sun with rays"
+    },
+    {
+      "name": "nat_rainbow",
+      "file": "nat_rainbow.png",
+      "tags": [
+        "nature",
+        "sky",
+        "weather"
+      ],
+      "de": "Regenbogen",
+      "en": "Rainbow"
+    },
+    {
+      "name": "nat_rain_cloud",
+      "file": "nat_rain_cloud.png",
+      "tags": [
+        "nature",
+        "sky",
+        "weather",
+        "cloud"
+      ],
+      "de": "Graue Regenwolke mit Tropfen",
+      "en": "Grey rain cloud with drops"
+    },
+    {
+      "name": "fruit_lemon",
+      "file": "fruit_lemon.png",
+      "tags": [
+        "nature",
+        "fruit",
+        "item"
+      ],
+      "de": "Zitrone",
+      "en": "Lemon"
+    },
+    {
+      "name": "fruit_pineapple",
+      "file": "fruit_pineapple.png",
+      "tags": [
+        "nature",
+        "fruit",
+        "item"
+      ],
+      "de": "Ananas",
+      "en": "Pineapple"
+    },
+    {
+      "name": "nat_raindrop",
+      "file": "nat_raindrop.png",
+      "tags": [
+        "nature",
+        "weather"
+      ],
+      "de": "Regentropfen",
+      "en": "Raindrop"
+    },
+    {
+      "name": "nat_snowflake",
+      "file": "nat_snowflake.png",
+      "tags": [
+        "nature",
+        "weather",
+        "winter"
+      ],
+      "de": "Schneeflocke",
+      "en": "Snowflake"
+    },
+    {
+      "name": "nat_lightning",
+      "file": "nat_lightning.png",
+      "tags": [
+        "nature",
+        "weather"
+      ],
+      "de": "Blitz",
+      "en": "Lightning bolt"
+    }
+  ]
+}

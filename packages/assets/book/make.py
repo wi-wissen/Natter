@@ -61,6 +61,36 @@ BOATS = ['boot', 'boot_2', 'boot_3']
 DUCK = ['ente', 'ente_tot', 'kueken', '_kueken_b', 'kueken_2', '_kueken_2b']
 POND = ['seerose', 'schilf', 'stein', 'frosch', 'fisch_1', 'fisch_2']
 
+# name: (tags, German, English) -> pack.json
+INFO = {
+    'ente': (['animal', 'player', 'pond'], 'Weiße Ente, schwimmt nach rechts (Spielfigur des Teich-Spiels im Buch)', 'White duck swimming to the right (the player of the book\'s pond game)'),
+    'ente_links': (['animal', 'player', 'pond'], 'Weiße Ente, schwimmt nach links', 'White duck swimming to the left'),
+    'ente_tot': (['animal', 'player', 'pond'], 'Ente nach dem Zusammenstoß: benommen, mit Sternen über dem Kopf', 'Duck after a crash: dizzy, with stars above its head'),
+    'kueken': (['animal', 'item', 'pond'], 'Gelbes Küken, schaut nach rechts', 'Yellow duckling facing right'),
+    'kueken_2': (['animal', 'item', 'pond'], 'Graubraunes Küken, schaut nach rechts', 'Grey-brown duckling facing right'),
+    'boot': (['vehicle', 'enemy', 'pond'], 'Rotes Motorboot, fährt nach rechts, genau 120 Pixel breit', 'Red motorboat driving to the right, exactly 120 px wide'),
+    'boot_2': (['vehicle', 'enemy', 'pond'], 'Gelbes Motorboot, fährt nach rechts, 120 Pixel breit', 'Yellow motorboat driving to the right, 120 px wide'),
+    'boot_3': (['vehicle', 'enemy', 'pond'], 'Grünes Motorboot, fährt nach rechts, 120 Pixel breit', 'Green motorboat driving to the right, 120 px wide'),
+    'seerose': (['plant', 'pond'], 'Seerosenblatt mit rosa Blüte, von oben', 'Water lily pad with a pink flower, seen from above'),
+    'schilf': (['plant', 'pond'], 'Schilf mit zwei Rohrkolben, von der Seite', 'Reeds with two cattails, seen from the side'),
+    'stein': (['obstacle', 'pond'], 'Grauer Stein im Wasser', 'Grey stone in the water'),
+    'frosch': (['animal', 'pond'], 'Grüner Frosch auf einem Seerosenblatt', 'Green frog sitting on a lily pad'),
+    'fisch_1': (['animal', 'pond'], 'Orangefarbener Fisch, schwimmt nach rechts (von der Seite)', 'Orange fish swimming to the right (side view)'),
+    'fisch_2': (['animal', 'pond'], 'Silberblauer Fisch, schwimmt nach rechts (von der Seite)', 'Silver-blue fish swimming to the right (side view)'),
+    'welle': (['effect', 'pond'], 'Kleine helle Welle, 20 Pixel breit', 'Small light wave mark, 20 px wide'),
+    'ufer_gras': (['tile', 'pond'], 'Graskachel 64x64, von oben', 'Grass tile 64x64, seen from above'),
+    'wasser': (['tile', 'pond'], 'Wasserkachel 64x64, von oben, mit hellen Wellen', 'Water tile 64x64, seen from above, with light wave marks'),
+    'teich_hintergrund': (['background', 'pond'], 'Teich von oben, 800x600: Wasser in der Mitte, Grasufer oben und unten (wie im Buch)', 'Pond seen from above, 800x600: water in the middle, grass banks at top and bottom (as in the book)'),
+}
+
+
+def write_pack():
+    assets = [{'name': n, 'file': n + '.png', 'tags': t, 'de': de, 'en': en} for n, (t, de, en) in INFO.items()]
+    pack = {'pack': 'book', 'title': {'de': 'Teich-Spiel aus dem Buch', 'en': 'Pond game of the book'}, 'format': 'png', 'assets': assets}
+    with open(os.path.join(HERE, 'pack.json'), 'w', encoding='utf8') as f:
+        json.dump(pack, f, ensure_ascii=False, indent=2)
+        f.write('\n')
+
 
 def sheet(name):
     return os.path.join(WORK, name + '.png')
@@ -147,6 +177,7 @@ def cut():
     wave(os.path.join(out, 'welle.png'))
     # background: opaque 800x600 (the book's window), put together from the pack's own pieces
     background(rgba, boxes[0], os.path.join(out, 'teich_hintergrund.png'))
+    write_pack()
 
 
 def tufts(rgba, box):

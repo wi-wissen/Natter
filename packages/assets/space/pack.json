@@ -1,0 +1,456 @@
+{
+  "pack": "space",
+  "title": {
+    "de": "Weltraum",
+    "en": "Space"
+  },
+  "format": "png",
+  "assets": [
+    {
+      "name": "sp_ship",
+      "file": "sp_ship.png",
+      "tags": [
+        "space",
+        "ship",
+        "player"
+      ],
+      "de": "Raumschiff des Spielers, Spitze nach oben",
+      "en": "Player rocket ship, nose pointing up"
+    },
+    {
+      "name": "sp_ship_left",
+      "file": "sp_ship_left.png",
+      "tags": [
+        "space",
+        "ship",
+        "player"
+      ],
+      "de": "Raumschiff neigt sich nach links",
+      "en": "Player ship banking left"
+    },
+    {
+      "name": "sp_ship_right",
+      "file": "sp_ship_right.png",
+      "tags": [
+        "space",
+        "ship",
+        "player"
+      ],
+      "de": "Raumschiff neigt sich nach rechts",
+      "en": "Player ship banking right"
+    },
+    {
+      "name": "sp_ship_fire_1",
+      "file": "sp_ship_fire_1.png",
+      "tags": [
+        "space",
+        "ship",
+        "player",
+        "animation"
+      ],
+      "de": "Raumschiff mit Flamme, Bild 1 von 3",
+      "en": "Player ship with engine flame, frame 1 of 3"
+    },
+    {
+      "name": "sp_ship_fire_2",
+      "file": "sp_ship_fire_2.png",
+      "tags": [
+        "space",
+        "ship",
+        "player",
+        "animation"
+      ],
+      "de": "Raumschiff mit Flamme, Bild 2 von 3",
+      "en": "Player ship with engine flame, frame 2 of 3"
+    },
+    {
+      "name": "sp_ship_fire_3",
+      "file": "sp_ship_fire_3.png",
+      "tags": [
+        "space",
+        "ship",
+        "player",
+        "animation"
+      ],
+      "de": "Raumschiff mit Flamme, Bild 3 von 3",
+      "en": "Player ship with engine flame, frame 3 of 3"
+    },
+    {
+      "name": "sp_enemy_1",
+      "file": "sp_enemy_1.png",
+      "tags": [
+        "space",
+        "enemy",
+        "ship"
+      ],
+      "de": "Lila Feindschiff mit Flügeln, Spitze nach unten",
+      "en": "Purple winged enemy ship, pointing down"
+    },
+    {
+      "name": "sp_enemy_2",
+      "file": "sp_enemy_2.png",
+      "tags": [
+        "space",
+        "enemy",
+        "ship"
+      ],
+      "de": "Grünes Stachel-Feindschiff, Spitze nach unten",
+      "en": "Green spiky enemy ship, pointing down"
+    },
+    {
+      "name": "sp_enemy_3",
+      "file": "sp_enemy_3.png",
+      "tags": [
+        "space",
+        "enemy",
+        "ship"
+      ],
+      "de": "Orange Pfeil-Feindschiff, Spitze nach unten",
+      "en": "Orange arrowhead enemy ship, pointing down"
+    },
+    {
+      "name": "sp_alien",
+      "file": "sp_alien.png",
+      "tags": [
+        "space",
+        "enemy",
+        "character"
+      ],
+      "de": "Freundlicher grüner Alien-Kopf mit drei Augen",
+      "en": "Friendly green alien head with three eyes"
+    },
+    {
+      "name": "sp_ufo",
+      "file": "sp_ufo.png",
+      "tags": [
+        "space",
+        "enemy",
+        "ship"
+      ],
+      "de": "Fliegende Untertasse mit Glaskuppel",
+      "en": "Flying saucer with a glass dome"
+    },
+    {
+      "name": "sp_asteroid_s",
+      "file": "sp_asteroid_s.png",
+      "tags": [
+        "space",
+        "obstacle",
+        "asteroid"
+      ],
+      "de": "Kleiner Asteroid",
+      "en": "Small asteroid"
+    },
+    {
+      "name": "sp_asteroid_m",
+      "file": "sp_asteroid_m.png",
+      "tags": [
+        "space",
+        "obstacle",
+        "asteroid"
+      ],
+      "de": "Mittlerer Asteroid",
+      "en": "Medium asteroid"
+    },
+    {
+      "name": "sp_asteroid_l",
+      "file": "sp_asteroid_l.png",
+      "tags": [
+        "space",
+        "obstacle",
+        "asteroid"
+      ],
+      "de": "Großer Asteroid",
+      "en": "Large asteroid"
+    },
+    {
+      "name": "sp_planet_1",
+      "file": "sp_planet_1.png",
+      "tags": [
+        "space",
+        "planet",
+        "decoration"
+      ],
+      "de": "Planet mit Ring",
+      "en": "Ringed planet"
+    },
+    {
+      "name": "sp_planet_2",
+      "file": "sp_planet_2.png",
+      "tags": [
+        "space",
+        "planet",
+        "decoration"
+      ],
+      "de": "Erdähnlicher Planet",
+      "en": "Earth-like planet"
+    },
+    {
+      "name": "sp_planet_3",
+      "file": "sp_planet_3.png",
+      "tags": [
+        "space",
+        "planet",
+        "decoration"
+      ],
+      "de": "Roter Wüstenplanet",
+      "en": "Red desert planet"
+    },
+    {
+      "name": "sp_planet_4",
+      "file": "sp_planet_4.png",
+      "tags": [
+        "space",
+        "planet",
+        "decoration"
+      ],
+      "de": "Eisplanet",
+      "en": "Ice planet"
+    },
+    {
+      "name": "sp_star_1",
+      "file": "sp_star_1.png",
+      "tags": [
+        "space",
+        "star",
+        "decoration"
+      ],
+      "de": "Kleiner gelber Funkelstern",
+      "en": "Tiny yellow twinkle star"
+    },
+    {
+      "name": "sp_star_2",
+      "file": "sp_star_2.png",
+      "tags": [
+        "space",
+        "star",
+        "decoration"
+      ],
+      "de": "Kleiner weißer Funkelstern",
+      "en": "Tiny white twinkle star"
+    },
+    {
+      "name": "sp_star_3",
+      "file": "sp_star_3.png",
+      "tags": [
+        "space",
+        "star",
+        "decoration"
+      ],
+      "de": "Kleiner hellblauer Stern",
+      "en": "Tiny light-blue star"
+    },
+    {
+      "name": "sp_laser_blue",
+      "file": "sp_laser_blue.png",
+      "tags": [
+        "space",
+        "shot"
+      ],
+      "de": "Blauer Laserstrahl, senkrecht",
+      "en": "Blue laser bolt, vertical"
+    },
+    {
+      "name": "sp_laser_red",
+      "file": "sp_laser_red.png",
+      "tags": [
+        "space",
+        "shot"
+      ],
+      "de": "Roter Laserstrahl, senkrecht",
+      "en": "Red laser bolt, vertical"
+    },
+    {
+      "name": "sp_bullet",
+      "file": "sp_bullet.png",
+      "tags": [
+        "space",
+        "shot"
+      ],
+      "de": "Kleine Energiekugel",
+      "en": "Small energy bullet"
+    },
+    {
+      "name": "sp_missile",
+      "file": "sp_missile.png",
+      "tags": [
+        "space",
+        "shot"
+      ],
+      "de": "Rakete, Spitze nach oben",
+      "en": "Missile, pointing up"
+    },
+    {
+      "name": "sp_explosion_1",
+      "file": "sp_explosion_1.png",
+      "tags": [
+        "space",
+        "effect",
+        "animation"
+      ],
+      "de": "Explosion, Bild 1 von 6",
+      "en": "Explosion, frame 1 of 6"
+    },
+    {
+      "name": "sp_explosion_2",
+      "file": "sp_explosion_2.png",
+      "tags": [
+        "space",
+        "effect",
+        "animation"
+      ],
+      "de": "Explosion, Bild 2 von 6",
+      "en": "Explosion, frame 2 of 6"
+    },
+    {
+      "name": "sp_explosion_3",
+      "file": "sp_explosion_3.png",
+      "tags": [
+        "space",
+        "effect",
+        "animation"
+      ],
+      "de": "Explosion, Bild 3 von 6",
+      "en": "Explosion, frame 3 of 6"
+    },
+    {
+      "name": "sp_explosion_4",
+      "file": "sp_explosion_4.png",
+      "tags": [
+        "space",
+        "effect",
+        "animation"
+      ],
+      "de": "Explosion, Bild 4 von 6",
+      "en": "Explosion, frame 4 of 6"
+    },
+    {
+      "name": "sp_explosion_5",
+      "file": "sp_explosion_5.png",
+      "tags": [
+        "space",
+        "effect",
+        "animation"
+      ],
+      "de": "Explosion, Bild 5 von 6",
+      "en": "Explosion, frame 5 of 6"
+    },
+    {
+      "name": "sp_explosion_6",
+      "file": "sp_explosion_6.png",
+      "tags": [
+        "space",
+        "effect",
+        "animation"
+      ],
+      "de": "Explosion, Bild 6 von 6",
+      "en": "Explosion, frame 6 of 6"
+    },
+    {
+      "name": "sp_power_shield",
+      "file": "sp_power_shield.png",
+      "tags": [
+        "space",
+        "item",
+        "powerup"
+      ],
+      "de": "Extra: Schild (blaue Münze)",
+      "en": "Power-up: shield (blue badge)"
+    },
+    {
+      "name": "sp_power_rapid",
+      "file": "sp_power_rapid.png",
+      "tags": [
+        "space",
+        "item",
+        "powerup"
+      ],
+      "de": "Extra: Schnellfeuer (orange Münze)",
+      "en": "Power-up: rapid fire (orange badge)"
+    },
+    {
+      "name": "sp_power_life",
+      "file": "sp_power_life.png",
+      "tags": [
+        "space",
+        "item",
+        "powerup"
+      ],
+      "de": "Extra: Leben (grüne Münze mit Herz)",
+      "en": "Power-up: extra life (green badge with heart)"
+    },
+    {
+      "name": "sp_power_bomb",
+      "file": "sp_power_bomb.png",
+      "tags": [
+        "space",
+        "item",
+        "powerup"
+      ],
+      "de": "Extra: Bombe (rote Münze)",
+      "en": "Power-up: bomb (red badge)"
+    },
+    {
+      "name": "sp_shield_bubble",
+      "file": "sp_shield_bubble.png",
+      "tags": [
+        "space",
+        "effect"
+      ],
+      "de": "Schutzschild-Blase (Ring, innen durchsichtig)",
+      "en": "Shield bubble (ring, see-through inside)"
+    },
+    {
+      "name": "sp_boss",
+      "file": "sp_boss.png",
+      "tags": [
+        "space",
+        "enemy",
+        "boss",
+        "ship"
+      ],
+      "de": "Großes Mutterschiff (Endgegner), Spitze nach unten",
+      "en": "Big mothership (boss), pointing down"
+    },
+    {
+      "name": "sp_astronaut",
+      "file": "sp_astronaut.png",
+      "tags": [
+        "space",
+        "character"
+      ],
+      "de": "Schwebende Astronautin",
+      "en": "Floating astronaut"
+    },
+    {
+      "name": "sp_satellite",
+      "file": "sp_satellite.png",
+      "tags": [
+        "space",
+        "decoration"
+      ],
+      "de": "Satellit mit Solarflügeln",
+      "en": "Satellite with solar panels"
+    },
+    {
+      "name": "sp_comet",
+      "file": "sp_comet.png",
+      "tags": [
+        "space",
+        "obstacle"
+      ],
+      "de": "Komet mit Schweif nach rechts oben",
+      "en": "Comet with its tail to the upper right"
+    },
+    {
+      "name": "sp_bg_space",
+      "file": "sp_bg_space.png",
+      "tags": [
+        "space",
+        "background"
+      ],
+      "de": "Weltraum-Hintergrund mit Sternen und Nebel (800x480)",
+      "en": "Space background with stars and a nebula (800x480)"
+    }
+  ]
+}

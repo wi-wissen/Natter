@@ -1,0 +1,198 @@
+{
+  "pack": "book",
+  "title": {
+    "de": "Teich-Spiel aus dem Buch",
+    "en": "Pond game of the book"
+  },
+  "format": "png",
+  "assets": [
+    {
+      "name": "ente",
+      "file": "ente.png",
+      "tags": [
+        "animal",
+        "player",
+        "pond"
+      ],
+      "de": "Weiße Ente, schwimmt nach rechts (Spielfigur des Teich-Spiels im Buch)",
+      "en": "White duck swimming to the right (the player of the book's pond game)"
+    },
+    {
+      "name": "ente_links",
+      "file": "ente_links.png",
+      "tags": [
+        "animal",
+        "player",
+        "pond"
+      ],
+      "de": "Weiße Ente, schwimmt nach links",
+      "en": "White duck swimming to the left"
+    },
+    {
+      "name": "ente_tot",
+      "file": "ente_tot.png",
+      "tags": [
+        "animal",
+        "player",
+        "pond"
+      ],
+      "de": "Ente nach dem Zusammenstoß: benommen, mit Sternen über dem Kopf",
+      "en": "Duck after a crash: dizzy, with stars above its head"
+    },
+    {
+      "name": "kueken",
+      "file": "kueken.png",
+      "tags": [
+        "animal",
+        "item",
+        "pond"
+      ],
+      "de": "Gelbes Küken, schaut nach rechts",
+      "en": "Yellow duckling facing right"
+    },
+    {
+      "name": "kueken_2",
+      "file": "kueken_2.png",
+      "tags": [
+        "animal",
+        "item",
+        "pond"
+      ],
+      "de": "Graubraunes Küken, schaut nach rechts",
+      "en": "Grey-brown duckling facing right"
+    },
+    {
+      "name": "boot",
+      "file": "boot.png",
+      "tags": [
+        "vehicle",
+        "enemy",
+        "pond"
+      ],
+      "de": "Rotes Motorboot, fährt nach rechts, genau 120 Pixel breit",
+      "en": "Red motorboat driving to the right, exactly 120 px wide"
+    },
+    {
+      "name": "boot_2",
+      "file": "boot_2.png",
+      "tags": [
+        "vehicle",
+        "enemy",
+        "pond"
+      ],
+      "de": "Gelbes Motorboot, fährt nach rechts, 120 Pixel breit",
+      "en": "Yellow motorboat driving to the right, 120 px wide"
+    },
+    {
+      "name": "boot_3",
+      "file": "boot_3.png",
+      "tags": [
+        "vehicle",
+        "enemy",
+        "pond"
+      ],
+      "de": "Grünes Motorboot, fährt nach rechts, 120 Pixel breit",
+      "en": "Green motorboat driving to the right, 120 px wide"
+    },
+    {
+      "name": "seerose",
+      "file": "seerose.png",
+      "tags": [
+        "plant",
+        "pond"
+      ],
+      "de": "Seerosenblatt mit rosa Blüte, von oben",
+      "en": "Water lily pad with a pink flower, seen from above"
+    },
+    {
+      "name": "schilf",
+      "file": "schilf.png",
+      "tags": [
+        "plant",
+        "pond"
+      ],
+      "de": "Schilf mit zwei Rohrkolben, von der Seite",
+      "en": "Reeds with two cattails, seen from the side"
+    },
+    {
+      "name": "stein",
+      "file": "stein.png",
+      "tags": [
+        "obstacle",
+        "pond"
+      ],
+      "de": "Grauer Stein im Wasser",
+      "en": "Grey stone in the water"
+    },
+    {
+      "name": "frosch",
+      "file": "frosch.png",
+      "tags": [
+        "animal",
+        "pond"
+      ],
+      "de": "Grüner Frosch auf einem Seerosenblatt",
+      "en": "Green frog sitting on a lily pad"
+    },
+    {
+      "name": "fisch_1",
+      "file": "fisch_1.png",
+      "tags": [
+        "animal",
+        "pond"
+      ],
+      "de": "Orangefarbener Fisch, schwimmt nach rechts (von der Seite)",
+      "en": "Orange fish swimming to the right (side view)"
+    },
+    {
+      "name": "fisch_2",
+      "file": "fisch_2.png",
+      "tags": [
+        "animal",
+        "pond"
+      ],
+      "de": "Silberblauer Fisch, schwimmt nach rechts (von der Seite)",
+      "en": "Silver-blue fish swimming to the right (side view)"
+    },
+    {
+      "name": "welle",
+      "file": "welle.png",
+      "tags": [
+        "effect",
+        "pond"
+      ],
+      "de": "Kleine helle Welle, 20 Pixel breit",
+      "en": "Small light wave mark, 20 px wide"
+    },
+    {
+      "name": "ufer_gras",
+      "file": "ufer_gras.png",
+      "tags": [
+        "tile",
+        "pond"
+      ],
+      "de": "Graskachel 64x64, von oben",
+      "en": "Grass tile 64x64, seen from above"
+    },
+    {
+      "name": "wasser",
+      "file": "wasser.png",
+      "tags": [
+        "tile",
+        "pond"
+      ],
+      "de": "Wasserkachel 64x64, von oben, mit hellen Wellen",
+      "en": "Water tile 64x64, seen from above, with light wave marks"
+    },
+    {
+      "name": "teich_hintergrund",
+      "file": "teich_hintergrund.png",
+      "tags": [
+        "background",
+        "pond"
+      ],
+      "de": "Teich von oben, 800x600: Wasser in der Mitte, Grasufer oben und unten (wie im Buch)",
+      "en": "Pond seen from above, 800x600: water in the middle, grass banks at top and bottom (as in the book)"
+    }
+  ]
+}
