@@ -1,6 +1,6 @@
 {
   "name": "@natterjs/web",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Browser host for Natter, a Python interpreter for teaching: runner with time slices, console, turtle, kara, Pygame Zero, forms and plots",
   "license": "MIT",
   "author": "Natter contributors",
@@ -43,7 +43,7 @@
     "LICENSE"
   ],
   "dependencies": {
-    "@natterjs/core": "0.1.0"
+    "@natterjs/core": "0.1.1"
   },
   "scripts": {
     "build": "node build.mjs",

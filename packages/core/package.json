@@ -1,6 +1,6 @@
 {
   "name": "@natterjs/core",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Python interpreter core for teaching: lexer, parser, compiler and a bytecode VM with budget, suspend and debugger hooks",
   "license": "MIT",
   "author": "Natter contributors",

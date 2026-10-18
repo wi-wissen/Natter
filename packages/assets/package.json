@@ -1,6 +1,6 @@
 {
   "name": "@natterjs/assets",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Image and sound library for Natter (Pygame Zero, kara, turtle): about 920 PNG sprites in a flat emoji style, two SVG turtles, 14 sounds and a catalog",
   "license": "(CC0-1.0 AND MIT)",
   "author": "Natter contributors",
