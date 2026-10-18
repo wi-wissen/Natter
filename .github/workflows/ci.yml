@@ -24,7 +24,7 @@ jobs:
       # the example programs are also compared with CPython (their .out files come from 3.12)
       - uses: actions/setup-python@v5
         with:
-          python-version: '3.12'
+          python-version: '3.13'
       - run: npm ci
       - run: npx vitest run
       - name: Build the web host
