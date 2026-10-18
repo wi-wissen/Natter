@@ -137,11 +137,11 @@ git commit -am "Release 0.2.0" && git tag v0.2.0 && git push origin main v0.2.0
 
 Checkliste für die Inhaberin bzw. den Inhaber (einmalig):
 
-1. Auf npmjs.com ein **Granular Access Token** anlegen: Pakete und Scopes `@natterjs` (bzw. Organisation `natterjs`), Berechtigung **Read and write**, kurze Laufzeit (z. B. 7 Tage). Es als Repository-Secret **`NPM_TOKEN`** speichern (Settings → Secrets and variables → Actions). Nötig, weil npm einen Trusted Publisher erst für ein bestehendes Paket einrichten lässt.
+1. Auf npmjs.com ein **Granular Access Token** anlegen: Pakete und Scopes `@natterjs` (bzw. Organisation `natterjs`), Berechtigung **Read and write**, kurze Laufzeit (z. B. 7 Tage). Es als Repository-Secret **`NPM_INIT_TOKEN`** speichern (Settings → Secrets and variables → Actions). Nötig, weil npm einen Trusted Publisher erst für ein bestehendes Paket einrichten lässt.
 2. In `LICENSE` steht der Name des Rechteinhabers (der Release-Lauf bricht ab, solange dort ein Platzhalter steht).
 3. Erstes Release: `git tag v0.1.0 && git push origin v0.1.0`. Der Lauf veröffentlicht mit dem Token.
 4. Danach für **jedes** der drei Pakete auf npmjs.com → Paket → Settings → **Trusted Publisher** → GitHub Actions: Organisation/Benutzer `wi-wissen`, Repository `Natter`, Workflow `release.yml` (Environment leer). Optional dort „Require two-factor authentication and disallow tokens“ wählen.
-5. Das Token auf npmjs.com löschen und das Secret `NPM_TOKEN` im Repository entfernen. Ab jetzt meldet sich der Workflow per OIDC an (`id-token: write`, npm ab 11.5.1), ohne Geheimnis; die Provenienz zeigt npm am Paket an.
+5. Das Token auf npmjs.com löschen und das Secret `NPM_INIT_TOKEN` im Repository entfernen. Ab jetzt meldet sich der Workflow per OIDC an (`id-token: write`, npm ab 11.5.1), ohne Geheimnis; die Provenienz zeigt npm am Paket an.
 
 ## License
 
