@@ -8,7 +8,7 @@ npm run web:e2e     # bauen, dann Browsertests gegen demo/index.html (Chromium, 
 npx vitest run packages/web   # reine Logik (Koordinaten, Kara-Welt, http, Runner in Node)
 ```
 
-Demo: nach dem Bauen `packages/web/demo/index.html` über einen beliebigen statischen Server öffnen (Codefeld, Start/Stopp, Konsole, Turtle oder Kara je nach Programm, Beispiele). Browsertests: `node packages/web/e2e/run.mjs [Filter]`, Formulare und Plots: `node packages/web/e2e/forms.mjs [Filter]`, Pygame Zero: `node packages/web/e2e/pgzero.mjs [Filter]`; Playwright kommt aus dem Projekt oder aus `PLAYWRIGHT_DIR` (Standard `/opt/node-tools/node_modules`), Chromium aus `PW_CHROMIUM`. Screenshots (Desktop 1440×900, Handy 412×915) landen in `e2e/out/`.
+Demo: nach dem Bauen `packages/web/demo/index.html` über einen beliebigen statischen Server öffnen (Codefeld mit Python-Hervorhebung, Start/Stopp, Konsole, Turtle oder Kara je nach Programm, Beispiele). Die Hervorhebung (`demo/highlight.js`: kleiner Tokenizer, eingefärbtes `<pre>` hinter einem durchsichtigen Textfeld, Tab rückt ein, Rückgängig bleibt) gehört nur zur Demo, nicht zur Bibliothek. Die Konsole ist ohne Ausgabe klein und zeigt „Ausgabe erscheint hier“, der Rest geht an die Bühne; auf dem Handy richtet sich die Bühnenhöhe bei Kara nach der Welt. Browsertests: `node packages/web/e2e/run.mjs [Filter]`, Formulare und Plots: `node packages/web/e2e/forms.mjs [Filter]`, Pygame Zero: `node packages/web/e2e/pgzero.mjs [Filter]`; Playwright kommt aus dem Projekt oder aus `PLAYWRIGHT_DIR` (Standard `/opt/node-tools/node_modules`), Chromium aus `PW_CHROMIUM`. Screenshots (Desktop 1440×900, Handy 412×915) landen in `e2e/out/`.
 
 ## Einbinden
 
