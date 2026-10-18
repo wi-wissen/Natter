@@ -43,7 +43,7 @@ function makeYield() {
 /**
  * @param {{
  *   onOutput?: (text: string, kind: 'out'|'err'|'input'|'info') => void,
- *   onError?: (error: any, ctx: { source: string, vm: VM|null }) => void,
+ *   onError?: (error: any, ctx: { source: string, vm: VM|null, file: string, files: Record<string, string> }) => void,
  *   onState?: (state: RunState, info?: any) => void,
  *   onInput?: (prompt: string, wait: any) => void,
  *   onFileChange?: (path: string, text: string|null) => void,
@@ -70,6 +70,12 @@ export function createRunner(options = {}) {
 
   let vm = null, main = null, source = '', state = /** @type {RunState} */ ('idle');
   let runId = 0, scheduled = false, lastTimer = 0, chunk = 5000, finishRun = null;
+  /** breakpoints per file ({ 'main.py': [3] }); kept between runs */
+  let fileBps = {};
+  /** file of the current run's program */
+  let mainFile = 'main.py';
+  /** project files of the current run (for error reports) */
+  let runFiles = {};
   const inputQueue = [];
   /** @type {Map<any, { cancels: (() => void)[] }>} open waits by task */
   const open = new Map();
@@ -79,6 +85,8 @@ export function createRunner(options = {}) {
     get task() { return main; },
     get state() { return state; },
     get source() { return source; },
+    /** file of the running program (run option `file`, default 'main.py') */
+    get file() { return mainFile; },
     options,
 
     /** Listen: 'output' (text, kind), 'error' (error, { source, vm }), 'state' (state, info), 'input' (prompt, wait), 'file' (path, text). Returns a function that removes the listener. */
@@ -108,13 +116,21 @@ export function createRunner(options = {}) {
     /**
      * Start a program (a running one is stopped first). Resolves with the final state.
      * @param {string} src
-     * @param {{ files?: Record<string,string>, seed?: number, globals?: Record<string, any>, inputs?: string[], debug?: boolean, breakpoints?: number[], file?: string }} [opts]
+     * @param {{ files?: Record<string,string>, seed?: number, globals?: Record<string, any>, inputs?: string[], debug?: boolean,
+     *   breakpoints?: number[]|Record<string, number[]>|Map<string, Iterable<number>>, file?: string }} [opts]
+     *   file: path of the program in the project (default 'main.py'); files: the project (path → text): fills the file
+     *   system and serves `import` of own files and packages; breakpoints: lines (any file) or lines per file
      * @returns {Promise<RunState>}
      */
     run(src, opts = {}) {
       if (vm) runner.stop();
       const id = ++runId;
       source = src;
+      mainFile = opts.file ?? 'main.py';
+      const lineBps = Array.isArray(opts.breakpoints) ? opts.breakpoints : [];
+      if (opts.breakpoints && !Array.isArray(opts.breakpoints)) fileBps = toFileBps(opts.breakpoints);
+      const files = opts.files ?? {};
+      runFiles = files;
       inputQueue.length = 0;
       inputQueue.push(...(opts.inputs ?? []));
       const done = new Promise((res) => { finishRun = res; });
@@ -125,7 +141,7 @@ export function createRunner(options = {}) {
         const globals = { ...(options.globals ?? {}), ...(opts.globals ?? {}) };
         let prog;
         try {
-          prog = compile(src, { known: Object.keys(globals) });
+          prog = compile(src, { known: Object.keys(globals), file: mainFile });
         } catch (e) {
           if (!(e instanceof ScriptError)) throw e;
           vm = null; main = null;
@@ -144,14 +160,21 @@ export function createRunner(options = {}) {
           ...(options.host ?? {}),
           ...hostExtra,
         };
+        // import of own files: the page's readModule first, then the project files (next to the importing file, next to
+        // the program, at the top of the project)
+        const pageRead = host.readModule;
+        const fromFiles = projectModules(() => (vm?.fs ? vm.fs.files : normFiles(files)), () => mainFile);
+        host.readModule = (name, ctx) => pageRead?.(name, ctx) ?? fromFiles(name, ctx);
         vm = new VM(prog, { host, globals, files: opts.files ?? {}, seed: opts.seed ?? ((Math.random() * 2 ** 31) | 0) });
-        const dbg = opts.debug || opts.breakpoints?.length ? { bps: opts.breakpoints ?? [] } : null;
+        const dbg = opts.debug || lineBps.length || hasBps(fileBps) ? { bps: lineBps, files: { ...fileBps } } : null;
         main = vm.start(null, dbg);
         for (const p of plugins) p.start?.({ vm, task: main, runner, source: src });
         setState('running');
         schedule(id);
       };
-      loadPyModules(src, { pgzero }).then(() => { if (id === runId) begin(); }, (e) => {
+      // packs for the imports of the program and of its project files
+      const pySources = [src, ...Object.entries(files).filter(([k, v]) => /\.py$/i.test(k) && typeof v === 'string').map(([, v]) => v)].join('\n');
+      loadPyModules(pySources, { pgzero }).then(() => { if (id === runId) begin(); }, (e) => {
         vm = null; main = null;
         report({ code: 'err.script.internal', kind: 'RuntimeError', params: { message: String(e?.message ?? e) } });
         end('error', id);
@@ -178,13 +201,27 @@ export function createRunner(options = {}) {
     continue() { debug('continue'); },
     /** Debugger: one step; kind 'into' | 'over' | 'out'. */
     step(kind = 'over') { debug(kind); },
-    /** Debugger: lines with a breakpoint (applies immediately). */
-    setBreakpoints(lines) {
+    /**
+     * Debugger: breakpoints, applied immediately (and kept for the next runs when given per file).
+     * - setBreakpoints([3, 7]): these lines in any file (the old form);
+     * - setBreakpoints('helpers.py', [3]): the lines of one file;
+     * - setBreakpoints({ 'main.py': [2], 'helpers.py': [3] }) or a Map of file → lines: all files at once.
+     */
+    setBreakpoints(a, b) {
+      let lines = null;
+      if (Array.isArray(a)) lines = a.map(Number);
+      else if (typeof a === 'string') {
+        fileBps = { ...fileBps, [a]: [...(b ?? [])].map(Number) };
+        if (!fileBps[a].length) delete fileBps[a];
+      } else fileBps = toFileBps(a ?? {});
       if (!main) return;
-      if (!main.debug && !lines.length) return;
+      if (!main.debug && !(lines?.length) && !hasBps(fileBps)) return;
       main.debug ??= { mode: 'run', kind: 'into', depth: 0, bps: [], skip: null };
-      main.debug.bps = [...lines];
+      if (lines) main.debug.bps = lines;
+      main.debug.files = { ...fileBps };
     },
+    /** Breakpoints per file as set with setBreakpoints / run({ breakpoints }). */
+    get breakpoints() { return { ...fileBps }; },
     /** Variables and call stack of the main task (for a debugger panel). */
     inspect() { return vm && main ? vm.inspect(main) : null; },
 
@@ -208,7 +245,7 @@ export function createRunner(options = {}) {
   }
 
   function report(error) {
-    emit('error', error, { source, vm });
+    emit('error', error, { source, vm, file: mainFile, files: runFiles });
   }
 
   function end(s, id) {
@@ -256,7 +293,7 @@ export function createRunner(options = {}) {
     }
     if (!isActive()) return;
     if (ready) { schedule(id); return; }
-    if (main.state === 'paused') setState('paused', { line: vm.lineOf(main) });
+    if (main.state === 'paused') setState('paused', vm.placeOf(main));
     else if (main.state === 'waiting' && main.wait?.kind !== 'sleep') setState('waiting', main.wait); // sleeping (animations) counts as running
   }
 
@@ -342,4 +379,48 @@ export function createRunner(options = {}) {
   };
 
   return runner;
+}
+
+/** { file: lines } from an object or a Map of iterables. */
+function toFileBps(m) {
+  const out = {};
+  const entries = m instanceof Map ? [...m.entries()] : Object.entries(m);
+  for (const [f, l] of entries) { const lines = [...(l ?? [])].map(Number); if (lines.length) out[f] = lines; }
+  return out;
+}
+const hasBps = (m) => Object.values(m).some((l) => l.length);
+
+/** Project files with normalized paths ('./a/b.py' → 'a/b.py'). */
+function normFiles(files) {
+  const m = new Map();
+  for (const [k, v] of Object.entries(files)) m.set(k.replace(/\\/g, '/').replace(/^(\.\/|\/)+/, ''), v);
+  return m;
+}
+
+const dirOf = (p) => (p && p.includes('/') ? p.slice(0, p.lastIndexOf('/')) : '');
+
+/**
+ * readModule over the project files, searched like Python: next to the importing file, next to the program, at the
+ * top of the project. `import pkg.mod` finds pkg/mod.py, `import pkg` pkg/__init__.py (or a folder pkg/ without it).
+ * @param {() => Map<string, string>} getFiles  @param {() => string} getMain
+ */
+export function projectModules(getFiles, getMain) {
+  return (name, ctx) => {
+    const files = getFiles();
+    const rel = name.split('.').join('/');
+    const bases = [...new Set([dirOf(ctx?.from), dirOf(getMain()), ''])];
+    for (const b of bases) {
+      const pre = b ? b + '/' : '';
+      const mod = files.get(`${pre}${rel}.py`);
+      if (typeof mod === 'string') return { source: mod, file: `${pre}${rel}.py`, package: false };
+      const init = files.get(`${pre}${rel}/__init__.py`);
+      if (typeof init === 'string') return { source: init, file: `${pre}${rel}/__init__.py`, package: true };
+    }
+    // a folder without __init__.py is a package, too (namespace package)
+    for (const b of bases) {
+      const dir = `${b ? b + '/' : ''}${rel}/`;
+      for (const k of files.keys()) if (k.startsWith(dir) && /\.py$/i.test(k)) return { source: '', file: `${dir}__init__.py`, package: true };
+    }
+    return null;
+  };
 }

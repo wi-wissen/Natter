@@ -16,7 +16,7 @@ export const KINDS = {
   zeroDivision: 'ZeroDivisionError', index: 'IndexError', key: 'KeyError', value: 'ValueError',
   unpack: 'ValueError', attr: 'AttributeError', recursion: 'RecursionError', overflow: 'OverflowError',
   assertion: 'AssertionError', powFraction: 'ValueError', mathDomain: 'ValueError',
-  importUnknown: 'ModuleNotFoundError', stopIteration: 'StopIteration', internal: 'RuntimeError', host: 'RuntimeError',
+  importUnknown: 'ModuleNotFoundError', importRelative: 'ImportError', stopIteration: 'StopIteration', internal: 'RuntimeError', host: 'RuntimeError',
   fileNotFound: 'FileNotFoundError', fileExists: 'FileExistsError', isDir: 'IsADirectoryError', notDir: 'NotADirectoryError',
   raised: 'RuntimeError', badExcept: 'SyntaxError', eof: 'EOFError', mathRange: 'OverflowError',
 };
@@ -37,13 +37,17 @@ export class ScriptError extends Error {
     this.kind = KINDS[code] ?? 'RuntimeError';
     /** Errors a program must not catch (budget used up, bugs of the interpreter itself) */
     this.uncatchable = code === 'tooLong' || code === 'internal';
-    /** @type {{name: string, line: number}[]} call stack, innermost frame last */
+    /** @type {{name: string, line: number, file?: string, lib?: true}[]} call stack, innermost frame last */
     this.traceback = [];
+    /** @type {string|null} file of the code where the error happened (set when the program was compiled with a file) */
+    this.file = null;
   }
 
   /** Pure JSON (for saving, events and UI). */
   toJSON() {
-    return { code: this.code, kind: this.kind, params: this.params, line: this.line, col: this.col, traceback: this.traceback };
+    const json = { code: this.code, kind: this.kind, params: this.params, line: this.line, col: this.col, traceback: this.traceback };
+    if (this.file) json.file = this.file;
+    return json;
   }
 }
 

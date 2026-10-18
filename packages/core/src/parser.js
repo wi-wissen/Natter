@@ -163,8 +163,17 @@ class Parser {
         }
         case 'from': {
           this.next();
-          let module = this.expect('name', undefined, 'module').value;
-          while (this.accept('op', '.')) module += '.' + this.expect('name', undefined, 'name').value;
+          // relative imports keep their leading dots in the name (from . import x, from ..pkg import y)
+          let module = '';
+          for (;;) {
+            if (this.accept('op', '.')) module += '.';
+            else if (this.accept('op', '...')) module += '...';
+            else break;
+          }
+          if (!module || !this.atKw('import')) {
+            module += this.expect('name', undefined, 'module').value;
+            while (this.accept('op', '.')) module += '.' + this.expect('name', undefined, 'name').value;
+          }
           this.expect('kw', 'import');
           if (this.accept('op', '*')) return { type: 'ImportFrom', module, names: null, ...p };
           const paren = this.accept('op', '(');

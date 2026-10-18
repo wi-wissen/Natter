@@ -20,17 +20,24 @@ export const BUILTIN_NAMES = [...Object.keys(BUILTINS).filter((n) => !n.includes
 /**
  * Translate source text. Built-in functions and modules are always known.
  * @param {string} source
- * @param {{ known?: Iterable<string>, modules?: Record<string, string[]>, removed?: Record<string, object> }} [opts]
- *   removed: names that no longer exist (NameError with the new spelling)
+ * @param {{ known?: Iterable<string>, modules?: Record<string, string[]>, removed?: Record<string, object>, file?: string }} [opts]
+ *   removed: names that no longer exist (NameError with the new spelling);
+ *   file: the file of the source (e.g. 'main.py'): code objects, errors and tracebacks carry it
  */
 export function compile(source, opts = {}) {
-  return compileRaw(source, {
-    known: [...BUILTIN_NAMES, ...(opts.known ?? [])],
-    modules: { ...MODULES, ...(opts.modules ?? {}) },
-    removed: opts.removed,
-    strictNames: opts.strictNames,
-    codeBase: opts.codeBase,
-  });
+  try {
+    return compileRaw(source, {
+      known: [...BUILTIN_NAMES, ...(opts.known ?? [])],
+      modules: { ...MODULES, ...(opts.modules ?? {}) },
+      removed: opts.removed,
+      strictNames: opts.strictNames,
+      codeBase: opts.codeBase,
+      file: opts.file,
+    });
+  } catch (e) {
+    if (e instanceof ScriptError && opts.file && !e.file) e.file = opts.file;
+    throw e;
+  }
 }
 
 /** Short hash of a source text (FNV-1a) – checks on loading whether the saved code still matches. */

@@ -113,3 +113,4 @@ export const KARA_NATIVES = {
   },
 };
 export const KARA_NAMES = ['world', 'move', 'turnLeft', 'turnRight', 'putBerry', 'removeBerry', 'onBerry', 'treeFront', 'treeLeft', 'treeRight', 'mushroomFront'];
+

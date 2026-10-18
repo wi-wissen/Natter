@@ -178,7 +178,7 @@ def update():
     expect(r.state).toBe('error');
     expect(r.error.kind).toBe('NameError');
     expect(r.error.line).toBe(3);
-    expect(r.error.traceback.at(-1)).toEqual({ name: 'draw', line: 3 });
+    expect(r.error.traceback.at(-1)).toEqual({ name: 'draw', line: 3, file: 'main.py' });
   });
   it('exit() ends the whole program, code after go() does not run', async () => {
     const r = await play('import pgzrun\ndef update():\n    exit()\npgzrun.go()\nprint("after")\n', { frames: 3 });

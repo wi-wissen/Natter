@@ -180,6 +180,16 @@ export class VM {
     return c.lines[Math.min(f.pc, c.lines.length - 1)];
   }
 
+  /** File and line where a task stands (innermost frame); file is null for code compiled without a file. */
+  placeOf(task) {
+    const f = task.frames[task.frames.length - 1];
+    if (!f) return { file: null, line: 0 };
+    return { file: this.codes[f.code].file ?? null, line: this.lineOf(task) };
+  }
+
+  /** File of a code object (the program's or the module's file it was compiled from), null when unknown. */
+  fileOf(codeIdx) { return this.codes[codeIdx]?.file ?? null; }
+
   // ---------- Execution ----------
 
   newFrame(codeIdx, cells, g = this.globals) {
@@ -376,7 +386,7 @@ export class VM {
     const runs = [];
     for (const e of entries) {
       const last = runs[runs.length - 1];
-      if (last && last.name === e.name && last.line === e.line) last.repeat = (last.repeat ?? 1) + 1;
+      if (last && last.name === e.name && last.line === e.line && last.file === e.file) last.repeat = (last.repeat ?? 1) + 1;
       else runs.push({ ...e });
     }
     if (runs.length <= TRACE_HEAD + TRACE_TAIL + 1) return runs;
@@ -411,21 +421,40 @@ export class VM {
     return se;
   }
 
-  /** Line and call stack of an error (once: errors that are caught and thrown again keep the first ones). */
+  /**
+   * Line, file and call stack of an error (once: errors that are caught and thrown again keep the first ones).
+   * The call stack runs through the calling tasks of synchronous calls (imports, sorted(key=…)). An error inside a
+   * standard module written in Python points at the line of the program that called it.
+   */
   annotate(task, e, frame) {
     if (e.annotated) return;
     if (!e.inner) {
+      const chain = [];
+      for (let t = task; t; t = t.parent) chain.unshift(t);
+      const entries = [];
+      for (const t of chain) {
+        for (const f of t.frames) {
+          const c = this.codes[f.code];
+          const entry = { name: c.name, line: c.lines[Math.max(0, f.pc - 1)] ?? 0 };
+          if (c.file) entry.file = c.file;
+          if (c.lib) entry.lib = true;
+          entries.push(entry);
+        }
+      }
       if (frame) {
         const c = this.codes[frame.code];
         e.line = c.lines[Math.max(0, frame.pc - 1)] ?? e.line;
+        e.file = c.file ?? null;
+        if (c.lib) {
+          const user = entries.findLast((x) => !x.lib);
+          if (user) { e.line = user.line; e.file = user.file ?? null; }
+        }
       }
-      e.traceback = VM.traceback(task.frames.map((f) => {
-        const c = this.codes[f.code];
-        return { name: c.name, line: c.lines[Math.max(0, f.pc - 1)] ?? 0 };
-      }));
+      e.traceback = VM.traceback(entries);
     } else if (!e.line && frame) {
       const c = this.codes[frame.code];
       e.line = c.lines[Math.max(0, frame.pc - 1)];
+      e.file = c.file ?? null;
     }
     e.annotated = true;
   }
@@ -851,7 +880,11 @@ export class VM {
     if (d.mode === 'step') {
       if (d.kind === 'into' || (d.kind === 'over' && depth <= d.depth) || (d.kind === 'out' && depth < d.depth)) return true;
     }
-    return d.bps.length > 0 && d.bps.includes(code.lines[pc]);
+    const line = code.lines[pc];
+    if (d.bps.length > 0 && d.bps.includes(line)) return true;
+    // breakpoints per file: { 'main.py': [3], 'pkg/helpers.py': [7] } (code.file from compile/loadModule)
+    const lines = d.files && code.file ? d.files[code.file] : null;
+    return !!lines && lines.includes(line);
   }
 
   cellName(code, i) {
@@ -875,6 +908,7 @@ export class VM {
 
   /** `import name`: a built-in module, a standard module written in Python, or a source the host provides. */
   importModule(name, task) {
+    if (name.startsWith('.')) name = this.relativeName(name, task);
     const cached = this.moduleCache.get(name);
     if (cached) return cached;
     const dot = name.lastIndexOf('.');
@@ -884,9 +918,38 @@ export class VM {
       this.moduleCache.set(name, m);
       return m;
     }
-    const src = PYMODULES[name] ?? this.host.readModule?.(name);
-    if (src === undefined || src === null) throw new ScriptError('importUnknown', { name });
-    return this.loadModule(name, src, task);
+    if (PYMODULES[name] !== undefined) return this.loadModule(name, PYMODULES[name], task, { file: `${name}.py` });
+    const h = this.hostModule(name, task);
+    if (!h) throw new ScriptError('importUnknown', { name });
+    return this.loadModule(name, h.source, task, h);
+  }
+
+  /**
+   * Source of a module from the host: host.readModule(name, { from, task }) returns the source text or
+   * { source, file, package } (file: path in the project; package: it is the __init__.py of a folder).
+   * `from` is the file of the importing code, so the host can look next to it first.
+   * @returns {{ source: string, file: string, package: boolean }|null}
+   */
+  hostModule(name, task) {
+    if (!this.host.readModule) return null;
+    const top = task?.frames[task.frames.length - 1];
+    const r = this.host.readModule(name, { from: top ? this.fileOf(top.code) : null, task });
+    if (r === undefined || r === null) return null;
+    if (typeof r === 'string') return { source: r, file: `${name.split('.').join('/')}.py`, package: false };
+    return { source: String(r.source ?? ''), file: r.file ?? `${name.split('.').join('/')}.py`, package: !!r.package };
+  }
+
+  /** `from .x import y` / `from .. import y`: the absolute module name from the package of the importing code. */
+  relativeName(name, task) {
+    const level = /^\.*/.exec(name)[0].length;
+    const rest = name.slice(level);
+    const top = task?.frames[task.frames.length - 1];
+    const pkg = top?.g?.get('__package__');
+    if (typeof pkg !== 'string' || !pkg) throw new ScriptError('importRelative', { name });
+    const parts = pkg.split('.');
+    if (level - 1 >= parts.length) throw new ScriptError('importRelative', { name });
+    const base = parts.slice(0, parts.length - (level - 1)).join('.');
+    return rest ? `${base}.${rest}` : base;
   }
 
   /**
@@ -900,12 +963,17 @@ export class VM {
     if (cached) return cached;
     let mod;
     if (PYMODULES[name] !== undefined || MODULES[name] || this.host.modules?.[name]) {
-      mod = MODULES[name] || this.host.modules?.[name] ? new PyModule(name) : this.loadModule(name, PYMODULES[name], task);
+      mod = MODULES[name] || this.host.modules?.[name] ? new PyModule(name) : this.loadModule(name, PYMODULES[name], task, { file: `${name}.py` });
       this.moduleCache.set(name, mod);
     } else {
       const v = parent.ns?.get(child);
-      if (!(v instanceof PyModule)) throw new ScriptError('importUnknown', { name });
-      mod = v;
+      if (v instanceof PyModule) mod = v;
+      else {
+        // a file of the project: pkg/mod.py
+        const h = this.hostModule(name, task);
+        if (!h) throw new ScriptError('importUnknown', { name });
+        mod = this.loadModule(name, h.source, task, h);
+      }
     }
     if (parent.ns) parent.ns.set(child, mod);
     return mod;
@@ -918,18 +986,42 @@ export class VM {
     } catch (e) {
       if (!(e instanceof ScriptError) || e.short !== 'attr' || !(mod instanceof PyModule)) throw e;
       const sub = `${mod.name}.${name}`;
-      if (PYMODULES[sub] === undefined && !MODULES[sub] && !this.host.modules?.[sub]) throw e;
+      if (PYMODULES[sub] === undefined && !MODULES[sub] && !this.host.modules?.[sub]) {
+        // from pkg import mod: a file of the project
+        if (!mod.ns || !this.hostModule(sub, task)) throw e;
+      }
       return this.importModule(sub, task);
     }
   }
 
-  /** Compile a module and run its code in a namespace of its own (the module object is cached before it runs). */
-  loadModule(name, src, task) {
-    const prog = compileRaw(src, { known: [...this.predef.keys(), ...Object.keys(CLASS_GLOBALS)], modules: MODULES, codeBase: this.codes.length });
+  /**
+   * Compile a module and run its code in a namespace of its own (the module object is cached before it runs).
+   * @param {{ file?: string|null, package?: boolean }} [info]  file: where the source comes from (code objects,
+   *   errors and per-file breakpoints carry it); package: the source is the __init__.py of a package
+   */
+  loadModule(name, src, task, info = {}) {
+    const file = info.file ?? null;
+    let prog;
+    try {
+      prog = compileRaw(src, { known: [...this.predef.keys(), ...Object.keys(CLASS_GLOBALS)], modules: MODULES, codeBase: this.codes.length, file });
+    } catch (e) {
+      // a syntax error in the imported file: keep its own line and file, the call stack leads to the import
+      if (e instanceof ScriptError && !e.annotated) {
+        const line = e.line;
+        this.annotate(task ?? this.curTask ?? { frames: [] }, e, null);
+        e.line = line;
+        e.file = file;
+      }
+      throw e;
+    }
     // standard modules written in Python (turtle, statistics ...): the debugger steps over them like over built-in functions
     if (PYMODULES[name] !== undefined && PYMODULES[name] === src) for (const c of prog.codes) c.lib = true;
     this.codes.push(...prog.codes);
     const ns = new Map([['__name__', name]]);
+    if (!prog.codes[0]?.lib) {
+      ns.set('__package__', info.package ? name : name.includes('.') ? name.slice(0, name.lastIndexOf('.')) : '');
+      if (file) ns.set('__file__', file);
+    }
     const mod = new PyModule(name, ns);
     this.moduleCache.set(name, mod);
     const frame = this.newFrame(prog.base, [], ns);
@@ -1189,7 +1281,7 @@ export class VM {
         const v = ci >= 0 ? f.cells[ci]?.v : f.locals[i];
         return v === undefined ? '…' : simple(v);
       }).join(', ');
-      return { name: c.name, line: c.lines[Math.min(f.pc, c.lines.length - 1)], args };
+      return { name: c.name, line: c.lines[Math.min(f.pc, c.lines.length - 1)], args, file: c.file ?? null };
     };
     const all = task ? task.frames : [];
     const frames = all.length > 12

@@ -8,7 +8,7 @@ const CLASS = { out: '', err: 'nw-err', input: 'nw-in', info: 'nw-info' };
 
 /**
  * @param {HTMLElement} container
- * @param {{ lang?: 'de'|'en', maxChars?: number, onSubmit?: (text: string) => void, onLineClick?: (line: number) => void, file?: string }} [opts]
+ * @param {{ lang?: 'de'|'en', maxChars?: number, onSubmit?: (text: string) => void, onLineClick?: (line: number, file: string) => void, file?: string }} [opts]
  */
 export function createConsole(container, opts = {}) {
   ensureStyles();
@@ -93,17 +93,17 @@ export function createConsole(container, opts = {}) {
     },
     hideInput() { form.hidden = true; },
     /** Show an error of the VM with the friendly message. */
-    showError(error, { source, lang } = {}) {
+    showError(error, { source, lang, file, files } = {}) {
       con.flush();
       con.hideInput();
-      const d = describeError(error, { lang: lang ?? opts.lang ?? 'de', source, file: opts.file });
+      const d = describeError(error, { lang: lang ?? opts.lang ?? 'de', source, file: file ?? opts.file, files });
       const title = errBox.querySelector('.nw-error-title');
       title.textContent = '';
       if (d.line && opts.onLineClick) {
         const b = document.createElement('button');
         b.type = 'button';
         b.textContent = d.title;
-        b.addEventListener('click', () => opts.onLineClick(d.line));
+        b.addEventListener('click', () => opts.onLineClick(d.line, d.file));
         title.appendChild(b);
       } else title.textContent = d.title;
       errBox.querySelector('.nw-error-text').textContent = d.text;
@@ -127,7 +127,7 @@ export function createConsole(container, opts = {}) {
     connect(runner) {
       opts.onSubmit ??= (text) => runner.sendInput(text);
       runner.on('output', (text, kind) => con.write(text, kind));
-      runner.on('error', (error, ctx) => con.showError(error, { source: ctx.source }));
+      runner.on('error', (error, ctx) => con.showError(error, { source: ctx.source, file: ctx.file, files: ctx.files }));
       runner.on('input', (prompt) => con.showInput(prompt));
       runner.on('state', (s) => { if (s !== 'waiting') con.hideInput(); if (s === 'stopped') { const t = con.text; con.write((t && !t.endsWith('\n') ? '\n' : '') + uiText(opts.lang ?? 'de').stopped + '\n', 'info'); } });
       return con;

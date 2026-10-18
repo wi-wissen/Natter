@@ -60,6 +60,7 @@ export const CMP_OPS = ['==', '!=', '<', '>', '<=', '>=', 'in', 'not in', 'is', 
  *   modules: modules for import/from … import * with their names;
  *   strictNames: unknown names are errors at compile time (default: warnings, error when the line runs);
  *   codeBase: number of the first code object (modules compiled later);
+ *   file: file of the source (project path), stored on every code object (code.file);
  * @returns {Program}
  */
 export function compile(source, opts = {}) {
@@ -94,6 +95,8 @@ class Compiler {
     this.strictNames = !!opts.strictNames;
     /** Number of the first code object: modules compiled later continue after the codes already in the VM */
     this.codeBase = opts.codeBase ?? 0;
+    /** File the source comes from (project path or module name), kept on every code object for debugger and errors */
+    this.file = opts.file ?? null;
     /** Problems that are no errors yet (unknown names: Python only fails when the line runs) */
     this.warnings = [];
     /** @type {Code[]} */
@@ -402,7 +405,7 @@ class Compiler {
       vararg: node.vararg ?? null, kwarg: node.kwarg ?? null,
       varnames: [], cellvars: [], freevars: [], cellParams: [],
       ops: [], args: [], lines: [], stmt: [], consts: [], names: [], module: isModule, line: node.line ?? 1,
-      gen: !!scope.isGenerator,
+      gen: !!scope.isGenerator, file: this.file,
     };
     this.codes.push(code);
     if (!isModule) {

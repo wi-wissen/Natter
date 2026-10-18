@@ -151,6 +151,111 @@ describe('runner', () => {
     expect(log.out).toBe('3\n');
   });
 
+  describe('projects with several files', () => {
+    const project = {
+      'main.py': 'import hilfen\nfrom spiel import regeln\nimport spiel.punkte as p\nprint(hilfen.doppelt(2), regeln.NAME, p.summe([1, 2]))\n',
+      'hilfen.py': 'def doppelt(x):\n    return 2 * x\n',
+      'spiel/__init__.py': 'TITEL = "Spiel"\n',
+      'spiel/regeln.py': 'from . import punkte\nfrom .punkte import summe\nNAME = "Regeln " + str(summe([3]))\n',
+      'spiel/punkte.py': 'def summe(xs):\n    total = 0\n    for x in xs:\n        total += x\n    return total\n',
+      'kaputt.py': 'def f(:\n    pass\n',
+      'fehler.py': 'def teile(a):\n    return 10 / a\n',
+    };
+
+    it('files serve import of own modules, packages and relative imports', async () => {
+      const { runner, log } = collect();
+      expect(await runner.run(project['main.py'], { files: project })).toBe('done');
+      expect(log.errors).toEqual([]);
+      expect(log.out).toBe('4 Regeln 3 3\n');
+    });
+
+    it('modules are found next to the program first, then at the top of the project', async () => {
+      const { runner, log } = collect();
+      const files = { 'a/main.py': 'import h\nprint(h.X)\n', 'a/h.py': 'X = "a"\n', 'h.py': 'X = "top"\n', 'b/main.py': 'import h\nprint(h.X)\n' };
+      expect(await runner.run(files['a/main.py'], { files, file: 'a/main.py' })).toBe('done');
+      expect(await runner.run(files['b/main.py'], { files, file: 'b/main.py' })).toBe('done');
+      expect(log.out).toBe('a\ntop\n');
+    });
+
+    it('an error in an imported file names that file, with the call stack across files', async () => {
+      const { runner, log } = collect();
+      const src = 'import fehler\n\nprint(fehler.teile(0))\n';
+      expect(await runner.run(src, { files: { ...project, 'main.py': src } })).toBe('error');
+      const e = log.errors[0];
+      expect(e).toMatchObject({ kind: 'ZeroDivisionError', file: 'fehler.py', line: 2 });
+      expect(e.traceback).toEqual([{ name: '<module>', line: 3, file: 'main.py' }, { name: 'teile', line: 2, file: 'fehler.py' }]);
+      const d = describeError(e, { lang: 'de', source: src, files: project });
+      expect(d.title).toBe('ZeroDivisionError in fehler.py, Zeile 2');
+      expect(d.file).toBe('fehler.py');
+      expect(d.traceback).toContain('File "fehler.py", line 2, in teile\n    return 10 / a');
+      expect(d.traceback).toContain('File "main.py", line 3, in <module>\n    print(fehler.teile(0))');
+    });
+
+    it('a syntax error in an imported file keeps the line of that file', async () => {
+      const { runner, log } = collect();
+      const src = 'x = 1\nimport kaputt\n';
+      expect(await runner.run(src, { files: project })).toBe('error');
+      expect(log.errors[0]).toMatchObject({ kind: 'SyntaxError', file: 'kaputt.py', line: 1 });
+      expect(describeError(log.errors[0], { lang: 'en', source: src, files: project }).traceback).toMatch(/File "main.py", line 2, in <module>\n {4}import kaputt\n {2}File "kaputt.py", line 1\n {4}def f\(:/);
+    });
+
+    it('relative imports outside a package are an ImportError', async () => {
+      const { runner, log } = collect();
+      expect(await runner.run('from . import hilfen\n', { files: project })).toBe('error');
+      expect(log.errors[0]).toMatchObject({ kind: 'ImportError', code: 'err.script.importRelative' });
+    });
+
+    it('the page can still serve modules itself (host.readModule wins)', async () => {
+      const { runner, log } = collect({ host: { readModule: (name) => (name === 'hilfen' ? 'def doppelt(x):\n    return 0\n' : null) } });
+      expect(await runner.run('import hilfen\nimport fehler\nprint(hilfen.doppelt(5), fehler.teile(5))\n', { files: project })).toBe('done');
+      expect(log.out).toBe('0 2.0\n');
+    });
+
+    it('breakpoints per file stop in an imported file only', async () => {
+      const { runner, log } = collect();
+      const stops = [];
+      runner.on('state', (s, info) => { if (s === 'paused') { stops.push(`${info.file}:${info.line}`); runner.continue(); } });
+      const src = 'import spiel.punkte as p\nx = 2\nprint(p.summe([x, 3]))\n';
+      // line 2 exists in both files: only spiel/punkte.py has the breakpoint
+      expect(await runner.run(src, { files: project, breakpoints: { 'spiel/punkte.py': [2] } })).toBe('done');
+      expect(stops).toEqual(['spiel/punkte.py:2']);
+      expect(runner.inspect().frames).toEqual([]);
+      expect(log.out).toBe('5\n');
+    });
+
+    it('setBreakpoints(file, lines) applies to a running program; the old form (lines of any file) still works', async () => {
+      const { runner } = collect();
+      const stops = [];
+      let first = true;
+      runner.on('state', (s, info) => {
+        if (s !== 'paused') return;
+        stops.push(`${info.file}:${info.line}`);
+        if (first) {
+          first = false;
+          expect(runner.inspect().frames.map((f) => f.file)).toEqual(['main.py']);
+          runner.setBreakpoints('main.py', []);
+          runner.setBreakpoints('spiel/punkte.py', [5]);
+        }
+        runner.continue();
+      });
+      const src = 'import spiel.punkte as p\nx = 2\nprint(p.summe([x]))\n';
+      expect(await runner.run(src, { files: project, breakpoints: { 'main.py': [2] } })).toBe('done');
+      expect(stops).toEqual(['main.py:2', 'spiel/punkte.py:5']);
+      expect(runner.breakpoints).toEqual({ 'spiel/punkte.py': [5] });
+      runner.setBreakpoints({});
+      stops.length = 0;
+      expect(await runner.run(src, { files: project, breakpoints: [2] })).toBe('done');
+      expect(stops).toEqual(['main.py:2', 'spiel/punkte.py:2']);
+    });
+
+    it('packs used only by an imported file are loaded, too', async () => {
+      const { runner, log } = collect();
+      const files = { 'main.py': 'import werkzeug\nprint(werkzeug.f())\n', 'werkzeug.py': 'import re\ndef f():\n    return re.sub("a", "b", "aa")\n' };
+      expect(await runner.run(files['main.py'], { files })).toBe('done');
+      expect(log.out).toBe('bb\n');
+    });
+  });
+
   it('file changes are reported', async () => {
     const { runner } = collect();
     const files = [];

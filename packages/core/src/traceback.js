@@ -3,27 +3,35 @@
 import { pyMessage } from './pymessages.js';
 
 /**
- * @param {{ code: string, kind: string, params: object, line?: number, traceback?: {name: string, line: number}[] }} error  an error object of the VM (task.error / runToEnd().error)
- * @param {{ source?: string, file?: string }} [opts]  source: text of the program for the source lines
+ * @param {{ code: string, kind: string, params: object, line?: number, file?: string, traceback?: {name: string, line: number, file?: string}[] }} error
+ *   an error object of the VM (task.error / runToEnd().error)
+ * @param {{ source?: string, file?: string, files?: Record<string, string> }} [opts]
+ *   source: text of the program (for the source lines); file: its name (default main.py), used for frames without a
+ *   file; files: texts of the other files (project path → text) for the lines of imported modules
  * @returns {string}
  */
 export function formatTraceback(error, opts = {}) {
-  const file = opts.file ?? 'main.py';
-  const lines = opts.source?.split('\n');
+  const main = opts.file ?? 'main.py';
+  const textOf = (file, line) => {
+    const src = !file || file === main ? opts.source ?? opts.files?.[main] : opts.files?.[file];
+    return typeof src === 'string' ? src.split('\n')[line - 1]?.trim() : '';
+  };
   const out = [];
-  const frames = error.traceback?.length ? error.traceback : error.line ? [{ name: '<module>', line: error.line }] : [];
-  if (error.kind !== 'SyntaxError' && frames.length) {
+  const frames = error.traceback?.length ? error.traceback : error.line && error.kind !== 'SyntaxError' ? [{ name: '<module>', line: error.line }] : [];
+  const fileLine = (f, line, name) => {
+    out.push(`  File "${f ?? main}", line ${line}${name ? `, in ${name}` : ''}`);
+    const text = textOf(f, line);
+    if (text) out.push(`    ${text}`);
+  };
+  if (frames.length) {
     out.push('Traceback (most recent call last):');
     for (const f of frames) {
-      out.push(`  File "${file}", line ${f.line}, in ${f.name}`);
-      const text = lines?.[f.line - 1]?.trim();
-      if (text) out.push(`    ${text}`);
+      if (f.skipped) { out.push(`  [Previous line repeated ${f.skipped} more times]`); continue; }
+      fileLine(f.file, f.line, f.name);
     }
-  } else if (frames.length) {
-    out.push(`  File "${file}", line ${error.line}`);
-    const text = lines?.[error.line - 1]?.trim();
-    if (text) out.push(`    ${text}`);
   }
+  // a syntax error has no frame of its own: the place in the file (after the imports that led to it)
+  if (error.kind === 'SyntaxError' && error.line) fileLine(error.file, error.line, null);
   const msg = pyMessage(error);
   out.push(msg ? `${error.kind}: ${msg}` : error.kind);
   return out.join('\n');

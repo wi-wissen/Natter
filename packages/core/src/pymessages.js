@@ -80,6 +80,7 @@ export function pyMessage(e) {
     case 'assertion': return p.message ?? '';
     case 'recursion': return 'maximum recursion depth exceeded';
     case 'importUnknown': return `No module named '${p.name}'`;
+    case 'importRelative': return 'attempted relative import with no known parent package';
     case 'mathDomain': return 'math domain error';
     case 'mathRange': return 'math range error';
     case 'overflow': return 'integer too large';
