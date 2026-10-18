@@ -1,0 +1,203 @@
+{
+ "pack": "kara",
+ "title": {
+  "de": "Kara der Marienkäfer",
+  "en": "Kara the ladybug"
+ },
+ "format": "png",
+ "assets": [
+  {
+   "name": "kara",
+   "file": "kara.png",
+   "tags": [
+    "character",
+    "kara",
+    "top-view"
+   ],
+   "de": "Kara der Marienkäfer von oben, schaut nach rechts",
+   "en": "Kara the ladybug seen from above, facing right"
+  },
+  {
+   "name": "kara_up",
+   "file": "kara_up.png",
+   "tags": [
+    "character",
+    "kara",
+    "top-view"
+   ],
+   "de": "Kara von oben, schaut nach oben",
+   "en": "Kara seen from above, facing up"
+  },
+  {
+   "name": "kara_left",
+   "file": "kara_left.png",
+   "tags": [
+    "character",
+    "kara",
+    "top-view"
+   ],
+   "de": "Kara von oben, schaut nach links",
+   "en": "Kara seen from above, facing left"
+  },
+  {
+   "name": "kara_down",
+   "file": "kara_down.png",
+   "tags": [
+    "character",
+    "kara",
+    "top-view"
+   ],
+   "de": "Kara von oben, schaut nach unten",
+   "en": "Kara seen from above, facing down"
+  },
+  {
+   "name": "kara_berry",
+   "file": "kara_berry.png",
+   "tags": [
+    "character",
+    "kara",
+    "top-view"
+   ],
+   "de": "Kara steht auf einer Blaubeere, schaut nach rechts",
+   "en": "Kara standing on a blueberry, facing right"
+  },
+  {
+   "name": "kara_bump",
+   "file": "kara_bump.png",
+   "tags": [
+    "character",
+    "kara",
+    "top-view"
+   ],
+   "de": "Kara benommen mit Sternchen, nachdem sie gegen einen Baum gelaufen ist, schaut nach rechts",
+   "en": "Kara dazed with little stars after bumping into a tree, facing right"
+  },
+  {
+   "name": "kara_blueberry",
+   "file": "kara_blueberry.png",
+   "tags": [
+    "tile",
+    "kara",
+    "top-view",
+    "item"
+   ],
+   "de": "Blaubeeren auf Karas Wiese",
+   "en": "Blueberries on Kara's meadow"
+  },
+  {
+   "name": "kara_tree",
+   "file": "kara_tree.png",
+   "tags": [
+    "tile",
+    "kara",
+    "top-view",
+    "obstacle"
+   ],
+   "de": "Runder Baum auf Karas Wiese, von schräg oben",
+   "en": "Round tree on Kara's meadow, seen from slightly above"
+  },
+  {
+   "name": "kara_mushroom",
+   "file": "kara_mushroom.png",
+   "tags": [
+    "tile",
+    "kara",
+    "top-view",
+    "obstacle"
+   ],
+   "de": "Brauner Pilz mit orangem Hut, den Kara schieben kann",
+   "en": "Brown mushroom with an orange cap that Kara can push"
+  },
+  {
+   "name": "kara_mushroom_berry",
+   "file": "kara_mushroom_berry.png",
+   "tags": [
+    "tile",
+    "kara",
+    "top-view",
+    "obstacle"
+   ],
+   "de": "Pilz auf einer Blaubeere",
+   "en": "Mushroom standing on a blueberry"
+  },
+  {
+   "name": "kara_grass",
+   "file": "kara_grass.png",
+   "tags": [
+    "tile",
+    "kara",
+    "top-view",
+    "ground"
+   ],
+   "de": "Wiesenfeld, hellgrün mit kleinen Grasbüscheln",
+   "en": "Meadow cell, light green with tiny tufts"
+  },
+  {
+   "name": "kara_flower",
+   "file": "kara_flower.png",
+   "tags": [
+    "tile",
+    "kara",
+    "top-view",
+    "decoration"
+   ],
+   "de": "Weiße Blume als Schmuck für die Wiese",
+   "en": "White flower to decorate the meadow"
+  },
+  {
+   "name": "kara_rock",
+   "file": "kara_rock.png",
+   "tags": [
+    "tile",
+    "kara",
+    "top-view",
+    "decoration"
+   ],
+   "de": "Grauer Felsbrocken",
+   "en": "Grey boulder"
+  },
+  {
+   "name": "turtle_top",
+   "file": "turtle_top.png",
+   "tags": [
+    "character",
+    "turtle",
+    "top-view"
+   ],
+   "de": "Schildkröte von oben, schaut nach rechts",
+   "en": "Turtle seen from above, facing right"
+  },
+  {
+   "name": "turtle_top_2",
+   "file": "turtle_top_2.png",
+   "tags": [
+    "character",
+    "turtle",
+    "top-view"
+   ],
+   "de": "Schildkröte von oben läuft nach rechts, Bild 2 von 3",
+   "en": "Turtle seen from above walking right, frame 2 of 3"
+  },
+  {
+   "name": "turtle_top_3",
+   "file": "turtle_top_3.png",
+   "tags": [
+    "character",
+    "turtle",
+    "top-view"
+   ],
+   "de": "Schildkröte von oben läuft nach rechts, Bild 3 von 3",
+   "en": "Turtle seen from above walking right, frame 3 of 3"
+  },
+  {
+   "name": "turtle_profile",
+   "file": "turtle_profile.png",
+   "tags": [
+    "character",
+    "turtle"
+   ],
+   "de": "Schildkröte von der Seite, läuft nach rechts",
+   "en": "Turtle seen from the side, walking right"
+  }
+ ]
+}
