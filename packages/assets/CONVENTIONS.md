@@ -35,7 +35,7 @@ packages/assets/sounds/               wav effects (sounds.json)
 ## PNG rules
 
 - Transparent background (RGBA), tightly cropped plus a 2 px margin; animation frames of one character share one canvas size, with the feet at the same height and the body centred, so that swapping frames does not jump.
-- Sizes (pixels, natural size in a game): characters about 96 high, enemies and animals 48 to 96, tiles 64x64, items 32 to 48, big objects (houses, ships, trees) up to 160, backgrounds 800x480. At most 1024 on the long side, at most 80 KB per file and 3 MB per pack.
+- Sizes (pixels, natural size in a game): characters about 96 high, enemies and animals 48 to 96, tiles 64x64, items 32 to 48, big objects (houses, ships, trees) up to 160, backgrounds 800x480. At most 1024 on the long side, at most 80 KB per file (backgrounds 300 KB) and 3 MB per pack.
 - Edges clean: no magenta fringe (check on a dark and a light background).
 - Readable at half size.
 

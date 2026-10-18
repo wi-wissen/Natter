@@ -8,6 +8,7 @@ export const NAME_RE = /^[a-z][a-z0-9_]*$/;
 export const MAX_FILE = 20 * 1024;
 export const MAX_PACK = 200 * 1024;
 export const MAX_PNG = 80 * 1024;
+export const MAX_PNG_BACKGROUND = 300 * 1024;
 export const MAX_PNG_PACK = 3 * 1024 * 1024;
 
 /** Size and colour type of a PNG file (from its header), or null if it is not a PNG. */

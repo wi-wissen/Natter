@@ -1,0 +1,422 @@
+{
+  "pack": "sea",
+  "title": {
+    "de": "Meer",
+    "en": "Sea"
+  },
+  "format": "png",
+  "assets": [
+    {
+      "name": "sea_sailboat",
+      "file": "sea_sailboat.png",
+      "tags": [
+        "sea",
+        "boat",
+        "vehicle"
+      ],
+      "de": "Segelboot, Seitenansicht nach rechts",
+      "en": "Sailboat, side view facing right"
+    },
+    {
+      "name": "sea_motorboat",
+      "file": "sea_motorboat.png",
+      "tags": [
+        "sea",
+        "boat",
+        "vehicle"
+      ],
+      "de": "Motorboot, Seitenansicht nach rechts",
+      "en": "Motorboat, side view facing right"
+    },
+    {
+      "name": "sea_pirate_ship",
+      "file": "sea_pirate_ship.png",
+      "tags": [
+        "sea",
+        "boat",
+        "vehicle"
+      ],
+      "de": "Freundliches Piratenschiff mit drei Segeln, nach rechts",
+      "en": "Friendly pirate ship with three sails, facing right"
+    },
+    {
+      "name": "sea_submarine",
+      "file": "sea_submarine.png",
+      "tags": [
+        "sea",
+        "boat",
+        "vehicle",
+        "underwater"
+      ],
+      "de": "Gelbes U-Boot, nach rechts",
+      "en": "Yellow submarine, facing right"
+    },
+    {
+      "name": "sea_raft",
+      "file": "sea_raft.png",
+      "tags": [
+        "sea",
+        "boat",
+        "vehicle"
+      ],
+      "de": "Floß aus Baumstämmen mit kleinem Segel",
+      "en": "Log raft with a small sail"
+    },
+    {
+      "name": "sea_canoe",
+      "file": "sea_canoe.png",
+      "tags": [
+        "sea",
+        "boat",
+        "vehicle"
+      ],
+      "de": "Kanu mit Paddel, nach rechts",
+      "en": "Canoe with a paddle, facing right"
+    },
+    {
+      "name": "sea_fish_1",
+      "file": "sea_fish_1.png",
+      "tags": [
+        "sea",
+        "animal",
+        "fish",
+        "underwater"
+      ],
+      "de": "Orangener Fisch mit weißen Streifen, schwimmt nach rechts",
+      "en": "Orange fish with white stripes, swimming right"
+    },
+    {
+      "name": "sea_fish_2",
+      "file": "sea_fish_2.png",
+      "tags": [
+        "sea",
+        "animal",
+        "fish",
+        "underwater"
+      ],
+      "de": "Schlanker blauer Fisch, schwimmt nach rechts",
+      "en": "Slim blue fish, swimming right"
+    },
+    {
+      "name": "sea_fish_3",
+      "file": "sea_fish_3.png",
+      "tags": [
+        "sea",
+        "animal",
+        "fish",
+        "underwater"
+      ],
+      "de": "Runder grüner Fisch, schwimmt nach rechts",
+      "en": "Round green fish, swimming right"
+    },
+    {
+      "name": "sea_fish_4",
+      "file": "sea_fish_4.png",
+      "tags": [
+        "sea",
+        "animal",
+        "fish",
+        "underwater"
+      ],
+      "de": "Gelber Fisch mit blauen Punkten, schwimmt nach rechts",
+      "en": "Yellow fish with blue spots, swimming right"
+    },
+    {
+      "name": "sea_jellyfish",
+      "file": "sea_jellyfish.png",
+      "tags": [
+        "sea",
+        "animal",
+        "enemy",
+        "underwater"
+      ],
+      "de": "Qualle",
+      "en": "Jellyfish"
+    },
+    {
+      "name": "sea_octopus",
+      "file": "sea_octopus.png",
+      "tags": [
+        "sea",
+        "animal",
+        "enemy",
+        "underwater"
+      ],
+      "de": "Roter Krake",
+      "en": "Red octopus"
+    },
+    {
+      "name": "sea_whale",
+      "file": "sea_whale.png",
+      "tags": [
+        "sea",
+        "animal",
+        "underwater"
+      ],
+      "de": "Blauwal, nach rechts",
+      "en": "Blue whale, facing right"
+    },
+    {
+      "name": "sea_shark",
+      "file": "sea_shark.png",
+      "tags": [
+        "sea",
+        "animal",
+        "enemy",
+        "underwater"
+      ],
+      "de": "Freundlicher Hai, nach rechts",
+      "en": "Friendly shark, facing right"
+    },
+    {
+      "name": "sea_dolphin",
+      "file": "sea_dolphin.png",
+      "tags": [
+        "sea",
+        "animal",
+        "underwater"
+      ],
+      "de": "Delfin, nach rechts",
+      "en": "Dolphin, facing right"
+    },
+    {
+      "name": "sea_seahorse",
+      "file": "sea_seahorse.png",
+      "tags": [
+        "sea",
+        "animal",
+        "underwater"
+      ],
+      "de": "Seepferdchen, nach rechts",
+      "en": "Seahorse, facing right"
+    },
+    {
+      "name": "sea_crab",
+      "file": "sea_crab.png",
+      "tags": [
+        "sea",
+        "animal",
+        "enemy",
+        "underwater"
+      ],
+      "de": "Rote Krabbe",
+      "en": "Red crab"
+    },
+    {
+      "name": "sea_starfish",
+      "file": "sea_starfish.png",
+      "tags": [
+        "sea",
+        "animal",
+        "item",
+        "underwater"
+      ],
+      "de": "Seestern",
+      "en": "Starfish"
+    },
+    {
+      "name": "sea_chest",
+      "file": "sea_chest.png",
+      "tags": [
+        "sea",
+        "item",
+        "treasure"
+      ],
+      "de": "Schatztruhe mit Goldmünzen",
+      "en": "Treasure chest with gold coins"
+    },
+    {
+      "name": "sea_anchor",
+      "file": "sea_anchor.png",
+      "tags": [
+        "sea",
+        "item",
+        "object"
+      ],
+      "de": "Anker",
+      "en": "Anchor"
+    },
+    {
+      "name": "sea_buoy",
+      "file": "sea_buoy.png",
+      "tags": [
+        "sea",
+        "object"
+      ],
+      "de": "Rot-weiße Boje",
+      "en": "Red and white buoy"
+    },
+    {
+      "name": "sea_message_bottle",
+      "file": "sea_message_bottle.png",
+      "tags": [
+        "sea",
+        "item"
+      ],
+      "de": "Flaschenpost",
+      "en": "Message in a bottle"
+    },
+    {
+      "name": "sea_bubble",
+      "file": "sea_bubble.png",
+      "tags": [
+        "sea",
+        "item",
+        "underwater",
+        "effect"
+      ],
+      "de": "Luftblase",
+      "en": "Air bubble"
+    },
+    {
+      "name": "sea_coral_1",
+      "file": "sea_coral_1.png",
+      "tags": [
+        "sea",
+        "plant",
+        "underwater",
+        "decoration"
+      ],
+      "de": "Orange Koralle",
+      "en": "Orange coral"
+    },
+    {
+      "name": "sea_island",
+      "file": "sea_island.png",
+      "tags": [
+        "sea",
+        "object",
+        "decoration"
+      ],
+      "de": "Kleine Insel mit Palme",
+      "en": "Small island with a palm tree"
+    },
+    {
+      "name": "sea_lighthouse",
+      "file": "sea_lighthouse.png",
+      "tags": [
+        "sea",
+        "object",
+        "building"
+      ],
+      "de": "Leuchtturm auf einem Felsen",
+      "en": "Lighthouse on a rock"
+    },
+    {
+      "name": "sea_iceberg",
+      "file": "sea_iceberg.png",
+      "tags": [
+        "sea",
+        "object",
+        "obstacle"
+      ],
+      "de": "Eisberg",
+      "en": "Iceberg"
+    },
+    {
+      "name": "sea_cloud",
+      "file": "sea_cloud.png",
+      "tags": [
+        "sea",
+        "decoration",
+        "sky"
+      ],
+      "de": "Weiße Wolke",
+      "en": "White cloud"
+    },
+    {
+      "name": "sea_coral_2",
+      "file": "sea_coral_2.png",
+      "tags": [
+        "sea",
+        "plant",
+        "underwater",
+        "decoration"
+      ],
+      "de": "Blau-lila Koralle",
+      "en": "Blue-purple coral"
+    },
+    {
+      "name": "sea_seagull_1",
+      "file": "sea_seagull_1.png",
+      "tags": [
+        "sea",
+        "animal",
+        "bird",
+        "animation"
+      ],
+      "de": "Möwe fliegt, Bild 1 von 3 (nach rechts)",
+      "en": "Seagull flying, frame 1 of 3 (facing right)"
+    },
+    {
+      "name": "sea_seagull_2",
+      "file": "sea_seagull_2.png",
+      "tags": [
+        "sea",
+        "animal",
+        "bird",
+        "animation"
+      ],
+      "de": "Möwe fliegt, Bild 2 von 3 (nach rechts)",
+      "en": "Seagull flying, frame 2 of 3 (facing right)"
+    },
+    {
+      "name": "sea_seagull_3",
+      "file": "sea_seagull_3.png",
+      "tags": [
+        "sea",
+        "animal",
+        "bird",
+        "animation"
+      ],
+      "de": "Möwe fliegt, Bild 3 von 3 (nach rechts)",
+      "en": "Seagull flying, frame 3 of 3 (facing right)"
+    },
+    {
+      "name": "sea_wave_1",
+      "file": "sea_wave_1.png",
+      "tags": [
+        "sea",
+        "water",
+        "animation",
+        "tile"
+      ],
+      "de": "Wellenstreifen 128x32, Bild 1 von 3",
+      "en": "Wave strip 128x32, frame 1 of 3"
+    },
+    {
+      "name": "sea_wave_2",
+      "file": "sea_wave_2.png",
+      "tags": [
+        "sea",
+        "water",
+        "animation",
+        "tile"
+      ],
+      "de": "Wellenstreifen 128x32, Bild 2 von 3",
+      "en": "Wave strip 128x32, frame 2 of 3"
+    },
+    {
+      "name": "sea_wave_3",
+      "file": "sea_wave_3.png",
+      "tags": [
+        "sea",
+        "water",
+        "animation",
+        "tile"
+      ],
+      "de": "Wellenstreifen 128x32, Bild 3 von 3",
+      "en": "Wave strip 128x32, frame 3 of 3"
+    },
+    {
+      "name": "sea_bg",
+      "file": "sea_bg.png",
+      "tags": [
+        "sea",
+        "background"
+      ],
+      "de": "Hintergrund: Himmel oben, Meer unten (800x480)",
+      "en": "Background: sky above, sea below (800x480)"
+    }
+  ]
+}

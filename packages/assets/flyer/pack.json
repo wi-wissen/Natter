@@ -1,0 +1,87 @@
+{
+  "pack": "flyer",
+  "title": {
+    "de": "Flieger und Fallendes",
+    "en": "Flyers and falling things"
+  },
+  "format": "png",
+  "assets": [
+    {
+      "name": "fl_bird_1",
+      "file": "fl_bird_1.png",
+      "tags": [
+        "flyer",
+        "player",
+        "animation"
+      ],
+      "de": "Runder türkiser Vogel flattert, Bild 1 von 4 (nach rechts)",
+      "en": "Round teal bird flapping, frame 1 of 4 (facing right)"
+    },
+    {
+      "name": "fl_bird_2",
+      "file": "fl_bird_2.png",
+      "tags": [
+        "flyer",
+        "player",
+        "animation"
+      ],
+      "de": "Runder türkiser Vogel flattert, Bild 2 von 4 (nach rechts)",
+      "en": "Round teal bird flapping, frame 2 of 4 (facing right)"
+    },
+    {
+      "name": "fl_bird_3",
+      "file": "fl_bird_3.png",
+      "tags": [
+        "flyer",
+        "player",
+        "animation"
+      ],
+      "de": "Runder türkiser Vogel flattert, Bild 3 von 4 (nach rechts)",
+      "en": "Round teal bird flapping, frame 3 of 4 (facing right)"
+    },
+    {
+      "name": "fl_bird_4",
+      "file": "fl_bird_4.png",
+      "tags": [
+        "flyer",
+        "player",
+        "animation"
+      ],
+      "de": "Runder türkiser Vogel flattert, Bild 4 von 4 (nach rechts)",
+      "en": "Round teal bird flapping, frame 4 of 4 (facing right)"
+    },
+    {
+      "name": "fl_bee_1",
+      "file": "fl_bee_1.png",
+      "tags": [
+        "flyer",
+        "animal",
+        "animation"
+      ],
+      "de": "Biene fliegt, Bild 1 von 3 (nach rechts)",
+      "en": "Bee flying, frame 1 of 3 (facing right)"
+    },
+    {
+      "name": "fl_bee_2",
+      "file": "fl_bee_2.png",
+      "tags": [
+        "flyer",
+        "animal",
+        "animation"
+      ],
+      "de": "Biene fliegt, Bild 2 von 3 (nach rechts)",
+      "en": "Bee flying, frame 2 of 3 (facing right)"
+    },
+    {
+      "name": "fl_bee_3",
+      "file": "fl_bee_3.png",
+      "tags": [
+        "flyer",
+        "animal",
+        "animation"
+      ],
+      "de": "Biene fliegt, Bild 3 von 3 (nach rechts)",
+      "en": "Bee flying, frame 3 of 3 (facing right)"
+    }
+  ]
+}

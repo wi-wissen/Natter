@@ -1,0 +1,315 @@
+{
+  "pack": "animals",
+  "title": {
+    "de": "Tiere",
+    "en": "Animals"
+  },
+  "format": "png",
+  "assets": [
+    {
+      "name": "an_bear",
+      "file": "an_bear.png",
+      "tags": [
+        "animal"
+      ],
+      "de": "Bär (von der Seite, nach rechts)",
+      "en": "Bear (side view, facing right)"
+    },
+    {
+      "name": "an_bee_1",
+      "file": "an_bee_1.png",
+      "tags": [
+        "animal",
+        "animation"
+      ],
+      "de": "Biene fliegt, Bild 1 von 2, Flügel oben (nach rechts)",
+      "en": "Bee flying, frame 1 of 2, wings up (facing right)"
+    },
+    {
+      "name": "an_bee_2",
+      "file": "an_bee_2.png",
+      "tags": [
+        "animal",
+        "animation"
+      ],
+      "de": "Biene fliegt, Bild 2 von 2, Flügel unten (nach rechts)",
+      "en": "Bee flying, frame 2 of 2, wings down (facing right)"
+    },
+    {
+      "name": "an_butterfly_1",
+      "file": "an_butterfly_1.png",
+      "tags": [
+        "animal",
+        "animation"
+      ],
+      "de": "Schmetterling fliegt, Bild 1 von 2, Flügel offen (nach rechts)",
+      "en": "Butterfly flying, frame 1 of 2, wings open (facing right)"
+    },
+    {
+      "name": "an_butterfly_2",
+      "file": "an_butterfly_2.png",
+      "tags": [
+        "animal",
+        "animation"
+      ],
+      "de": "Schmetterling fliegt, Bild 2 von 2, Flügel zu (nach rechts)",
+      "en": "Butterfly flying, frame 2 of 2, wings closed (facing right)"
+    },
+    {
+      "name": "an_cat",
+      "file": "an_cat.png",
+      "tags": [
+        "animal"
+      ],
+      "de": "Katze (von der Seite, nach rechts)",
+      "en": "Cat (side view, facing right)"
+    },
+    {
+      "name": "an_chicken",
+      "file": "an_chicken.png",
+      "tags": [
+        "animal"
+      ],
+      "de": "Huhn (von der Seite, nach rechts)",
+      "en": "Chicken (side view, facing right)"
+    },
+    {
+      "name": "an_cow",
+      "file": "an_cow.png",
+      "tags": [
+        "animal"
+      ],
+      "de": "Kuh (von der Seite, nach rechts)",
+      "en": "Cow (side view, facing right)"
+    },
+    {
+      "name": "an_dog",
+      "file": "an_dog.png",
+      "tags": [
+        "animal"
+      ],
+      "de": "Hund (von der Seite, nach rechts)",
+      "en": "Dog (side view, facing right)"
+    },
+    {
+      "name": "an_duck",
+      "file": "an_duck.png",
+      "tags": [
+        "animal"
+      ],
+      "de": "Ente (von der Seite, nach rechts)",
+      "en": "Duck (side view, facing right)"
+    },
+    {
+      "name": "an_elephant",
+      "file": "an_elephant.png",
+      "tags": [
+        "animal"
+      ],
+      "de": "Elefant (von der Seite, nach rechts)",
+      "en": "Elephant (side view, facing right)"
+    },
+    {
+      "name": "an_fox",
+      "file": "an_fox.png",
+      "tags": [
+        "animal"
+      ],
+      "de": "Fuchs (von der Seite, nach rechts)",
+      "en": "Fox (side view, facing right)"
+    },
+    {
+      "name": "an_frog",
+      "file": "an_frog.png",
+      "tags": [
+        "animal"
+      ],
+      "de": "Frosch (von der Seite, nach rechts)",
+      "en": "Frog (side view, facing right)"
+    },
+    {
+      "name": "an_giraffe",
+      "file": "an_giraffe.png",
+      "tags": [
+        "animal"
+      ],
+      "de": "Giraffe (von der Seite, nach rechts)",
+      "en": "Giraffe (side view, facing right)"
+    },
+    {
+      "name": "an_hedgehog",
+      "file": "an_hedgehog.png",
+      "tags": [
+        "animal"
+      ],
+      "de": "Igel (von der Seite, nach rechts)",
+      "en": "Hedgehog (side view, facing right)"
+    },
+    {
+      "name": "an_horse",
+      "file": "an_horse.png",
+      "tags": [
+        "animal"
+      ],
+      "de": "Pferd (von der Seite, nach rechts)",
+      "en": "Horse (side view, facing right)"
+    },
+    {
+      "name": "an_ladybug",
+      "file": "an_ladybug.png",
+      "tags": [
+        "animal"
+      ],
+      "de": "Marienkäfer (von der Seite, nach rechts)",
+      "en": "Ladybug (side view, facing right)"
+    },
+    {
+      "name": "an_monkey",
+      "file": "an_monkey.png",
+      "tags": [
+        "animal"
+      ],
+      "de": "Affe (von der Seite, nach rechts)",
+      "en": "Monkey (side view, facing right)"
+    },
+    {
+      "name": "an_mouse",
+      "file": "an_mouse.png",
+      "tags": [
+        "animal"
+      ],
+      "de": "Maus (von der Seite, nach rechts)",
+      "en": "Mouse (side view, facing right)"
+    },
+    {
+      "name": "an_owl",
+      "file": "an_owl.png",
+      "tags": [
+        "animal"
+      ],
+      "de": "Eule (von der Seite, nach rechts)",
+      "en": "Owl (side view, facing right)"
+    },
+    {
+      "name": "an_panda",
+      "file": "an_panda.png",
+      "tags": [
+        "animal"
+      ],
+      "de": "Panda (von der Seite, nach rechts)",
+      "en": "Panda (side view, facing right)"
+    },
+    {
+      "name": "an_penguin",
+      "file": "an_penguin.png",
+      "tags": [
+        "animal"
+      ],
+      "de": "Pinguin (von der Seite, nach rechts)",
+      "en": "Penguin (side view, facing right)"
+    },
+    {
+      "name": "an_pig",
+      "file": "an_pig.png",
+      "tags": [
+        "animal"
+      ],
+      "de": "Schwein (von der Seite, nach rechts)",
+      "en": "Pig (side view, facing right)"
+    },
+    {
+      "name": "an_rabbit",
+      "file": "an_rabbit.png",
+      "tags": [
+        "animal"
+      ],
+      "de": "Hase (von der Seite, nach rechts)",
+      "en": "Rabbit (side view, facing right)"
+    },
+    {
+      "name": "an_sheep",
+      "file": "an_sheep.png",
+      "tags": [
+        "animal"
+      ],
+      "de": "Schaf (von der Seite, nach rechts)",
+      "en": "Sheep (side view, facing right)"
+    },
+    {
+      "name": "an_snail",
+      "file": "an_snail.png",
+      "tags": [
+        "animal"
+      ],
+      "de": "Schnecke (von der Seite, nach rechts)",
+      "en": "Snail (side view, facing right)"
+    },
+    {
+      "name": "an_squirrel",
+      "file": "an_squirrel.png",
+      "tags": [
+        "animal"
+      ],
+      "de": "Eichhörnchen (von der Seite, nach rechts)",
+      "en": "Squirrel (side view, facing right)"
+    },
+    {
+      "name": "an_turtle",
+      "file": "an_turtle.png",
+      "tags": [
+        "animal"
+      ],
+      "de": "Schildkröte (von der Seite, nach rechts)",
+      "en": "Turtle (side view, facing right)"
+    },
+    {
+      "name": "an_unicorn",
+      "file": "an_unicorn.png",
+      "tags": [
+        "animal"
+      ],
+      "de": "Einhorn (von der Seite, nach rechts)",
+      "en": "Unicorn (side view, facing right)"
+    },
+    {
+      "name": "pet_ball",
+      "file": "pet_ball.png",
+      "tags": [
+        "item",
+        "pet"
+      ],
+      "de": "Spielball",
+      "en": "Toy ball"
+    },
+    {
+      "name": "pet_bed",
+      "file": "pet_bed.png",
+      "tags": [
+        "item",
+        "pet"
+      ],
+      "de": "Körbchen für ein Haustier",
+      "en": "Pet bed"
+    },
+    {
+      "name": "pet_fish_treat",
+      "file": "pet_fish_treat.png",
+      "tags": [
+        "item",
+        "pet"
+      ],
+      "de": "Fisch-Leckerli für die Katze",
+      "en": "Fish-shaped cat treat"
+    },
+    {
+      "name": "pet_food_bowl",
+      "file": "pet_food_bowl.png",
+      "tags": [
+        "item",
+        "pet"
+      ],
+      "de": "Futternapf mit Trockenfutter",
+      "en": "Food bowl with kibble"
+    }
+  ]
+}

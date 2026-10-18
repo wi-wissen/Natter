@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { ROOT, NAME_RE, MAX_FILE, MAX_PACK, MAX_PNG, MAX_PNG_PACK, pngInfo, packDirs, readPack, svgProblems, svgSize, fileSize, join, readdirSync, readFileSync, existsSync } from '../assets.js';
+import { ROOT, NAME_RE, MAX_FILE, MAX_PACK, MAX_PNG, MAX_PNG_BACKGROUND, MAX_PNG_PACK, pngInfo, packDirs, readPack, svgProblems, svgSize, fileSize, join, readdirSync, readFileSync, existsSync } from '../assets.js';
 
 describe('svgProblems', () => {
   const ok = '<svg xmlns="http://www.w3.org/2000/svg" width="8" height="8" viewBox="0 0 8 8"><rect width="8" height="8"/></svg>';
@@ -53,7 +53,7 @@ describe('asset packs', () => {
           const p = join(ROOT, dir, a.file);
           expect(existsSync(p)).toBe(true);
           if (png) {
-            expect(fileSize(p)).toBeLessThanOrEqual(MAX_PNG);
+            expect(fileSize(p)).toBeLessThanOrEqual(a.tags.includes('background') ? MAX_PNG_BACKGROUND : MAX_PNG);
             const info = pngInfo(readFileSync(p));
             expect(info, 'a PNG file').not.toBeNull();
             expect(info.width).toBeGreaterThan(0);
