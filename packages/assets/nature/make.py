@@ -162,9 +162,8 @@ def prompt(sheet):
 def full_rainbow(im):
     """The model drew a quarter arc (left half, cut straight at the top right); mirror it into a full arch."""
     a = np.asarray(im)
-    full = (a[..., 3] > 250).sum(0)
-    cols = np.nonzero(full >= 0.9 * full.max())[0]  # the straight cut end is the last fully opaque column
-    a = a[:, :cols.max() + 1]
+    cols = np.nonzero(a[..., 3].max(0) > 128)[0]
+    a = a[:, :cols.max() - 2]  # drop the soft edge of the straight cut end, so the seam does not show
     return Image.fromarray(np.concatenate([a, a[:, ::-1]], 1), 'RGBA')
 
 
@@ -201,9 +200,9 @@ def cells(path, COLS, ROWS):
 
 
 def bleed(im):
-    """Give semi-transparent edge pixels the colour of the nearest opaque pixel (no magenta or pink fringe)."""
+    """Give the outer 2 px and semi-transparent edge pixels the colour of the nearest opaque pixel (no magenta or pink fringe)."""
     a = np.asarray(im).copy()
-    solid = a[..., 3] > 250
+    solid = ndimage.binary_erosion(a[..., 3] > 250, iterations=2)
     if solid.any():
         iy, ix = ndimage.distance_transform_edt(~solid, return_distances=False, return_indices=True)
         a[..., :3] = a[iy, ix, :3]

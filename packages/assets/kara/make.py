@@ -40,13 +40,13 @@ SHEETS = {
                '6) a small tuft of light green grass blades. ',
                # the model drew 8 (two mushrooms, two tufts): the plain cap is used, the spotted one is too close to the classic toadstool
                ['kara_blueberry', 'kara_tree', 'spotted', 'kara_mushroom', 'kara_flower', 'kara_rock', 'tuft', 'tuft2'], 60),
-    'turtle': (BASE + 'Draw a friendly green turtle (rounded dark green shell with lighter green hexagon plates, light green head and legs, '
-               'small black dot eyes, a little tail) in exactly 4 images in ONE horizontal row, evenly spaced, same size: '
-               '1) seen exactly from straight above (top view), head pointing to the RIGHT, legs standing still; '
-               '2) the same top view, head to the right, walking: front right leg and back left leg forward; '
-               '3) the same top view, head to the right, walking: front left leg and back right leg forward; '
-               '4) the same turtle seen from the side, walking to the right, all four feet on one line. ',
-               ['turtle_top', 'turtle_top_2', 'turtle_top_3', 'turtle_profile'], 0),
+    'turtle': (BASE + 'Draw a friendly green turtle (round dark green shell with lighter green plates, light green head and legs, '
+               'small black dot eyes, a little pointed tail) in exactly 3 images in ONE horizontal row, evenly spaced, same size: '
+               '1) seen exactly from straight above (top view), head pointing UP, all four legs standing still, symmetric; '
+               '2) the same top view, head pointing UP, in a big walking step: the front LEFT leg reaches far forward and the back RIGHT leg '
+               'reaches far forward, while the front RIGHT leg and the back LEFT leg are stretched far backward (a clearly diagonal pose); '
+               '3) the same turtle seen from the side, walking to the right, all four feet on one line. ',
+               ['turtle_top', 'turtle_top_2', 'turtle_profile'], 0),
 }
 
 
@@ -126,14 +126,18 @@ def cut():
     out['kara_berry'] = over_berry(k['kara'], 0.78)
     out['kara_mushroom_berry'] = over_berry(t['kara_mushroom'], 0.72)
     # turtle: one scale for the three top frames, centred on the shell (frames must not jump)
+    # third frame = the step mirrored (head up: left/right swap), so the legs alternate
+    tu['turtle_top_3'] = tu['turtle_top_2'].transpose(Image.FLIP_LEFT_RIGHT)
     tops = [tu[n] for n in ['turtle_top', 'turtle_top_2', 'turtle_top_3']]
     s = (CELL - 4) / max(max(i.width, i.height) for i in tops)
     for n, im in zip(['turtle_top', 'turtle_top_2', 'turtle_top_3'], tops):
         im = im.rotate(-90, expand=True)  # the model draws the head up
         im = im.resize((round(im.width * s), round(im.height * s)), Image.LANCZOS)
         a = np.asarray(im)[..., 3].astype(np.float32)
-        cx = (a.sum(0) * np.arange(a.shape[1])).sum() / a.sum()
+        # centre on the shell (the most opaque, widest column/row band), not on the legs
         cy = (a.sum(1) * np.arange(a.shape[0])).sum() / a.sum()
+        cx = (a.sum(0) * np.arange(a.shape[1])).sum() / a.sum()
+        cx = min(max(cx, CELL / 2 - (CELL - im.width) / 2 - 0), im.width - CELL / 2)
         c = Image.new('RGBA', (CELL, CELL), (0, 0, 0, 0))
         c.paste(im, (round(CELL / 2 - cx), round(CELL / 2 - cy)), im)
         out[n] = c
