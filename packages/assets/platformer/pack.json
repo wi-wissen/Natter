@@ -1,0 +1,798 @@
+{
+  "pack": "platformer",
+  "title": {
+    "de": "Jump and Run",
+    "en": "Platformer"
+  },
+  "format": "png",
+  "assets": [
+    {
+      "name": "pf_grass_left",
+      "file": "pf_grass_left.png",
+      "tags": [
+        "platformer",
+        "tile"
+      ],
+      "de": "Grasboden, linkes Ende (64x64)",
+      "en": "Grass ground, left end (64x64)"
+    },
+    {
+      "name": "pf_grass_mid",
+      "file": "pf_grass_mid.png",
+      "tags": [
+        "platformer",
+        "tile"
+      ],
+      "de": "Grasboden, Mittelstück, nahtlos (64x64)",
+      "en": "Grass ground, middle piece, seamless (64x64)"
+    },
+    {
+      "name": "pf_grass_right",
+      "file": "pf_grass_right.png",
+      "tags": [
+        "platformer",
+        "tile"
+      ],
+      "de": "Grasboden, rechtes Ende (64x64)",
+      "en": "Grass ground, right end (64x64)"
+    },
+    {
+      "name": "pf_dirt",
+      "file": "pf_dirt.png",
+      "tags": [
+        "platformer",
+        "tile"
+      ],
+      "de": "Erde ohne Gras, nahtlos, für unter den Grasboden (64x64)",
+      "en": "Plain earth, seamless, to put under the grass (64x64)"
+    },
+    {
+      "name": "pf_stone",
+      "file": "pf_stone.png",
+      "tags": [
+        "platformer",
+        "tile"
+      ],
+      "de": "Steinblock (64x64)",
+      "en": "Stone block (64x64)"
+    },
+    {
+      "name": "pf_brick",
+      "file": "pf_brick.png",
+      "tags": [
+        "platformer",
+        "tile"
+      ],
+      "de": "Ziegelblock (64x64)",
+      "en": "Brick block (64x64)"
+    },
+    {
+      "name": "pf_ice",
+      "file": "pf_ice.png",
+      "tags": [
+        "platformer",
+        "tile"
+      ],
+      "de": "Eisblock (64x64)",
+      "en": "Ice block (64x64)"
+    },
+    {
+      "name": "pf_sand",
+      "file": "pf_sand.png",
+      "tags": [
+        "platformer",
+        "tile"
+      ],
+      "de": "Sandblock (64x64)",
+      "en": "Sand block (64x64)"
+    },
+    {
+      "name": "pf_crate",
+      "file": "pf_crate.png",
+      "tags": [
+        "platformer",
+        "tile"
+      ],
+      "de": "Holzkiste (64x64)",
+      "en": "Wooden crate (64x64)"
+    },
+    {
+      "name": "pf_wood_platform",
+      "file": "pf_wood_platform.png",
+      "tags": [
+        "platformer",
+        "tile"
+      ],
+      "de": "Dünnes schwebendes Holzbrett (64 breit)",
+      "en": "Thin floating wooden plank (64 wide)"
+    },
+    {
+      "name": "pf_spikes",
+      "file": "pf_spikes.png",
+      "tags": [
+        "platformer",
+        "tile",
+        "danger"
+      ],
+      "de": "Stacheln am Boden (64 breit)",
+      "en": "Spikes on the ground (64 wide)"
+    },
+    {
+      "name": "pf_spring_1",
+      "file": "pf_spring_1.png",
+      "tags": [
+        "platformer",
+        "tile",
+        "animation"
+      ],
+      "de": "Sprungfeder, zusammengedrückt (Bild 1 von 2, 64x64)",
+      "en": "Jump spring, compressed (frame 1 of 2, 64x64)"
+    },
+    {
+      "name": "pf_spring_2",
+      "file": "pf_spring_2.png",
+      "tags": [
+        "platformer",
+        "tile",
+        "animation"
+      ],
+      "de": "Sprungfeder, ausgefahren (Bild 2 von 2, 64x64)",
+      "en": "Jump spring, extended (frame 2 of 2, 64x64)"
+    },
+    {
+      "name": "pf_ladder",
+      "file": "pf_ladder.png",
+      "tags": [
+        "platformer",
+        "tile"
+      ],
+      "de": "Leiterstück, nahtlos übereinander stapelbar (64x64)",
+      "en": "Ladder piece, stacks seamlessly (64x64)"
+    },
+    {
+      "name": "pf_coin_1",
+      "file": "pf_coin_1.png",
+      "tags": [
+        "platformer",
+        "item",
+        "animation"
+      ],
+      "de": "Goldmünze dreht sich, Bild 1 von 4",
+      "en": "Spinning gold coin, frame 1 of 4"
+    },
+    {
+      "name": "pf_coin_2",
+      "file": "pf_coin_2.png",
+      "tags": [
+        "platformer",
+        "item",
+        "animation"
+      ],
+      "de": "Goldmünze dreht sich, Bild 2 von 4",
+      "en": "Spinning gold coin, frame 2 of 4"
+    },
+    {
+      "name": "pf_coin_3",
+      "file": "pf_coin_3.png",
+      "tags": [
+        "platformer",
+        "item",
+        "animation"
+      ],
+      "de": "Goldmünze dreht sich, Bild 3 von 4",
+      "en": "Spinning gold coin, frame 3 of 4"
+    },
+    {
+      "name": "pf_coin_4",
+      "file": "pf_coin_4.png",
+      "tags": [
+        "platformer",
+        "item",
+        "animation"
+      ],
+      "de": "Goldmünze dreht sich, Bild 4 von 4",
+      "en": "Spinning gold coin, frame 4 of 4"
+    },
+    {
+      "name": "pf_gem_pink",
+      "file": "pf_gem_pink.png",
+      "tags": [
+        "platformer",
+        "item"
+      ],
+      "de": "Edelstein, rosa",
+      "en": "Gemstone, pink"
+    },
+    {
+      "name": "pf_gem_blue",
+      "file": "pf_gem_blue.png",
+      "tags": [
+        "platformer",
+        "item"
+      ],
+      "de": "Edelstein, blau",
+      "en": "Gemstone, blue"
+    },
+    {
+      "name": "pf_gem_green",
+      "file": "pf_gem_green.png",
+      "tags": [
+        "platformer",
+        "item"
+      ],
+      "de": "Edelstein, grün",
+      "en": "Gemstone, green"
+    },
+    {
+      "name": "pf_heart",
+      "file": "pf_heart.png",
+      "tags": [
+        "platformer",
+        "item"
+      ],
+      "de": "Rotes Herz (Extraleben)",
+      "en": "Red heart (extra life)"
+    },
+    {
+      "name": "pf_star",
+      "file": "pf_star.png",
+      "tags": [
+        "platformer",
+        "item"
+      ],
+      "de": "Gelber Stern",
+      "en": "Yellow star"
+    },
+    {
+      "name": "pf_key",
+      "file": "pf_key.png",
+      "tags": [
+        "platformer",
+        "item"
+      ],
+      "de": "Goldener Schlüssel",
+      "en": "Golden key"
+    },
+    {
+      "name": "pf_door_closed",
+      "file": "pf_door_closed.png",
+      "tags": [
+        "platformer",
+        "item"
+      ],
+      "de": "Tür, geschlossen (64x96)",
+      "en": "Door, closed (64x96)"
+    },
+    {
+      "name": "pf_door_open",
+      "file": "pf_door_open.png",
+      "tags": [
+        "platformer",
+        "item"
+      ],
+      "de": "Tür, offen (64x96)",
+      "en": "Door, open (64x96)"
+    },
+    {
+      "name": "pf_flag_1",
+      "file": "pf_flag_1.png",
+      "tags": [
+        "platformer",
+        "item",
+        "animation"
+      ],
+      "de": "Wehende Zielfahne (Checkpoint), Bild 1 von 3 (64x96)",
+      "en": "Waving checkpoint flag, frame 1 of 3 (64x96)"
+    },
+    {
+      "name": "pf_flag_2",
+      "file": "pf_flag_2.png",
+      "tags": [
+        "platformer",
+        "item",
+        "animation"
+      ],
+      "de": "Wehende Zielfahne (Checkpoint), Bild 2 von 3 (64x96)",
+      "en": "Waving checkpoint flag, frame 2 of 3 (64x96)"
+    },
+    {
+      "name": "pf_flag_3",
+      "file": "pf_flag_3.png",
+      "tags": [
+        "platformer",
+        "item",
+        "animation"
+      ],
+      "de": "Wehende Zielfahne (Checkpoint), Bild 3 von 3 (64x96)",
+      "en": "Waving checkpoint flag, frame 3 of 3 (64x96)"
+    },
+    {
+      "name": "pf_chest_closed",
+      "file": "pf_chest_closed.png",
+      "tags": [
+        "platformer",
+        "item"
+      ],
+      "de": "Schatztruhe, geschlossen",
+      "en": "Treasure chest, closed"
+    },
+    {
+      "name": "pf_chest_open",
+      "file": "pf_chest_open.png",
+      "tags": [
+        "platformer",
+        "item"
+      ],
+      "de": "Schatztruhe, offen mit Münzen",
+      "en": "Treasure chest, open with coins"
+    },
+    {
+      "name": "slug_walk_1",
+      "file": "slug_walk_1.png",
+      "tags": [
+        "platformer",
+        "enemy",
+        "animation"
+      ],
+      "de": "Grummelige Schnecke kriecht, Bild 1 von 4 (nach rechts)",
+      "en": "Grumpy snail crawling, frame 1 of 4 (facing right)"
+    },
+    {
+      "name": "bat_fly_1",
+      "file": "bat_fly_1.png",
+      "tags": [
+        "platformer",
+        "enemy",
+        "animation"
+      ],
+      "de": "Fledermaus fliegt, Bild 1 von 4 (nach rechts)",
+      "en": "Bat flying, frame 1 of 4 (facing right)"
+    },
+    {
+      "name": "blob_hop_1",
+      "file": "blob_hop_1.png",
+      "tags": [
+        "platformer",
+        "enemy",
+        "animation"
+      ],
+      "de": "Glibber-Klecks hüpft, Bild 1 von 4 (nach rechts)",
+      "en": "Jelly blob hopping, frame 1 of 4 (facing right)"
+    },
+    {
+      "name": "spiky_roll_1",
+      "file": "spiky_roll_1.png",
+      "tags": [
+        "platformer",
+        "enemy",
+        "animation",
+        "danger"
+      ],
+      "de": "Stachelkugel rollt nach rechts, Bild 1 von 4",
+      "en": "Spiky ball rolling right, frame 1 of 4"
+    },
+    {
+      "name": "slug_walk_2",
+      "file": "slug_walk_2.png",
+      "tags": [
+        "platformer",
+        "enemy",
+        "animation"
+      ],
+      "de": "Grummelige Schnecke kriecht, Bild 2 von 4 (nach rechts)",
+      "en": "Grumpy snail crawling, frame 2 of 4 (facing right)"
+    },
+    {
+      "name": "bat_fly_2",
+      "file": "bat_fly_2.png",
+      "tags": [
+        "platformer",
+        "enemy",
+        "animation"
+      ],
+      "de": "Fledermaus fliegt, Bild 2 von 4 (nach rechts)",
+      "en": "Bat flying, frame 2 of 4 (facing right)"
+    },
+    {
+      "name": "blob_hop_2",
+      "file": "blob_hop_2.png",
+      "tags": [
+        "platformer",
+        "enemy",
+        "animation"
+      ],
+      "de": "Glibber-Klecks hüpft, Bild 2 von 4 (nach rechts)",
+      "en": "Jelly blob hopping, frame 2 of 4 (facing right)"
+    },
+    {
+      "name": "spiky_roll_2",
+      "file": "spiky_roll_2.png",
+      "tags": [
+        "platformer",
+        "enemy",
+        "animation",
+        "danger"
+      ],
+      "de": "Stachelkugel rollt nach rechts, Bild 2 von 4",
+      "en": "Spiky ball rolling right, frame 2 of 4"
+    },
+    {
+      "name": "slug_walk_3",
+      "file": "slug_walk_3.png",
+      "tags": [
+        "platformer",
+        "enemy",
+        "animation"
+      ],
+      "de": "Grummelige Schnecke kriecht, Bild 3 von 4 (nach rechts)",
+      "en": "Grumpy snail crawling, frame 3 of 4 (facing right)"
+    },
+    {
+      "name": "bat_fly_3",
+      "file": "bat_fly_3.png",
+      "tags": [
+        "platformer",
+        "enemy",
+        "animation"
+      ],
+      "de": "Fledermaus fliegt, Bild 3 von 4 (nach rechts)",
+      "en": "Bat flying, frame 3 of 4 (facing right)"
+    },
+    {
+      "name": "blob_hop_3",
+      "file": "blob_hop_3.png",
+      "tags": [
+        "platformer",
+        "enemy",
+        "animation"
+      ],
+      "de": "Glibber-Klecks hüpft, Bild 3 von 4 (nach rechts)",
+      "en": "Jelly blob hopping, frame 3 of 4 (facing right)"
+    },
+    {
+      "name": "spiky_roll_3",
+      "file": "spiky_roll_3.png",
+      "tags": [
+        "platformer",
+        "enemy",
+        "animation",
+        "danger"
+      ],
+      "de": "Stachelkugel rollt nach rechts, Bild 3 von 4",
+      "en": "Spiky ball rolling right, frame 3 of 4"
+    },
+    {
+      "name": "slug_walk_4",
+      "file": "slug_walk_4.png",
+      "tags": [
+        "platformer",
+        "enemy",
+        "animation"
+      ],
+      "de": "Grummelige Schnecke kriecht, Bild 4 von 4 (nach rechts)",
+      "en": "Grumpy snail crawling, frame 4 of 4 (facing right)"
+    },
+    {
+      "name": "bat_fly_4",
+      "file": "bat_fly_4.png",
+      "tags": [
+        "platformer",
+        "enemy",
+        "animation"
+      ],
+      "de": "Fledermaus fliegt, Bild 4 von 4 (nach rechts)",
+      "en": "Bat flying, frame 4 of 4 (facing right)"
+    },
+    {
+      "name": "blob_hop_4",
+      "file": "blob_hop_4.png",
+      "tags": [
+        "platformer",
+        "enemy",
+        "animation"
+      ],
+      "de": "Glibber-Klecks hüpft, Bild 4 von 4 (nach rechts)",
+      "en": "Jelly blob hopping, frame 4 of 4 (facing right)"
+    },
+    {
+      "name": "spiky_roll_4",
+      "file": "spiky_roll_4.png",
+      "tags": [
+        "platformer",
+        "enemy",
+        "animation",
+        "danger"
+      ],
+      "de": "Stachelkugel rollt nach rechts, Bild 4 von 4",
+      "en": "Spiky ball rolling right, frame 4 of 4"
+    },
+    {
+      "name": "pf_cloud_1",
+      "file": "pf_cloud_1.png",
+      "tags": [
+        "platformer",
+        "decor"
+      ],
+      "de": "Wolke, klein",
+      "en": "Cloud, small"
+    },
+    {
+      "name": "pf_cloud_2",
+      "file": "pf_cloud_2.png",
+      "tags": [
+        "platformer",
+        "decor"
+      ],
+      "de": "Wolke, flach",
+      "en": "Cloud, flat"
+    },
+    {
+      "name": "pf_cloud_3",
+      "file": "pf_cloud_3.png",
+      "tags": [
+        "platformer",
+        "decor"
+      ],
+      "de": "Wolke, groß",
+      "en": "Cloud, big"
+    },
+    {
+      "name": "pf_bush",
+      "file": "pf_bush.png",
+      "tags": [
+        "platformer",
+        "decor"
+      ],
+      "de": "Runder Busch",
+      "en": "Round bush"
+    },
+    {
+      "name": "pf_tree",
+      "file": "pf_tree.png",
+      "tags": [
+        "platformer",
+        "decor"
+      ],
+      "de": "Baum mit runder Krone",
+      "en": "Tree with a round crown"
+    },
+    {
+      "name": "pf_hill",
+      "file": "pf_hill.png",
+      "tags": [
+        "platformer",
+        "decor"
+      ],
+      "de": "Grüner Hügel (160 breit)",
+      "en": "Green hill (160 wide)"
+    },
+    {
+      "name": "pf_sun",
+      "file": "pf_sun.png",
+      "tags": [
+        "platformer",
+        "decor"
+      ],
+      "de": "Sonne",
+      "en": "Sun"
+    },
+    {
+      "name": "pf_bg_day",
+      "file": "pf_bg_day.png",
+      "tags": [
+        "platformer",
+        "background"
+      ],
+      "de": "Hintergrund: Hügel am Tag (800x480)",
+      "en": "Background: hills by day (800x480)"
+    },
+    {
+      "name": "pf_bg_night",
+      "file": "pf_bg_night.png",
+      "tags": [
+        "platformer",
+        "background"
+      ],
+      "de": "Hintergrund: Hügel bei Nacht (800x480)",
+      "en": "Background: hills at night (800x480)"
+    },
+    {
+      "name": "pf_bg_cave",
+      "file": "pf_bg_cave.png",
+      "tags": [
+        "platformer",
+        "background"
+      ],
+      "de": "Hintergrund: Höhle (800x480)",
+      "en": "Background: cave (800x480)"
+    },
+    {
+      "name": "boy_idle_1",
+      "file": "boy_idle_1.png",
+      "tags": [
+        "character",
+        "player",
+        "platformer",
+        "animation"
+      ],
+      "de": "Junge steht, Bild 1 von 4 (nach rechts)",
+      "en": "Boy standing, frame 1 of 4 (facing right)"
+    },
+    {
+      "name": "boy_idle_2",
+      "file": "boy_idle_2.png",
+      "tags": [
+        "character",
+        "player",
+        "platformer",
+        "animation"
+      ],
+      "de": "Junge steht, Bild 2 von 4 (nach rechts)",
+      "en": "Boy standing, frame 2 of 4 (facing right)"
+    },
+    {
+      "name": "boy_idle_3",
+      "file": "boy_idle_3.png",
+      "tags": [
+        "character",
+        "player",
+        "platformer",
+        "animation"
+      ],
+      "de": "Junge steht, Bild 3 von 4 (nach rechts)",
+      "en": "Boy standing, frame 3 of 4 (facing right)"
+    },
+    {
+      "name": "boy_idle_4",
+      "file": "boy_idle_4.png",
+      "tags": [
+        "character",
+        "player",
+        "platformer",
+        "animation"
+      ],
+      "de": "Junge steht, Bild 4 von 4 (nach rechts)",
+      "en": "Boy standing, frame 4 of 4 (facing right)"
+    },
+    {
+      "name": "boy_run_1",
+      "file": "boy_run_1.png",
+      "tags": [
+        "character",
+        "player",
+        "platformer",
+        "animation"
+      ],
+      "de": "Junge rennt, Bild 1 von 8 (nach rechts)",
+      "en": "Boy running, frame 1 of 8 (facing right)"
+    },
+    {
+      "name": "boy_run_2",
+      "file": "boy_run_2.png",
+      "tags": [
+        "character",
+        "player",
+        "platformer",
+        "animation"
+      ],
+      "de": "Junge rennt, Bild 2 von 8 (nach rechts)",
+      "en": "Boy running, frame 2 of 8 (facing right)"
+    },
+    {
+      "name": "boy_run_3",
+      "file": "boy_run_3.png",
+      "tags": [
+        "character",
+        "player",
+        "platformer",
+        "animation"
+      ],
+      "de": "Junge rennt, Bild 3 von 8 (nach rechts)",
+      "en": "Boy running, frame 3 of 8 (facing right)"
+    },
+    {
+      "name": "boy_run_4",
+      "file": "boy_run_4.png",
+      "tags": [
+        "character",
+        "player",
+        "platformer",
+        "animation"
+      ],
+      "de": "Junge rennt, Bild 4 von 8 (nach rechts)",
+      "en": "Boy running, frame 4 of 8 (facing right)"
+    },
+    {
+      "name": "boy_run_5",
+      "file": "boy_run_5.png",
+      "tags": [
+        "character",
+        "player",
+        "platformer",
+        "animation"
+      ],
+      "de": "Junge rennt, Bild 5 von 8 (nach rechts)",
+      "en": "Boy running, frame 5 of 8 (facing right)"
+    },
+    {
+      "name": "boy_run_6",
+      "file": "boy_run_6.png",
+      "tags": [
+        "character",
+        "player",
+        "platformer",
+        "animation"
+      ],
+      "de": "Junge rennt, Bild 6 von 8 (nach rechts)",
+      "en": "Boy running, frame 6 of 8 (facing right)"
+    },
+    {
+      "name": "boy_run_7",
+      "file": "boy_run_7.png",
+      "tags": [
+        "character",
+        "player",
+        "platformer",
+        "animation"
+      ],
+      "de": "Junge rennt, Bild 7 von 8 (nach rechts)",
+      "en": "Boy running, frame 7 of 8 (facing right)"
+    },
+    {
+      "name": "boy_run_8",
+      "file": "boy_run_8.png",
+      "tags": [
+        "character",
+        "player",
+        "platformer",
+        "animation"
+      ],
+      "de": "Junge rennt, Bild 8 von 8 (nach rechts)",
+      "en": "Boy running, frame 8 of 8 (facing right)"
+    },
+    {
+      "name": "boy_jump",
+      "file": "boy_jump.png",
+      "tags": [
+        "character",
+        "player",
+        "platformer"
+      ],
+      "de": "Junge springt hoch (nach rechts)",
+      "en": "Boy jumping up (facing right)"
+    },
+    {
+      "name": "boy_fall",
+      "file": "boy_fall.png",
+      "tags": [
+        "character",
+        "player",
+        "platformer"
+      ],
+      "de": "Junge fällt herunter (nach rechts)",
+      "en": "Boy falling down (facing right)"
+    },
+    {
+      "name": "boy_land",
+      "file": "boy_land.png",
+      "tags": [
+        "character",
+        "player",
+        "platformer"
+      ],
+      "de": "Junge landet in der Hocke (nach rechts)",
+      "en": "Boy landing, crouching (facing right)"
+    },
+    {
+      "name": "boy_hurt",
+      "file": "boy_hurt.png",
+      "tags": [
+        "character",
+        "player",
+        "platformer"
+      ],
+      "de": "Junge wird getroffen (nach rechts)",
+      "en": "Boy getting hurt (facing right)"
+    }
+  ]
+}

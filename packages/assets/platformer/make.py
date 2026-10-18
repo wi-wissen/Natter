@@ -8,15 +8,16 @@ The sheet `boy_ref` must be drawn first: it is the character reference for the b
 Some frames are derived from one drawn image (coin spin = horizontal squash, spiky ball roll = rotation),
 the plain earth tile `pf_dirt` is filled with the colours of the drawn grass strip so that it tiles seamlessly.
 """
-import os, sys, json, base64, subprocess, tempfile, shutil
+import os, sys, json, base64, subprocess, tempfile
 from concurrent.futures import ThreadPoolExecutor
 import numpy as np
-from PIL import Image, ImageDraw
+from PIL import Image, ImageDraw, ImageFilter
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.abspath(os.path.join(HERE, '..', '..', '..'))
 sys.path.insert(0, os.path.join(ROOT, 'scripts', 'asset-gen'))
-from keyslice import cut_items, key, frames, align  # noqa: E402
+from keyslice import key, frames, align  # noqa: E402
+from scipy import ndimage  # noqa: E402
 
 REF = os.path.join(ROOT, 'scripts', 'asset-gen', 'style-emoji.png')
 WORK = os.environ.get('WORK', os.path.join(tempfile.gettempdir(), 'assets-work', 'platformer'))
@@ -63,11 +64,15 @@ SHEETS = {
                 '1) standing, front view, arms hanging, 2) standing in side view facing right, '
                 '3) jumping happily with both arms up. ' + BG, [REF]),
     'boy_idle': ('Use ' + BOY + '. Draw a side-view IDLE (breathing) animation sprite sheet, facing right: '
-                 '4 frames in ONE horizontal row, evenly spaced, same size, feet at the same height, he stands relaxed and '
+                 '4 frames in ONE horizontal row, evenly spaced, same size, feet at the same height, ALL FOUR in the same side view '
+                 'facing right like the second figure of the boy reference (none from the front), he stands relaxed and '
                  'only his body rises and sinks a little and the arms swing very slightly. ' + ANIM_BG, [REF, BOY_REF]),
     'boy_run': ('Use ' + BOY + '. Draw a side-view RUN CYCLE sprite sheet facing right: 8 frames in ONE horizontal row, '
-                'evenly spaced, same size, same feet height, each frame a different phase of a running cycle '
-                '(contact, down, passing, up, then the mirrored phases with the other leg), arms swinging opposite to the legs. '
+                'EXACTLY 8 figures, no more, no second row, evenly spaced, same size, same feet height. A real fast RUN, not a walk: '
+                'the body leans forward, big strides, elbows bent at 90 degrees; frame 1 front leg reaching far forward, '
+                'frame 2 landing with knee bent, frame 3 legs passing under the body, frame 4 pushing off with both feet off the '
+                'ground, frames 5 to 8 the same phases with the other leg in front. Arms swing opposite to the legs, '
+                'clearly different pose in every frame. '
                 + ANIM_BG, [REF, BOY_REF]),
     'boy_poses': ('Use ' + BOY + '. Draw 4 single side-view poses facing right in ONE horizontal row, evenly spaced, same scale: '
                   '1) JUMP: going up, one knee pulled up, one arm raised, '
@@ -221,13 +226,23 @@ def sheet(s):
 
 
 def crops(s, n):
-    """The n objects of a sheet in reading order, keyed, unscaled."""
-    tmp = os.path.join(WORK, '_cut_' + s)
-    shutil.rmtree(tmp, ignore_errors=True)
-    names = [f'o{i}' for i in range(n)]
-    files = cut_items(sheet(s), names, long_side=4000, outdir=tmp)  # big long side: tmp copies near original size
-    out = [Image.open(f).convert('RGBA') for f in files]
-    return [im.crop(im.getbbox()) for im in out]
+    """The n objects of a sheet in reading order, keyed, unscaled (same keying and ordering as keyslice.cut_items)."""
+    rgba = key(Image.open(sheet(s)))
+    lab, _ = ndimage.label(ndimage.binary_dilation(rgba[..., 3] > 128, iterations=8))
+    comps = [(sl, i) for i, sl in enumerate(ndimage.find_objects(lab), 1) if (lab[sl] == i).sum() >= 1500]
+    if len(comps) != n:
+        raise ValueError(f'{s}: found {len(comps)} objects, expected {n}')
+    cy = [(c[0].start + c[0].stop) / 2 for c, _ in comps]
+    h = np.median([c[0].stop - c[0].start for c, _ in comps])
+    order = sorted(range(n), key=lambda k: (round(cy[k] / (h * 0.9)), comps[k][0][1].start))
+    out = []
+    for k in order:
+        sl, i = comps[k]
+        crop = rgba[sl].copy()
+        crop[..., 3] = np.where(ndimage.binary_dilation(lab[sl] == i, iterations=2), crop[..., 3], 0)
+        im = Image.fromarray(crop, 'RGBA')
+        out.append(im.crop(im.getbbox()))
+    return out
 
 
 def fit(im, w=None, h=None):
@@ -257,7 +272,8 @@ def on_canvas(im, w, h, valign='bottom'):
 def save(im, name):
     path = os.path.join(HERE, name + '.png')
     if 'background' in DESC[name][0]:
-        im = im.convert('RGB').quantize(colors=96, method=Image.MEDIANCUT, dither=Image.NONE)
+        # median filter takes out the model's pixel noise, few colours keep the file under 80 KB
+        im = im.convert('RGB').filter(ImageFilter.MedianFilter(3)).quantize(colors=64, method=Image.MEDIANCUT, dither=Image.NONE)
     else:
         a = np.asarray(im).copy()
         a[a[..., 3] < 8] = 0  # clean invisible pixels for better compression
@@ -282,6 +298,16 @@ def solid(im):
 def anim(s, prefix, height, expected, start=1, names=None):
     rgba = key(Image.open(sheet(s)))
     fr = frames(rgba)
+    if len(fr) == expected:  # all sheets are one row: order by x only (a hop frame may sit higher)
+        alpha = rgba[..., 3] > 128
+        lab, _ = ndimage.label(ndimage.binary_dilation(alpha, iterations=6))
+        xs = [sl[1].start for i, sl in enumerate(ndimage.find_objects(lab), 1) if (lab[sl] == i).sum() > 2500]
+        if len(xs) == expected:
+            cy = [(sl[0].start + sl[0].stop) / 2 for i, sl in enumerate(ndimage.find_objects(lab), 1) if (lab[sl] == i).sum() > 2500]
+            h = np.median([sl[0].stop - sl[0].start for i, sl in enumerate(ndimage.find_objects(lab), 1) if (lab[sl] == i).sum() > 2500])
+            old = sorted(range(expected), key=lambda k: (round(cy[k] / (h * 0.8)), xs[k]))  # order used by keyslice.frames
+            byx = sorted(range(expected), key=lambda k: xs[k])
+            fr = [fr[old.index(k)] for k in byx]
     if len(fr) != expected:
         raise ValueError(f'{s}: found {len(fr)} frames, expected {expected}')
     fr = align(fr, height)
@@ -345,26 +371,16 @@ def cut_gadgets():
     for n, im in (('pf_spring_1', s1), ('pf_spring_2', s2)):
         im = im.resize((round(im.width * s), round(im.height * s)), Image.LANCZOS)
         save(on_canvas(im, 64, 64), n)
-    # ladder: scale to 64 high (rails inside 64 wide), then make it periodic vertically by cross-fading
+    # ladder: 56 wide; a 64-high piece that starts and ends in a rails-only row, so it stacks without a seam
     lad = fit(ladder, w=56)
-    a = np.asarray(lad).astype(np.float32)
-    rows = a.shape[0]
-    period = 64 * lad.width // 56  # take a 64-high piece out of the middle
-    seg = a[(rows - 64) // 2:(rows - 64) // 2 + 64] if rows >= 64 + 8 else None
-    if seg is None:
-        lad = fit(ladder, h=96)
-        a = np.asarray(lad).astype(np.float32)
-        rows = a.shape[0]
-        seg = a[(rows - 64) // 2:(rows - 64) // 2 + 64]
-    y0 = (rows - 64) // 2
-    seg = seg.copy()
-    o = 8
-    for j in range(o):
-        t = j / o
-        seg[j] = (1 - t) * a[y0 + 64 + j] + t * seg[j]
-    tile = Image.fromarray(np.clip(seg, 0, 255).astype(np.uint8), 'RGBA')
-    save(on_canvas(tile.crop((max(0, (tile.width - 64) // 2), 0, max(0, (tile.width - 64) // 2) + min(64, tile.width), 64)), 64, 64), 'pf_ladder')
-    del period
+    a = np.asarray(lad)
+    cover = (a[..., 3] > 128).sum(1)
+    rails = cover <= np.percentile(cover, 30) + 2
+    starts = [y for y in range(4, a.shape[0] - 68) if rails[y] and rails[y + 64]]
+    if not starts:
+        raise ValueError('ladder: no rails-only rows 64 apart')
+    y0 = min(starts, key=lambda y: abs(y - (a.shape[0] - 64) // 2))
+    save(on_canvas(Image.fromarray(a[y0:y0 + 64].copy(), 'RGBA'), 64, 64), 'pf_ladder')
     save(fit(plank, w=64), 'pf_wood_platform')
 
 

@@ -34,13 +34,15 @@ BOY = ('a boy in the same style as the girl of the reference image: short black 
        'blue jacket over a white shirt, grey trousers, orange sneakers, same proportions and size as the girl')
 
 
-def fb_prompt(who):
+def row_prompt(who, view):
     return (f'Sprite sheet for a top-down role playing game: {who}. Full body, same size in every figure. '
-            'Exactly 6 figures in a grid of 2 rows and 3 columns, evenly spaced, all feet on the same height within a row. '
-            'Row 1: FRONT view, facing the viewer, walking towards the viewer: frame 1 left foot forward, '
-            'frame 2 standing still with both feet together, frame 3 right foot forward. '
-            'Row 2: BACK view, we see only the back of the head and the back, walking away from the viewer (same three phases). '
-            + STYLE_TXT + BG)
+            'Exactly 3 figures in ONE horizontal row, evenly spaced, all feet on the same height. ' + view + STYLE_TXT + BG)
+
+
+FRONT = ('ALL THREE in FRONT view, facing the viewer, walking towards the viewer: frame 1 left foot forward, '
+         'frame 2 standing still with both feet together, frame 3 right foot forward. ')
+BACK = ('ALL THREE in BACK view, seen from behind: we see only the back of the head (no face) and the back, walking away from the viewer: '
+        'frame 1 left foot forward, frame 2 standing still with both feet together, frame 3 right foot forward. ')
 
 
 def side_prompt(who):
@@ -52,9 +54,11 @@ def side_prompt(who):
 
 
 SHEETS = {
-    'girl_fb': dict(ref=STYLE, prompt=fb_prompt(GIRL)),
+    'girl_front': dict(ref=STYLE, prompt=row_prompt(GIRL, FRONT)),
+    'girl_back': dict(ref=STYLE, prompt=row_prompt(GIRL, BACK)),
     'girl_side': dict(ref=STYLE, prompt=side_prompt(GIRL)),
-    'boy_fb': dict(ref=STYLE, prompt=fb_prompt(BOY)),
+    'boy_front': dict(ref=STYLE, prompt=row_prompt(BOY, FRONT)),
+    'boy_back': dict(ref=STYLE, prompt=row_prompt(BOY, BACK)),
     'boy_side': dict(ref=STYLE, prompt=side_prompt(BOY)),
     'npc': dict(ref=STYLE, prompt=(
         'Seven separate characters for a top-down role playing game, full body, front view, standing, friendly faces, '
@@ -218,11 +222,13 @@ def hero_frames(sheet, n):
     fr = keyslice.frames(keyslice.key(Image.open(sheet_path(sheet))))
     if len(fr) != n:
         raise ValueError(f'{sheet}: found {len(fr)} frames, expected {n}')
-    return [f.crop(f.getbbox()) for f in fr]
+    fr = [f.crop(f.getbbox()) for f in fr]
+    k = 400 / fr[1].height  # sheets differ in scale: the standing frame 2 of every sheet gets the same height
+    return [f.resize((round(f.width * k), round(f.height * k)), Image.LANCZOS) for f in fr]
 
 
 def cut_hero(h):
-    fb = hero_frames(h + '_fb', 6)
+    fb = hero_frames(h + '_front', 3) + hero_frames(h + '_back', 3)
     right = hero_frames(h + '_side', 3)
     left = [f.transpose(Image.FLIP_LEFT_RIGHT) for f in right]  # left is the mirrored right walk
     # all 12 frames share one canvas so that turning around does not jump
@@ -239,7 +245,9 @@ def cut_campfire():
 
 
 def do_cut(s):
-    if s in HERO_NAMES:
+    if s == 'seamless':
+        seamless()
+    elif s in HERO_NAMES:
         cut_hero(s)
     elif s in SHEETS and s.split('_')[0] in HERO_NAMES:
         cut_hero(s.split('_')[0])
@@ -247,6 +255,124 @@ def do_cut(s):
         cut_campfire()
     else:
         cut_named(s)
+
+
+# ---- seamless tiles ----
+# The model draws good textures, but regular patterns (bricks, slabs, planks) do not line up at the edges when repeated.
+# These tiles are drawn here instead, flat, in colours sampled from the model's tiles; lava gets an offset blend.
+from PIL import ImageDraw  # noqa: E402
+import random  # noqa: E402
+
+S4 = 256  # draw at 4x, scale down to 64
+
+
+def _wrap_rect(d, box, fill, r):
+    x0, y0, x1, y1 = box
+    for dx in (-S4, 0, S4):
+        for dy in (-S4, 0, S4):
+            d.rounded_rectangle((x0 + dx, y0 + dy, x1 + dx, y1 + dy), r, fill=fill)
+
+
+def _wrap_ellipse(d, box, fill):
+    x0, y0, x1, y1 = box
+    for dx in (-S4, 0, S4):
+        for dy in (-S4, 0, S4):
+            d.ellipse((x0 + dx, y0 + dy, x1 + dx, y1 + dy), fill=fill)
+
+
+def _done(im):
+    return im.resize((64, 64), Image.LANCZOS).convert('RGBA')
+
+
+def bricks(mortar, shades, rows=4, per_row=2, seed=1):
+    rnd = random.Random(seed)
+    im = Image.new('RGB', (S4, S4), mortar)
+    d = ImageDraw.Draw(im)
+    h, w, g = S4 // rows, S4 // per_row, 8
+    for r in range(rows):
+        off = (w // 2) * (r % 2)
+        for c in range(per_row):
+            x = c * w + off
+            _wrap_rect(d, (x + g // 2, r * h + g // 2, x + w - g // 2, (r + 1) * h - g // 2), rnd.choice(shades), 10)
+    return _done(im)
+
+
+def slabs(grout, shades, light, seed=2):
+    rnd = random.Random(seed)
+    im = Image.new('RGB', (S4, S4), grout)
+    d = ImageDraw.Draw(im)
+    n, g = 2, 10
+    w = S4 // n
+    for i in range(n):
+        for j in range(n):
+            x, y = i * w + w // 4, j * w + w // 4  # shifted so that grout lines are inside the tile, not on its edge
+            _wrap_rect(d, (x + g // 2, y + g // 2, x + w - g // 2, y + w - g // 2), rnd.choice(shades), 14)
+            _wrap_rect(d, (x + 30, y + 30, x + 60, y + 44), light, 7)
+    return _done(im)
+
+
+def planks(base, line, shade, seed=3):
+    rnd = random.Random(seed)
+    im = Image.new('RGB', (S4, S4), base)
+    d = ImageDraw.Draw(im)
+    h = S4 // 4
+    for r in range(4):
+        y = r * h
+        if r % 2:
+            d.rectangle((0, y, S4, y + h), fill=shade)
+        d.rectangle((0, y, S4, y + 5), fill=line)
+        x = rnd.randrange(30, S4 - 30)
+        d.rectangle((x, y, x + 5, y + h), fill=line)
+        for nx in (x - 14, x + 18):
+            d.ellipse((nx - 4, y + h // 2 - 4, nx + 4, y + h // 2 + 4), fill=line)
+    return _done(im)
+
+
+def bridge(planks_c, gap, rope, rope_dark):
+    # slats across the tile, ropes along the top and bottom edge: repeats left to right
+    im = Image.new('RGB', (S4, S4), gap)
+    d = ImageDraw.Draw(im)
+    w = S4 // 4
+    for i in range(4):
+        d.rounded_rectangle((i * w + 5, 28, (i + 1) * w - 5, S4 - 28), 10, fill=planks_c[i % len(planks_c)])
+        d.ellipse((i * w + w // 2 - 6, 50, i * w + w // 2 + 6, 62), fill=gap)
+        d.ellipse((i * w + w // 2 - 6, S4 - 62, i * w + w // 2 + 6, S4 - 50), fill=gap)
+    for y in (0, S4 - 24):
+        d.rectangle((0, y, S4, y + 24), fill=rope)
+        for x in range(0, S4, 32):
+            d.polygon([(x, y + 24), (x + 12, y + 24), (x + 28, y), (x + 16, y)], fill=rope_dark)
+    return _done(im)
+
+
+def dirt(base, pebbles, seed=4):
+    rnd = random.Random(seed)
+    im = Image.new('RGB', (S4, S4), base)
+    d = ImageDraw.Draw(im)
+    for _ in range(16):
+        x, y, r = rnd.randrange(S4), rnd.randrange(S4), rnd.randrange(5, 12)
+        _wrap_ellipse(d, (x - r, y - int(r * 0.75), x + r, y + int(r * 0.75)), rnd.choice(pebbles))
+    return _done(im)
+
+
+def offset_blend(im):
+    """Blend a tile with its half-shifted copy, weighted to the edges: the result repeats without seams."""
+    a = np.asarray(im.convert('RGB')).astype(np.float32)
+    rolled = np.roll(np.roll(a, a.shape[0] // 2, 0), a.shape[1] // 2, 1)
+    n = a.shape[0]
+    d = np.minimum(np.arange(n), n - 1 - np.arange(n)) / (n / 2)
+    w = np.clip(np.minimum(d[:, None], d[None, :]) * 2.2, 0, 1)[..., None]
+    out = a * w + rolled * (1 - w)
+    return Image.fromarray(out.astype(np.uint8), 'RGB').convert('RGBA')
+
+
+def seamless():
+    save(bricks('#525f64', ['#7d888d', '#889497', '#737f83']), 'tile_wall')
+    save(bricks('#31293f', ['#4c4058', '#554862', '#493d56'], seed=5), 'tile_dungeon_wall')
+    save(slabs('#4a5155', ['#5e6669', '#646d70', '#5a6265'], '#6c7579'), 'tile_dungeon_floor')
+    save(planks('#c67c34', '#9a5a22', '#bf7531'), 'tile_wood_floor')
+    save(bridge(['#a47042', '#a77445', '#99673c'], '#5a3a20', '#dab57e', '#b58d58'), 'tile_bridge')
+    save(dirt('#d9b084', ['#b5855a', '#bd8f63', '#c99c6e']), 'tile_path')
+    save(offset_blend(Image.open(os.path.join(HERE, 'tile_lava.png'))), 'tile_lava')
 
 
 # ---- pack.json ----
@@ -352,7 +478,7 @@ if __name__ == '__main__':
             for s, r in ex.map(do_gen, args or list(SHEETS)):
                 print(s, r)
     elif cmd == 'cut':
-        for s in args or ['girl', 'boy'] + [k for k in SHEETS if '_' not in k]:
+        for s in args or ['girl', 'boy'] + [k for k in SHEETS if '_' not in k] + ['seamless']:
             try:
                 do_cut(s)
                 print(s, 'ok')

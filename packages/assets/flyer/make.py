@@ -160,7 +160,20 @@ def save(im, name):
         im.quantize(colors=128, method=Image.Quantize.FASTOCTREE if im.mode == 'RGBA' else Image.Quantize.MEDIANCUT).save(path, optimize=True)
 
 
-def seamless(im, size, overlap=0.18):
+def plain_ends(im):
+    """Crop a strip between two columns near its ends where only the plain band is (no grass tuft, snow lump),
+    so that the ends meet on plain ground and the crossfade does not ghost a feature."""
+    a = np.asarray(im)[..., 3] > 128
+    top = np.argmax(a, 0)
+    base = np.median(top)
+    ok = np.abs(top - base) <= 1
+    ok = np.array([ok[max(0, x - 6):x + 7].all() for x in range(len(ok))])
+    W = len(ok); xs = np.where(ok)[0]
+    l = [x for x in xs if x < W * 0.25]; r = [x for x in xs if x > W * 0.75]
+    return im.crop((l[0] if l else 0, 0, (r[-1] + 1) if r else W, im.height))
+
+
+def seamless(im, size, overlap=0.05):
     """Make a strip repeat side by side without a seam: crossfade its left end with the part right after its right end
     (result[x] = mix(src[W-o+x], src[x])), so that the last column runs straight on into the first."""
     a = np.asarray(im.convert('RGBA')).astype(np.float32)
@@ -218,7 +231,7 @@ def cut():
                 a = np.asarray(im)[..., 3]
                 rows = np.where((a > 200).mean(1) > 0.97)[0]
                 cols = np.where((a > 200).mean(0) > 0.5)[0]
-                im = seamless(im.crop((cols[0] + 6, 0, cols[-1] - 6, rows[-1] - 2)), box)
+                im = seamless(plain_ends(im.crop((cols[0] + 6, 0, cols[-1] - 6, rows[-1] - 2))), box)
                 save(im, name)
                 continue
             im = fit(im, box)
@@ -232,9 +245,12 @@ def cut():
             nw = h * 5 // 3; im = im.crop(((w - nw) // 2, 0, (w - nw) // 2 + nw, h))
         else:
             nh = w * 3 // 5; im = im.crop((0, (h - nh) // 2, w, (h - nh) // 2 + nh))
-        # median filter takes out the model's pixel noise, then 64 flat colours keep the file small
-        im = im.filter(ImageFilter.MedianFilter(5)).resize((800, 480), Image.LANCZOS)
-        im.quantize(colors=64, method=Image.Quantize.MEDIANCUT, dither=Image.Dither.NONE).save(os.path.join(HERE, name + '.png'), optimize=True)
+        # median filter takes out the model's pixel noise, a dithered palette keeps the file small
+        im = im.filter(ImageFilter.MedianFilter(3)).resize((800, 480), Image.LANCZOS)
+        for colors in (256, 128, 64, 32):  # as many flat colours as fit under the size limit
+            pal = im.quantize(colors=colors, method=Image.Quantize.FASTOCTREE, kmeans=2)  # palette, then dither onto it (no sky bands)
+            im.quantize(palette=pal, dither=Image.Dither.FLOYDSTEINBERG).save(os.path.join(HERE, name + '.png'), optimize=True)
+            if os.path.getsize(os.path.join(HERE, name + '.png')) <= 76 * 1024: break
     pack = {'pack': 'flyer', 'title': {'de': 'Flieger und Fallendes', 'en': 'Flyers and falling things'}, 'format': 'png',
             'assets': [{'name': n, 'file': n + '.png', 'tags': t, 'de': de, 'en': en} for n, t, de, en in ASSETS
                        if os.path.exists(os.path.join(HERE, n + '.png'))]}

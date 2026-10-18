@@ -1,0 +1,818 @@
+{
+  "pack": "adventure",
+  "title": {
+    "de": "Abenteuer",
+    "en": "Adventure"
+  },
+  "format": "png",
+  "assets": [
+    {
+      "name": "hero_girl_down_1",
+      "file": "hero_girl_down_1.png",
+      "tags": [
+        "character",
+        "player",
+        "animation"
+      ],
+      "de": "Heldin geht nach unten (zum Betrachter), Bild 1 von 3",
+      "en": "Heroine walking down (towards the viewer), frame 1 of 3"
+    },
+    {
+      "name": "hero_girl_down_2",
+      "file": "hero_girl_down_2.png",
+      "tags": [
+        "character",
+        "player",
+        "animation"
+      ],
+      "de": "Heldin geht nach unten (zum Betrachter), Bild 2 von 3 (steht)",
+      "en": "Heroine walking down (towards the viewer), frame 2 of 3 (standing)"
+    },
+    {
+      "name": "hero_girl_down_3",
+      "file": "hero_girl_down_3.png",
+      "tags": [
+        "character",
+        "player",
+        "animation"
+      ],
+      "de": "Heldin geht nach unten (zum Betrachter), Bild 3 von 3",
+      "en": "Heroine walking down (towards the viewer), frame 3 of 3"
+    },
+    {
+      "name": "hero_girl_up_1",
+      "file": "hero_girl_up_1.png",
+      "tags": [
+        "character",
+        "player",
+        "animation"
+      ],
+      "de": "Heldin geht nach oben (vom Betrachter weg), Bild 1 von 3",
+      "en": "Heroine walking up (away from the viewer), frame 1 of 3"
+    },
+    {
+      "name": "hero_girl_up_2",
+      "file": "hero_girl_up_2.png",
+      "tags": [
+        "character",
+        "player",
+        "animation"
+      ],
+      "de": "Heldin geht nach oben (vom Betrachter weg), Bild 2 von 3 (steht)",
+      "en": "Heroine walking up (away from the viewer), frame 2 of 3 (standing)"
+    },
+    {
+      "name": "hero_girl_up_3",
+      "file": "hero_girl_up_3.png",
+      "tags": [
+        "character",
+        "player",
+        "animation"
+      ],
+      "de": "Heldin geht nach oben (vom Betrachter weg), Bild 3 von 3",
+      "en": "Heroine walking up (away from the viewer), frame 3 of 3"
+    },
+    {
+      "name": "hero_girl_left_1",
+      "file": "hero_girl_left_1.png",
+      "tags": [
+        "character",
+        "player",
+        "animation"
+      ],
+      "de": "Heldin geht nach links, Bild 1 von 3",
+      "en": "Heroine walking to the left, frame 1 of 3"
+    },
+    {
+      "name": "hero_girl_left_2",
+      "file": "hero_girl_left_2.png",
+      "tags": [
+        "character",
+        "player",
+        "animation"
+      ],
+      "de": "Heldin geht nach links, Bild 2 von 3 (steht)",
+      "en": "Heroine walking to the left, frame 2 of 3 (standing)"
+    },
+    {
+      "name": "hero_girl_left_3",
+      "file": "hero_girl_left_3.png",
+      "tags": [
+        "character",
+        "player",
+        "animation"
+      ],
+      "de": "Heldin geht nach links, Bild 3 von 3",
+      "en": "Heroine walking to the left, frame 3 of 3"
+    },
+    {
+      "name": "hero_girl_right_1",
+      "file": "hero_girl_right_1.png",
+      "tags": [
+        "character",
+        "player",
+        "animation"
+      ],
+      "de": "Heldin geht nach rechts, Bild 1 von 3",
+      "en": "Heroine walking to the right, frame 1 of 3"
+    },
+    {
+      "name": "hero_girl_right_2",
+      "file": "hero_girl_right_2.png",
+      "tags": [
+        "character",
+        "player",
+        "animation"
+      ],
+      "de": "Heldin geht nach rechts, Bild 2 von 3 (steht)",
+      "en": "Heroine walking to the right, frame 2 of 3 (standing)"
+    },
+    {
+      "name": "hero_girl_right_3",
+      "file": "hero_girl_right_3.png",
+      "tags": [
+        "character",
+        "player",
+        "animation"
+      ],
+      "de": "Heldin geht nach rechts, Bild 3 von 3",
+      "en": "Heroine walking to the right, frame 3 of 3"
+    },
+    {
+      "name": "hero_boy_down_1",
+      "file": "hero_boy_down_1.png",
+      "tags": [
+        "character",
+        "player",
+        "animation"
+      ],
+      "de": "Held geht nach unten (zum Betrachter), Bild 1 von 3",
+      "en": "Hero walking down (towards the viewer), frame 1 of 3"
+    },
+    {
+      "name": "hero_boy_down_2",
+      "file": "hero_boy_down_2.png",
+      "tags": [
+        "character",
+        "player",
+        "animation"
+      ],
+      "de": "Held geht nach unten (zum Betrachter), Bild 2 von 3 (steht)",
+      "en": "Hero walking down (towards the viewer), frame 2 of 3 (standing)"
+    },
+    {
+      "name": "hero_boy_down_3",
+      "file": "hero_boy_down_3.png",
+      "tags": [
+        "character",
+        "player",
+        "animation"
+      ],
+      "de": "Held geht nach unten (zum Betrachter), Bild 3 von 3",
+      "en": "Hero walking down (towards the viewer), frame 3 of 3"
+    },
+    {
+      "name": "hero_boy_up_1",
+      "file": "hero_boy_up_1.png",
+      "tags": [
+        "character",
+        "player",
+        "animation"
+      ],
+      "de": "Held geht nach oben (vom Betrachter weg), Bild 1 von 3",
+      "en": "Hero walking up (away from the viewer), frame 1 of 3"
+    },
+    {
+      "name": "hero_boy_up_2",
+      "file": "hero_boy_up_2.png",
+      "tags": [
+        "character",
+        "player",
+        "animation"
+      ],
+      "de": "Held geht nach oben (vom Betrachter weg), Bild 2 von 3 (steht)",
+      "en": "Hero walking up (away from the viewer), frame 2 of 3 (standing)"
+    },
+    {
+      "name": "hero_boy_up_3",
+      "file": "hero_boy_up_3.png",
+      "tags": [
+        "character",
+        "player",
+        "animation"
+      ],
+      "de": "Held geht nach oben (vom Betrachter weg), Bild 3 von 3",
+      "en": "Hero walking up (away from the viewer), frame 3 of 3"
+    },
+    {
+      "name": "hero_boy_left_1",
+      "file": "hero_boy_left_1.png",
+      "tags": [
+        "character",
+        "player",
+        "animation"
+      ],
+      "de": "Held geht nach links, Bild 1 von 3",
+      "en": "Hero walking to the left, frame 1 of 3"
+    },
+    {
+      "name": "hero_boy_left_2",
+      "file": "hero_boy_left_2.png",
+      "tags": [
+        "character",
+        "player",
+        "animation"
+      ],
+      "de": "Held geht nach links, Bild 2 von 3 (steht)",
+      "en": "Hero walking to the left, frame 2 of 3 (standing)"
+    },
+    {
+      "name": "hero_boy_left_3",
+      "file": "hero_boy_left_3.png",
+      "tags": [
+        "character",
+        "player",
+        "animation"
+      ],
+      "de": "Held geht nach links, Bild 3 von 3",
+      "en": "Hero walking to the left, frame 3 of 3"
+    },
+    {
+      "name": "hero_boy_right_1",
+      "file": "hero_boy_right_1.png",
+      "tags": [
+        "character",
+        "player",
+        "animation"
+      ],
+      "de": "Held geht nach rechts, Bild 1 von 3",
+      "en": "Hero walking to the right, frame 1 of 3"
+    },
+    {
+      "name": "hero_boy_right_2",
+      "file": "hero_boy_right_2.png",
+      "tags": [
+        "character",
+        "player",
+        "animation"
+      ],
+      "de": "Held geht nach rechts, Bild 2 von 3 (steht)",
+      "en": "Hero walking to the right, frame 2 of 3 (standing)"
+    },
+    {
+      "name": "hero_boy_right_3",
+      "file": "hero_boy_right_3.png",
+      "tags": [
+        "character",
+        "player",
+        "animation"
+      ],
+      "de": "Held geht nach rechts, Bild 3 von 3",
+      "en": "Hero walking to the right, frame 3 of 3"
+    },
+    {
+      "name": "npc_wizard",
+      "file": "npc_wizard.png",
+      "tags": [
+        "character",
+        "npc"
+      ],
+      "de": "Zauberer mit Bart und Stab",
+      "en": "Wizard with a beard and a staff"
+    },
+    {
+      "name": "npc_knight",
+      "file": "npc_knight.png",
+      "tags": [
+        "character",
+        "npc"
+      ],
+      "de": "Freundlicher Ritter mit Holzschwert",
+      "en": "Friendly knight with a wooden sword"
+    },
+    {
+      "name": "npc_villager_1",
+      "file": "npc_villager_1.png",
+      "tags": [
+        "character",
+        "npc"
+      ],
+      "de": "Dorfbewohnerin mit Schürze",
+      "en": "Villager woman with an apron"
+    },
+    {
+      "name": "npc_villager_2",
+      "file": "npc_villager_2.png",
+      "tags": [
+        "character",
+        "npc"
+      ],
+      "de": "Dorfbewohner mit Strohhut",
+      "en": "Villager man with a straw hat"
+    },
+    {
+      "name": "npc_merchant",
+      "file": "npc_merchant.png",
+      "tags": [
+        "character",
+        "npc"
+      ],
+      "de": "Händler mit Rucksack",
+      "en": "Merchant with a pack"
+    },
+    {
+      "name": "npc_cat",
+      "file": "npc_cat.png",
+      "tags": [
+        "character",
+        "npc"
+      ],
+      "de": "Katze, sitzend",
+      "en": "Cat, sitting"
+    },
+    {
+      "name": "npc_dog",
+      "file": "npc_dog.png",
+      "tags": [
+        "character",
+        "npc"
+      ],
+      "de": "Hund",
+      "en": "Dog"
+    },
+    {
+      "name": "mon_slime_1",
+      "file": "mon_slime_1.png",
+      "tags": [
+        "enemy",
+        "monster",
+        "animation"
+      ],
+      "de": "Schleim (Bild 1 von 2)",
+      "en": "Slime (frame 1 of 2)"
+    },
+    {
+      "name": "mon_slime_2",
+      "file": "mon_slime_2.png",
+      "tags": [
+        "enemy",
+        "monster",
+        "animation"
+      ],
+      "de": "Schleim, leicht gestaucht (Bild 2 von 2)",
+      "en": "Slime, slightly squashed (frame 2 of 2)"
+    },
+    {
+      "name": "mon_goblin",
+      "file": "mon_goblin.png",
+      "tags": [
+        "enemy",
+        "monster"
+      ],
+      "de": "Kobold",
+      "en": "Goblin"
+    },
+    {
+      "name": "mon_ghost",
+      "file": "mon_ghost.png",
+      "tags": [
+        "enemy",
+        "monster"
+      ],
+      "de": "Gespenst, freundlich-gruselig",
+      "en": "Ghost, friendly-spooky"
+    },
+    {
+      "name": "mon_bat_1",
+      "file": "mon_bat_1.png",
+      "tags": [
+        "enemy",
+        "monster",
+        "animation"
+      ],
+      "de": "Fledermaus, Flügel oben (Bild 1 von 2)",
+      "en": "Bat, wings up (frame 1 of 2)"
+    },
+    {
+      "name": "mon_bat_2",
+      "file": "mon_bat_2.png",
+      "tags": [
+        "enemy",
+        "monster",
+        "animation"
+      ],
+      "de": "Fledermaus, Flügel unten (Bild 2 von 2)",
+      "en": "Bat, wings down (frame 2 of 2)"
+    },
+    {
+      "name": "mon_skeleton",
+      "file": "mon_skeleton.png",
+      "tags": [
+        "enemy",
+        "monster"
+      ],
+      "de": "Skelett, freundlich",
+      "en": "Skeleton, friendly"
+    },
+    {
+      "name": "mon_dragon",
+      "file": "mon_dragon.png",
+      "tags": [
+        "enemy",
+        "monster"
+      ],
+      "de": "Kleiner grüner Drache",
+      "en": "Small green dragon"
+    },
+    {
+      "name": "tile_grass",
+      "file": "tile_grass.png",
+      "tags": [
+        "tile"
+      ],
+      "de": "Kachel Gras",
+      "en": "Tile grass"
+    },
+    {
+      "name": "tile_path",
+      "file": "tile_path.png",
+      "tags": [
+        "tile"
+      ],
+      "de": "Kachel Weg",
+      "en": "Tile dirt path"
+    },
+    {
+      "name": "tile_water",
+      "file": "tile_water.png",
+      "tags": [
+        "tile"
+      ],
+      "de": "Kachel Wasser",
+      "en": "Tile water"
+    },
+    {
+      "name": "tile_sand",
+      "file": "tile_sand.png",
+      "tags": [
+        "tile"
+      ],
+      "de": "Kachel Sand",
+      "en": "Tile sand"
+    },
+    {
+      "name": "tile_stone",
+      "file": "tile_stone.png",
+      "tags": [
+        "tile"
+      ],
+      "de": "Kachel Pflaster",
+      "en": "Tile cobblestone"
+    },
+    {
+      "name": "tile_wood_floor",
+      "file": "tile_wood_floor.png",
+      "tags": [
+        "tile"
+      ],
+      "de": "Kachel Holzboden",
+      "en": "Tile wooden floor"
+    },
+    {
+      "name": "tile_dungeon_floor",
+      "file": "tile_dungeon_floor.png",
+      "tags": [
+        "tile"
+      ],
+      "de": "Kachel Verliesboden",
+      "en": "Tile dungeon floor"
+    },
+    {
+      "name": "tile_snow",
+      "file": "tile_snow.png",
+      "tags": [
+        "tile"
+      ],
+      "de": "Kachel Schnee",
+      "en": "Tile snow"
+    },
+    {
+      "name": "tile_lava",
+      "file": "tile_lava.png",
+      "tags": [
+        "tile"
+      ],
+      "de": "Kachel Lava",
+      "en": "Tile lava"
+    },
+    {
+      "name": "tile_wall",
+      "file": "tile_wall.png",
+      "tags": [
+        "tile"
+      ],
+      "de": "Kachel Mauer",
+      "en": "Tile stone wall"
+    },
+    {
+      "name": "tile_dungeon_wall",
+      "file": "tile_dungeon_wall.png",
+      "tags": [
+        "tile"
+      ],
+      "de": "Kachel Verliesmauer",
+      "en": "Tile dungeon wall"
+    },
+    {
+      "name": "tile_door_closed",
+      "file": "tile_door_closed.png",
+      "tags": [
+        "tile"
+      ],
+      "de": "Kachel Tür, geschlossen",
+      "en": "Tile door, closed"
+    },
+    {
+      "name": "tile_door_open",
+      "file": "tile_door_open.png",
+      "tags": [
+        "tile"
+      ],
+      "de": "Kachel Tür, offen",
+      "en": "Tile door, open"
+    },
+    {
+      "name": "tile_stairs_down",
+      "file": "tile_stairs_down.png",
+      "tags": [
+        "tile"
+      ],
+      "de": "Kachel Treppe nach unten",
+      "en": "Tile stairs down"
+    },
+    {
+      "name": "tile_stairs_up",
+      "file": "tile_stairs_up.png",
+      "tags": [
+        "tile"
+      ],
+      "de": "Kachel Treppe nach oben",
+      "en": "Tile stairs up"
+    },
+    {
+      "name": "tile_bridge",
+      "file": "tile_bridge.png",
+      "tags": [
+        "tile"
+      ],
+      "de": "Kachel Brücke",
+      "en": "Tile bridge"
+    },
+    {
+      "name": "adv_chest_closed",
+      "file": "adv_chest_closed.png",
+      "tags": [
+        "item"
+      ],
+      "de": "Schatztruhe, geschlossen",
+      "en": "Treasure chest, closed"
+    },
+    {
+      "name": "adv_chest_open",
+      "file": "adv_chest_open.png",
+      "tags": [
+        "item"
+      ],
+      "de": "Schatztruhe, offen",
+      "en": "Treasure chest, open"
+    },
+    {
+      "name": "adv_key",
+      "file": "adv_key.png",
+      "tags": [
+        "item"
+      ],
+      "de": "Goldener Schlüssel",
+      "en": "Golden key"
+    },
+    {
+      "name": "adv_potion_red",
+      "file": "adv_potion_red.png",
+      "tags": [
+        "item"
+      ],
+      "de": "Roter Trank",
+      "en": "Red potion"
+    },
+    {
+      "name": "adv_potion_blue",
+      "file": "adv_potion_blue.png",
+      "tags": [
+        "item"
+      ],
+      "de": "Blauer Trank",
+      "en": "Blue potion"
+    },
+    {
+      "name": "adv_potion_green",
+      "file": "adv_potion_green.png",
+      "tags": [
+        "item"
+      ],
+      "de": "Grüner Trank",
+      "en": "Green potion"
+    },
+    {
+      "name": "adv_sword",
+      "file": "adv_sword.png",
+      "tags": [
+        "item"
+      ],
+      "de": "Schwert",
+      "en": "Sword"
+    },
+    {
+      "name": "adv_shield",
+      "file": "adv_shield.png",
+      "tags": [
+        "item"
+      ],
+      "de": "Schild",
+      "en": "Shield"
+    },
+    {
+      "name": "adv_torch",
+      "file": "adv_torch.png",
+      "tags": [
+        "item"
+      ],
+      "de": "Fackel",
+      "en": "Torch"
+    },
+    {
+      "name": "adv_coin",
+      "file": "adv_coin.png",
+      "tags": [
+        "item"
+      ],
+      "de": "Goldmünze",
+      "en": "Gold coin"
+    },
+    {
+      "name": "adv_heart",
+      "file": "adv_heart.png",
+      "tags": [
+        "item"
+      ],
+      "de": "Herz",
+      "en": "Heart"
+    },
+    {
+      "name": "adv_scroll",
+      "file": "adv_scroll.png",
+      "tags": [
+        "item"
+      ],
+      "de": "Schriftrolle",
+      "en": "Scroll"
+    },
+    {
+      "name": "adv_book",
+      "file": "adv_book.png",
+      "tags": [
+        "item"
+      ],
+      "de": "Buch",
+      "en": "Book"
+    },
+    {
+      "name": "adv_sign",
+      "file": "adv_sign.png",
+      "tags": [
+        "object"
+      ],
+      "de": "Wegweiser",
+      "en": "Signpost"
+    },
+    {
+      "name": "adv_well",
+      "file": "adv_well.png",
+      "tags": [
+        "object"
+      ],
+      "de": "Brunnen",
+      "en": "Well"
+    },
+    {
+      "name": "adv_fence",
+      "file": "adv_fence.png",
+      "tags": [
+        "object"
+      ],
+      "de": "Zaun",
+      "en": "Fence"
+    },
+    {
+      "name": "adv_tree",
+      "file": "adv_tree.png",
+      "tags": [
+        "object"
+      ],
+      "de": "Baum",
+      "en": "Tree"
+    },
+    {
+      "name": "adv_barrel",
+      "file": "adv_barrel.png",
+      "tags": [
+        "object"
+      ],
+      "de": "Fass",
+      "en": "Barrel"
+    },
+    {
+      "name": "adv_crate",
+      "file": "adv_crate.png",
+      "tags": [
+        "object"
+      ],
+      "de": "Kiste",
+      "en": "Crate"
+    },
+    {
+      "name": "adv_bridge_post",
+      "file": "adv_bridge_post.png",
+      "tags": [
+        "object"
+      ],
+      "de": "Brückenpfosten",
+      "en": "Bridge post"
+    },
+    {
+      "name": "adv_gravestone",
+      "file": "adv_gravestone.png",
+      "tags": [
+        "object"
+      ],
+      "de": "Grabstein",
+      "en": "Gravestone"
+    },
+    {
+      "name": "adv_portal",
+      "file": "adv_portal.png",
+      "tags": [
+        "object"
+      ],
+      "de": "Magisches Portal",
+      "en": "Magic portal"
+    },
+    {
+      "name": "adv_house",
+      "file": "adv_house.png",
+      "tags": [
+        "object"
+      ],
+      "de": "Haus",
+      "en": "House"
+    },
+    {
+      "name": "adv_castle",
+      "file": "adv_castle.png",
+      "tags": [
+        "object"
+      ],
+      "de": "Burg",
+      "en": "Castle"
+    },
+    {
+      "name": "adv_campfire_1",
+      "file": "adv_campfire_1.png",
+      "tags": [
+        "object",
+        "animation"
+      ],
+      "de": "Lagerfeuer, Bild 1 von 3",
+      "en": "Campfire, frame 1 of 3"
+    },
+    {
+      "name": "adv_campfire_2",
+      "file": "adv_campfire_2.png",
+      "tags": [
+        "object",
+        "animation"
+      ],
+      "de": "Lagerfeuer, Bild 2 von 3",
+      "en": "Campfire, frame 2 of 3"
+    },
+    {
+      "name": "adv_campfire_3",
+      "file": "adv_campfire_3.png",
+      "tags": [
+        "object",
+        "animation"
+      ],
+      "de": "Lagerfeuer, Bild 3 von 3",
+      "en": "Campfire, frame 3 of 3"
+    }
+  ]
+}
