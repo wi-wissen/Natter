@@ -116,6 +116,7 @@ h1 { font-size: clamp(34px, 5.4vw, 58px); line-height: 1.06; margin: 0 0 20px; l
 @media (prefers-color-scheme: dark) { .hl { color: var(--s-light); } }
 .lead { font-size: clamp(17px, 2.1vw, 19.5px); color: var(--muted); max-width: 52ch; margin: 0 0 26px; }
 .links { display: flex; flex-wrap: wrap; gap: 16px; margin-bottom: 28px; }
+@media (max-width: 480px) { .links { gap: 10px; } .links .btn { padding: 0 12px; font-size: 15px; } }
 
 /* Buttons: notched pixel corners drawn with box-shadow, hard drop shadow */
 .btn {
