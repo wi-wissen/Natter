@@ -73,7 +73,6 @@ Hi Grace!
     <a href="#language">Language</a>
     <a href="#modules">Modules</a>
     <a href="#determinism">Determinism</a>
-    <a href="#embedding">Embedding</a>
     <a href="#roadmap">Roadmap</a>
     <a href="reference/">Reference</a>
     <a href="sprites/">Sprites</a>
@@ -114,7 +113,11 @@ npm install @natterjs/assets       <span class="c"># optional: images and sounds
 
 <span class="c"># Node only, no browser</span>
 npm install @natterjs/core</code></pre>
-<p><code>@0.1</code> in the URL means &ldquo;the newest 0.1.x&rdquo;; use <code>@0.1.1</code> to pin a version. More options, such as turtle, Kara, Pygame Zero and images, are in the <a href="reference/">reference</a> and in the <a href="#embedding">embedding section</a> below.</p>
+<p><code>@0.1</code> in the URL means &ldquo;the newest 0.1.x&rdquo;; use <code>@0.1.1</code> to pin a version. A running program can be paused, stepped and inspected: <code>runner.pause()</code>, <code>runner.step("over")</code>, <code>runner.inspect()</code>, <code>runner.stop()</code>.</p>
+<pre class="codeblock" tabindex="0" aria-label="Node"><code><span class="c">// Node 18+, no browser: npm install @natterjs/core</span>
+<span class="k">import</span> { runToEnd } <span class="k">from</span> <span class="s">"@natterjs/core"</span>;
+console.log(runToEnd(<span class="s">"print(1 + 1)"</span>).output);   <span class="c">// 2</span></code></pre>
+<p><b>Images and sounds</b> for Pygame Zero and Kara: <code>createPgzero(el, { assets: { baseUrl: "https://cdn.jsdelivr.net/npm/@natterjs/assets@0.1/", catalog: "catalog.json" } })</code>. <b>Self-hosting:</b> copy the whole <code>dist/</code> folder (the start file loads its chunks from next to itself). Each <a href="https://github.com/wi-wissen/Natter/releases">GitHub release</a> also has <code>natter-web-&lt;version&gt;.zip</code> and the npm tarballs, with checksums. More options, such as turtle, Kara, forms and plots, are in the <a href="reference/">reference</a>.</p>
   </div>
 </section>
 
@@ -204,39 +207,9 @@ npm install @natterjs/core</code></pre>
   </div>
 </section>
 
-<section id="embedding" class="wrap embed">
-  <div>
-    <p class="kicker">06 &middot; Embedding</p>
-    <h2>Embedding</h2>
-    <p>The browser host <code>@natterjs/web</code> runs a program in a page: time slices so a loop never freezes it, console, turtle, Kara, Pygame Zero, forms, plots and the debugger. Heavy parts load only when imported. The core alone is <code>@natterjs/core</code> (Node and browser), the images and sounds are <code>@natterjs/assets</code> (CC0).</p>
-    <p class="tag t-have">in the base</p>
-  </div>
-<div>
-<pre class="codeblock" tabindex="0" aria-label="Install"><code><span class="c"># with a bundler (Vite, esbuild, webpack)</span>
-npm install @natterjs/web
-<span class="c"># optional: the image and sound library</span>
-npm install @natterjs/assets</code></pre>
-<pre class="codeblock" tabindex="0" aria-label="Embedding API"><code><span class="k">import</span> { createRunner, createConsole } <span class="k">from</span> <span class="s">"@natterjs/web"</span>;
-<span class="c">// no build step? Import the same from jsDelivr:</span>
-<span class="c">// "https://cdn.jsdelivr.net/npm/@natterjs/web@0.1/dist/natter-web.js"</span>
-
-<span class="k">const</span> runner = createRunner();
-createConsole(document.querySelector(<span class="s">"#console"</span>)).connect(runner);
-
-<span class="k">await</span> runner.run(<span class="s">`
-for i in range(3):
-    print("Hello", i)
-`</span>, { seed: 42 });
-<span class="c">// runner.pause(), runner.step("over"), runner.inspect(), runner.stop()</span></code></pre>
-<pre class="codeblock" tabindex="0" aria-label="Node"><code><span class="c">// Node 18+: npm install @natterjs/core</span>
-<span class="k">import</span> { runToEnd } <span class="k">from</span> <span class="s">"@natterjs/core"</span>;
-console.log(runToEnd(<span class="s">"print(1 + 1)"</span>).output);   <span class="c">// 2</span></code></pre>
-<p>Images for Pygame Zero and Kara: <code>createPgzero(el, { assets: { baseUrl: "https://cdn.jsdelivr.net/npm/@natterjs/assets@0.1/", catalog: "catalog.json" } })</code>. Self-hosting: copy the whole <code>dist/</code> folder (the start file loads its chunks from next to itself). Each <a href="https://github.com/wi-wissen/Natter/releases">GitHub release</a> also has <code>natter-web-&lt;version&gt;.zip</code> and the npm tarballs (<code>npm install https://github.com/wi-wissen/Natter/releases/download/v0.1.0/natterjs-web-0.1.0.tgz</code>), with checksums.</p>
-</div>
-</section>
 
 <section id="roadmap" class="wrap">
-  <p class="kicker">07 &middot; Roadmap</p>
+  <p class="kicker">06 &middot; Roadmap</p>
   <h2>Roadmap</h2>
   <ol class="roadmap">
     <li><span class="phase">0</span><p>Set up the repository and move the interpreter core in, with its tests.</p></li>
