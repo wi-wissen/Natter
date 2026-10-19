@@ -583,6 +583,20 @@ function render(sections) {
 <meta name="description" content="${esc(PAGE.description)}">
 <meta name="color-scheme" content="light dark">
 <link rel="canonical" href="https://natter.wi7.net/reference/">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Natter">
+<meta property="og:title" content="Natter Reference">
+<meta property="og:description" content="${esc(PAGE.description)}">
+<meta property="og:url" content="https://natter.wi7.net/reference/">
+<meta property="og:image" content="https://natter.wi7.net/reference/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Natter command reference: language, standard library, turtle, Kara, Pygame Zero, forms, numpy and plots">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Natter Reference">
+<meta name="twitter:description" content="${esc(PAGE.description)}">
+<meta name="twitter:image" content="https://natter.wi7.net/reference/og.png">
+<meta name="theme-color" content="#3cb84e">
 <link rel="icon" href="../natter-small.svg" type="image/svg+xml">
 <link rel="stylesheet" href="../style.css">
 <link rel="stylesheet" href="reference.css">

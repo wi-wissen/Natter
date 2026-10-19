@@ -357,6 +357,20 @@ function render({ catalog, types }, base) {
 <meta name="description" content="${esc(description)}">
 <meta name="color-scheme" content="light dark">
 <link rel="canonical" href="${SITE}sprites/">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Natter">
+<meta property="og:title" content="Natter Sprites: images and sounds for Pygame Zero">
+<meta property="og:description" content="${esc(description)}">
+<meta property="og:url" content="${SITE}sprites/">
+<meta property="og:image" content="${SITE}sprites/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Natter sprite library: about 900 images and 14 sounds for games">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Natter Sprites: images and sounds for Pygame Zero">
+<meta name="twitter:description" content="${esc(description)}">
+<meta name="twitter:image" content="${SITE}sprites/og.png">
+<meta name="theme-color" content="#3cb84e">
 <link rel="icon" href="../natter-small.svg" type="image/svg+xml">
 <link rel="preconnect" href="${esc(new URL(base).origin)}">
 <link rel="stylesheet" href="../style.css">
