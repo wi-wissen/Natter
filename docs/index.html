@@ -60,7 +60,7 @@ Hi Grace!
 <span class="err">NameError</span>: name 'nmes' is not defined.
 <span class="hint">Did you mean: 'names'?</span><span class="cursor" aria-hidden="true"></span></code></pre>
       </div>
-      <figcaption>Illustration only. Natter is in early development.</figcaption>
+      <figcaption>Illustration only.</figcaption>
     </figure>
   </div>
 </header>
@@ -194,15 +194,13 @@ console.log(runToEnd(<span class="s">"print(1 + 1)"</span>).output);   <span cla
   <p class="aside-note">The <a href="reference/">command reference</a> lists every module, function, class and constant with its parameters, notes on deviations from CPython and a runnable example. It is generated from the interpreter's source, so it cannot drift from what Natter really does.</p>
 </section>
 
-<section id="determinism" class="band">
-  <div class="wrap">
-    <p class="kicker">05 &middot; Determinism</p>
-    <h2>Same program, same output</h2>
-    <div class="trio">
-      <div><p class="trio-sym" aria-hidden="true">IEEE 754</p><h3>Same math everywhere</h3><p>Addition, multiplication and <code>sqrt</code> are exact IEEE&nbsp;754. Functions that browsers round differently, like <code>sin</code> and <code>exp</code>, are implemented inside Natter so results are identical on every device.</p></div>
-      <div><p class="trio-sym" aria-hidden="true">seed</p><h3>Random seed</h3><p>The seed is an optional parameter. Without it, the seed comes from the browser's secure randomness and every run differs, as in normal Python. With it, every run is the same. The seed that was used can be shown to reproduce a run.</p></div>
-      <div><p class="trio-sym" aria-hidden="true">1000</p><h3>Limits</h3><p>Recursion depth 1000 like CPython, fixed limits for list and string size, independent of the browser's JavaScript stack.</p></div>
-    </div>
+<section id="determinism" class="wrap">
+  <p class="kicker">05 &middot; Determinism</p>
+  <h2>Same program, same output</h2>
+  <div class="trio">
+    <div><p class="trio-sym" aria-hidden="true">IEEE 754</p><h3>Same math everywhere</h3><p>Addition, multiplication and <code>sqrt</code> are exact IEEE&nbsp;754. Functions that browsers round differently, like <code>sin</code> and <code>exp</code>, are implemented inside Natter so results are identical on every device.</p></div>
+    <div><p class="trio-sym" aria-hidden="true">seed</p><h3>Random seed</h3><p>The seed is an optional parameter. Without it, the seed comes from the browser's secure randomness and every run differs, as in normal Python. With it, every run is the same. The seed that was used can be shown to reproduce a run.</p></div>
+    <div><p class="trio-sym" aria-hidden="true">1000</p><h3>Limits</h3><p>Recursion depth 1000 like CPython, fixed limits for list and string size, independent of the browser's JavaScript stack.</p></div>
   </div>
 </section>
 </main>
