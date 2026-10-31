@@ -294,7 +294,8 @@ export function createRunner(options = {}) {
     if (!isActive()) return;
     if (ready) { schedule(id); return; }
     if (main.state === 'paused') setState('paused', vm.placeOf(main));
-    else if (main.state === 'waiting' && main.wait?.kind !== 'sleep') setState('waiting', main.wait); // sleeping (animations) counts as running
+    // sleeping (animations) and waits marked running (the frames of a game) count as running
+    else if (main.state === 'waiting' && main.wait?.kind !== 'sleep' && !main.wait?.running) setState('waiting', main.wait);
   }
 
   /** A task stopped running: dispatch its wait, or end the run. Returns true when the run is over. */

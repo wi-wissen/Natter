@@ -16,7 +16,7 @@ import {
 } from '../packages/core/src/index.js';
 import { BUILTINS, METHODS, CLASS_GLOBALS } from '../packages/core/src/builtins.js';
 import { KARA_NAMES, KARA_CHARS, worldText } from '../packages/core/src/stdlib/kara.js';
-import { PGZ_NATIVES, PGZ_BUILTIN_NAMES, pgzHostModules, installPgzero, pgzFrame, pgzStart } from '../packages/core/src/stdlib/pgzero.js';
+import { PGZ_NATIVES, PGZ_BUILTIN_NAMES, pgzHostModules, installPgzero, frameInput } from '../packages/core/src/stdlib/pgzero.js';
 import { en as MSG_EN } from '../packages/core/src/messages.js';
 import { PACKS } from '../packages/core/src/stdlib/packs.js';
 import { SECTIONS, PAGE } from './reference/content.mjs';
@@ -133,9 +133,12 @@ function runPgzero(source, frames = 30) {
   const main = vm2.start();
   vm2.run(main, 5_000_000);
   if (main.state === 'error') return { error: main.error, output };
-  const step = (task) => { vm2.run(task, 5_000_000); return task.state === 'error' ? task.error : null; };
-  let e = step(pgzStart(vm2));
-  for (let i = 0; !e && i < frames; i++) e = step(pgzFrame(vm2, i === 3 ? [['key_down', 32, 0, ' '], ['mouse_down', [100, 100], 1]] : [], 1 / 60));
+  // the game loop: the main program waiting in pgzrun.go(), else (game mode) a task running it like a host does
+  const loop = main.wait?.kind === 'pgzero' ? main : vm2.spawn(vm2.importModule('pgzero_main', null).ns.get('go'), []);
+  const step = (value) => { if (loop.state === 'waiting') vm2.resume(loop, value); vm2.run(loop, 5_000_000); return loop.state === 'error' ? loop.error : null; };
+  if (loop !== main) vm2.run(loop, 5_000_000); // up to go()'s first wait
+  let e = step(null);
+  for (let i = 0; !e && i < frames && loop.wait?.kind === 'pgzero-frame'; i++) e = step(frameInput(i === 3 ? [['key_down', 32, 0, ' '], ['mouse_down', [100, 100], 1]] : [], 1 / 60));
   return { error: e, output };
 }
 

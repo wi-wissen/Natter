@@ -196,6 +196,34 @@ describe('Debugger', () => {
 });
 
 describe('Debugger and standard modules', () => {
+  it('global has no code: single steps do not halt on it', () => {
+    const { vm } = makeVm('n = 0\ndef f():\n    global n\n    n = n + 1\nf()\nprint(n)');
+    const task = vm.start(null, { mode: 'step', kind: 'into' });
+    vm.run(task);
+    const seen = [vm.lineOf(task)];
+    for (let k = 0; k < 20 && task.state === 'paused'; k++) {
+      vm.debugCommand(task, 'into');
+      vm.run(task);
+      if (task.state === 'paused') seen.push(vm.lineOf(task));
+    }
+    expect(seen).toEqual([1, 2, 5, 4, 6]);
+  });
+
+  it('over or out of a function a standard module called (game loop, reduce): halts at the next line of the program', () => {
+    const src = 'import functools\ndef add(a, b):\n    s = a + b\n    return s\nr = functools.reduce(add, [1, 2, 3])\nprint(r)';
+    const { vm } = makeVm(src);
+    const task = vm.start(null, { mode: 'run', bps: [3] });
+    vm.run(task);
+    expect(vm.lineOf(task)).toBe(3);
+    task.debug.bps = [];
+    const step = (cmd) => { vm.debugCommand(task, cmd); vm.run(task); return task.state === 'paused' ? vm.lineOf(task) : task.state; };
+    expect(step('over')).toBe(4);
+    expect(step('over')).toBe(3); // back in reduce, which calls add again
+    expect(vm.inspect(task).args.map((a) => a.value)).toEqual(['3', '3']);
+    expect(step('out')).toBe(6); // reduce is done: the next line of the program
+    expect(step('over')).toBe('done');
+  });
+
   it('steps over code of standard modules written in Python, but into the own modules of a project', () => {
     const src = 'import statistics\nimport helper\nm = statistics.mean([1, 2, 3])\nh = helper.twice(m)\nprint(m, h)';
     const { vm, out } = makeVm(src, { host: { readModule: (n) => (n === 'helper' ? 'def twice(x):\n    y = x * 2\n    return y\n' : undefined) } });

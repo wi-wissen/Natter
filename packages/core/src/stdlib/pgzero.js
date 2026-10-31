@@ -3,7 +3,9 @@
 //   - answers resource queries:   host.pgz.resource(kind, name) → [w, h] for images, seconds for sounds, true for
 //                                 music and fonts, null when the file does not exist,
 //   - executes commands:          host.pgz.cmd(name, args) with plain JavaScript values (see docs/PGZERO-BRIDGE.md),
-//   - calls the frame driver:     pgzFrame(vm, events, dt) once per animation frame.
+//   - feeds the game loop:        pgzrun.go() runs the loop in the main program (pgzero_main.go); it waits once with
+//                                 kind 'pgzero' (the game starts) and then before every frame with kind 'pgzero-frame',
+//                                 the host answers with (events, dt) when the next frame is due.
 // The natives that look into the VM (argument names of handlers, globals of the main program) are implemented here.
 
 import { PyFloat, PyTuple, PyList, PyDict, PySet, PyFunction, PyMethod, PyBuiltin, Suspend } from '../values.js';
@@ -72,10 +74,18 @@ export const PGZ_NATIVES = {
     for (const [k, v] of names.entries()) ctx.vm.globals.set(k, v);
     return null;
   },
-  /** pgzrun.go(): the main program waits here while the host runs the game (kind 'pgzero'). */
+  /** pgzrun.go(): the game starts; the host gets the window ready and resumes (kind 'pgzero'). */
   '_pgz.go'() { return new Suspend({ kind: 'pgzero' }); },
+  /**
+   * The game loop waits for the next frame (kind 'pgzero-frame'); drawn: the last frame ran draw() (show the canvas).
+   * The host resumes with (events, dt) when the frame is due. running: the program goes on by itself (like sleep).
+   */
+  '_pgz.next_frame'(ctx, args, kw) {
+    const [drawn = null] = params('next_frame', args, kw, ['?drawn']);
+    return new Suspend({ kind: 'pgzero-frame', drawn: drawn === true, running: true });
+  },
 };
-export const PGZ_NAMES = ['resource', 'cmd', 'argnames', 'main_get', 'main_vars', 'install', 'go'];
+export const PGZ_NAMES = ['resource', 'cmd', 'argnames', 'main_get', 'main_vars', 'install', 'go', 'next_frame'];
 
 /**
  * VM options that make `_pgz` importable while builtins.js does not list it yet:
@@ -103,22 +113,10 @@ export function installPgzero(vm) {
 }
 
 /**
- * Start the game (read WIDTH, HEIGHT, TITLE, find the hooks, spell check them); frame() does it itself if needed.
- * Returns the task; run it with vm.run(task, budget).
- */
-export function pgzStart(vm) {
-  const start = vm.importModule('pgzero_main', null).ns.get('start');
-  return vm.spawn(start, [], { pgzero: 'start' });
-}
-
-/**
- * Start one frame: dispatch the events, tick the clock and animations, call update() and maybe draw().
- * Returns the task; run it with vm.run(task, budget). Its result is True when draw() ran (show the canvas).
- * @param {import('../vm.js').VM} vm
+ * The answer to a 'pgzero-frame' wait: vm.resume(task, frameInput(events, dt)).
  * @param {any[]} events JavaScript arrays like ['key_down', key, mod, unicode] (see docs/PGZERO-BRIDGE.md)
  * @param {number} dt seconds since the last frame
  */
-export function pgzFrame(vm, events, dt) {
-  const frame = vm.importModule('pgzero_main', null).ns.get('frame');
-  return vm.spawn(frame, [new PyList(events.map(toPy)), new PyFloat(dt)], { pgzero: 'frame' });
+export function frameInput(events, dt) {
+  return new PyTuple([new PyList(events.map(toPy)), new PyFloat(dt)]);
 }

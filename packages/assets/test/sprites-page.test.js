@@ -7,7 +7,8 @@ import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { buildSprites, OUT_FILE, ASSETS_BASE, USAGE_CODE, USAGE_NAMES } from '../../../scripts/build-sprites.mjs';
 import { VM, compile } from '../../core/src/index.js';
-import { PGZ_NATIVES, PGZ_BUILTIN_NAMES, pgzHostModules, installPgzero, pgzStart, pgzFrame } from '../../core/src/stdlib/pgzero.js';
+import { PGZ_NATIVES, PGZ_BUILTIN_NAMES, pgzHostModules, installPgzero } from '../../core/src/stdlib/pgzero.js';
+import { frame } from '../../core/test/pgzHost.js';
 
 const ROOT = join(import.meta.dirname, '..');
 const catalog = JSON.parse(readFileSync(join(ROOT, 'catalog.json'), 'utf8'));
@@ -69,8 +70,7 @@ describe('sprite gallery', () => {
     installPgzero(vm);
     const run = (task) => { vm.run(task, 5_000_000); return task.state === 'error' ? task.error : null; };
     expect(run(vm.start())).toBe(null);
-    expect(run(pgzStart(vm))).toBe(null);
-    expect(run(pgzFrame(vm, [['mouse_down', [100, 100], 1]], 1 / 60))).toBe(null);
+    expect(frame(vm, { cmds: [] }, [['mouse_down', [100, 100], 1]], 1 / 60).error).toBe(null);
     expect(output.trim()).toBe(String(images.get('ente').w));
   });
 

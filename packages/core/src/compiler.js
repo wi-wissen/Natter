@@ -588,7 +588,8 @@ class Compiler {
         this.leave(-1, true, s);
         this.emit(OP.RETURN, 0, s);
         break;
-      case 'Global': case 'Nonlocal': this.emit(OP.NOP, 0, s); break;
+      // no code, like CPython: the debugger does not halt on `global n`
+      case 'Global': case 'Nonlocal': this.pendingStmt = 0; break;
       case 'Delete':
         for (const t of s.targets) this.del(t);
         break;

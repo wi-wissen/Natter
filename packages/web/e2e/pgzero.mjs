@@ -100,6 +100,43 @@ def draw():
 pgzrun.go()
 `;
 
+/** The catch game of the bug report (codenatter.de): a basket, a falling star, points. */
+const CATCH = `import pgzrun
+import random
+
+WIDTH = 480
+HEIGHT = 320
+
+korb = Rect(200, 290, 80, 16)
+stern = [240, 0]
+punkte = 0
+
+def draw():
+    screen.fill((20, 24, 60))
+    screen.draw.filled_rect(korb, "orange")
+    screen.draw.filled_circle((stern[0], stern[1]), 10, "gold")
+    screen.draw.text("Punkte: " + str(punkte), (10, 10), fontsize=32, color="white")
+
+def update():
+    global punkte
+    if keyboard.left:
+        korb.x = korb.x - 6
+    if keyboard.right:
+        korb.x = korb.x + 6
+    korb.clamp_ip(Rect(0, 0, WIDTH, HEIGHT))
+    stern[1] = stern[1] + 3
+    if korb.collidepoint(stern[0], stern[1]):
+        punkte = punkte + 1
+        sounds.coin.play()
+        stern[0] = random.randint(20, WIDTH - 20)
+        stern[1] = 0
+    if stern[1] > HEIGHT:
+        stern[0] = random.randint(20, WIDTH - 20)
+        stern[1] = 0
+
+pgzrun.go()
+`;
+
 /** A 40 x 20 test image: left half red, right half blue. */
 const addTestImage = (page) => page.evaluate(() => {
   const c = document.createElement('canvas');
@@ -204,10 +241,13 @@ pgzrun.go()
     const n0 = (await info(page)).frames;
     await page.evaluate((n) => window.demo.pgz.step(35 - n), n0);
     const read = () => page.evaluate(() => ({ frames: window.demo.pgz.info.frames, t: window.demo.runner.vm.globals.get('t').items.length }));
+    const frames = (n) => page.waitForFunction((k) => window.demo.pgz.info.frames >= k, n, { timeout: 5000 });
+    await frames(35);
     let r = await read();
     assertEq(r.frames, 35, 'frames');
     assertEq(r.t, 1, 'clock fired once after 0.58 s');
     await page.evaluate(() => window.demo.pgz.step(30));
+    await frames(65);
     r = await read();
     assertEq(r.t, 2, 'clock fired twice after 1.08 s');
     await page.waitForTimeout(200);
@@ -233,6 +273,53 @@ pgzrun.go()
     await page.waitForFunction(() => window.demo.con.text.includes('half'), null, { timeout: 5000 });
     assertEq((await output(page)).trim(), 'half 30.0 25.0', 'linear 30, accelerate 0.5² × 100');
     await stop(page);
+  }],
+  ['debugger: breakpoint in update() halts the game, step and continue go on from there', async ({ page }) => {
+    await page.evaluate(() => window.demo.runner.setBreakpoints('main.py', [24]));
+    try {
+      await page.evaluate((s) => window.demo.setCode(s), CATCH);
+      await page.click('#run');
+      await page.waitForFunction(() => document.body.dataset.state === 'paused', null, { timeout: 10000 });
+      const where = () => page.evaluate(() => window.demo.runner.vm.placeOf(window.demo.runner.task).line);
+      const stern = () => page.evaluate(() => window.demo.runner.vm.repr(window.demo.runner.vm.globals.get('stern')));
+      assertEq(await where(), 24, 'halts in update()');
+      assertEq(await stern(), '[240, 0]', 'first frame');
+      const stack = await page.evaluate(() => window.demo.runner.inspect().frames.map((f) => f.name));
+      assert(stack.at(-1) === 'update' && stack.includes('<module>'), 'call stack <module> … update: ' + stack);
+      const f0 = (await info(page)).frames;
+      await page.waitForTimeout(300);
+      assertEq((await info(page)).frames, f0, 'no frames while halted');
+      await page.evaluate(() => window.demo.runner.step('over'));
+      await page.waitForFunction(() => document.body.dataset.state === 'paused' && window.demo.runner.vm.placeOf(window.demo.runner.task).line === 25, null, { timeout: 5000 });
+      assertEq(await stern(), '[240, 3]', 'step ran line 24');
+      await page.evaluate(() => window.demo.runner.continue());
+      await page.waitForFunction(() => document.body.dataset.state === 'paused' && window.demo.runner.vm.placeOf(window.demo.runner.task).line === 24, null, { timeout: 5000 });
+      assertEq(await stern(), '[240, 3]', 'continue halts again in the next frame');
+      // step over the end of update(): the next line of the program that runs is in draw()
+      const lines = [];
+      for (let i = 0; i < 12 && !lines.includes(12); i++) {
+        await page.evaluate(() => window.demo.runner.step('over'));
+        await page.waitForFunction(() => document.body.dataset.state === 'paused', null, { timeout: 5000 });
+        lines.push(await where());
+      }
+      assert(lines.includes(12) && lines.every((l) => l === 12 || (l >= 24 && l <= 31)), 'update() then draw(): ' + lines);
+      await page.evaluate(() => { window.demo.runner.setBreakpoints('main.py', []); window.demo.runner.continue(); });
+      await page.waitForFunction((n) => window.demo.pgz.info.frames > n + 5, f0, { timeout: 5000 });
+      assertEq(await state(page), 'running', 'the game runs on');
+      await stop(page);
+      // single step from pgzrun.go() leads into the first hook
+      await page.evaluate(() => window.demo.runner.setBreakpoints('main.py', [34]));
+      await page.click('#run');
+      await page.waitForFunction(() => document.body.dataset.state === 'paused', null, { timeout: 10000 });
+      assertEq(await where(), 34, 'halts at pgzrun.go()');
+      await page.evaluate(() => window.demo.runner.step('into'));
+      await page.waitForFunction(() => document.body.dataset.state === 'paused' && window.demo.runner.vm.placeOf(window.demo.runner.task).line !== 34, null, { timeout: 5000 });
+      assertEq(await where(), 19, 'step into go(): first line of update()');
+      await page.screenshot({ path: join(OUT, 'pgz-debugger.png') });
+      await stop(page);
+    } finally {
+      await page.evaluate(() => window.demo.runner.setBreakpoints('main.py', []));
+    }
   }],
   ['endless loop in update: page stays responsive, "too long" error with the line', async ({ page }) => {
     await game(page, 'pgz-loop', 0);
@@ -323,7 +410,7 @@ pgzrun.go()
         await page.keyboard.down('ArrowUp'); await page.waitForTimeout(250); await page.keyboard.up('ArrowUp');
         assert(await page.evaluate(() => window.demo.runner.vm.globals.get('duck')) !== undefined, 'duck');
       }
-      assertEq(await state(page), 'waiting', `${id} runs (${await output(page)})`);
+      assertEq(await state(page), 'running', `${id} runs (${await output(page)})`);
       await page.screenshot({ path: join(OUT, `pgz-desktop-${id.slice(4)}.png`) });
       await stop(page);
     }

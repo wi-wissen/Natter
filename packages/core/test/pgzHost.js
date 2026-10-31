@@ -5,7 +5,7 @@ import { readFileSync, existsSync, readdirSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { compile, VM, ScriptError } from '../src/index.js';
-import { PGZ_NATIVES, pgzHostModules, pgzFrame, pgzStart, installPgzero, PGZ_BUILTIN_NAMES } from '../src/stdlib/pgzero.js';
+import { PGZ_NATIVES, pgzHostModules, frameInput, installPgzero, PGZ_BUILTIN_NAMES } from '../src/stdlib/pgzero.js';
 
 export const IMAGE_DIR = join(dirname(fileURLToPath(import.meta.url)), 'cases', 'images');
 export const SOUND_DIR = join(dirname(fileURLToPath(import.meta.url)), 'cases', 'sounds');
@@ -83,15 +83,41 @@ export function runPgz(source, opts = {}) {
   return { ...out, error, vm, task };
 }
 
+/** The game loop of a VM (the task that runs pgzero_main.go), once started. */
+const loops = new WeakMap();
+
 /**
- * Run one frame; returns { drawn, exited, error } and the commands recorded during the frame. `exited`: the program
- * ended with SystemExit (exit(), Ctrl+Q), the VM marks that with task.exitCode.
+ * Start the game loop like a host: the main program waiting in pgzrun.go() runs it, else (game mode, the program has
+ * ended) a task runs pgzero_main.go like the line a host appends. Runs it up to the first frame (window, hooks, spell
+ * check); returns the error or null.
+ */
+export function startGame(vm) {
+  if (loops.has(vm)) return null;
+  let loop = [...vm.tasks.values()].find((t) => t.state === 'waiting' && t.wait?.kind === 'pgzero');
+  loop ??= vm.spawn(vm.importModule('pgzero_main', null).ns.get('go'), []);
+  loops.set(vm, loop);
+  let error = finish(vm, loop);
+  if (!error && loop.wait?.kind === 'pgzero') { vm.resume(loop, null); error = finish(vm, loop); }
+  return error;
+}
+
+/** The game loop waits for its next frame. */
+export const waitsForFrame = (vm) => loops.get(vm)?.state === 'waiting' && loops.get(vm).wait?.kind === 'pgzero-frame';
+
+/**
+ * Run one frame; returns { drawn, exited, ended, error } and the commands recorded during the frame. `exited`: the
+ * program ended with SystemExit (exit(), Ctrl+Q), the VM marks that with task.exitCode; `ended`: the game loop is over.
  */
 export function frame(vm, out, events = [], dt = 1 / 60) {
   const start = out.cmds.length;
-  const task = pgzFrame(vm, events, dt);
-  const error = finish(vm, task);
-  return { drawn: task.result === true, exited: 'exitCode' in task, error, cmds: out.cmds.slice(start) };
+  let error = startGame(vm);
+  const loop = loops.get(vm);
+  if (!error && waitsForFrame(vm)) {
+    vm.resume(loop, frameInput(events, dt));
+    error = finish(vm, loop);
+  }
+  const waiting = waitsForFrame(vm);
+  return { drawn: waiting && loop.wait.drawn, exited: 'exitCode' in loop, ended: !waiting, error, cmds: out.cmds.slice(start) };
 }
 
 /**
@@ -102,9 +128,9 @@ export function runFrames(source, frames, opts = {}) {
   const { vm, out } = pgzVM(source, { ...opts, game: true });
   const task = vm.start();
   let error = finish(vm, task, opts.budget);
-  if (!error && frames.length) error = finish(vm, pgzStart(vm));
+  if (!error && frames.length) error = startGame(vm);
   const drawn = [];
-  for (let i = 0; i < frames.length && !error && (task.state === 'done' || task.wait?.kind === 'pgzero'); i++) {
+  for (let i = 0; i < frames.length && !error && waitsForFrame(vm); i++) {
     out.output += `--- frame ${i}\n`;
     const r = frame(vm, out, frames[i].events, frames[i].dt);
     error = r.error;
