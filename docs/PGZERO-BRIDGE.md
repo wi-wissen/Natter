@@ -1,6 +1,6 @@
 # Pygame Zero: Brücke zum Host
 
-Die Spiellogik von Pygame Zero läuft komplett in Python-Modulen von Natter, ohne Zeichnen, Ton und Fenster. Der Host (Browser) zeichnet, spielt Töne ab und sammelt Eingaben. Er ruft nie selbst Funktionen des Schülerprogramms auf: Das macht der Frame-Treiber `pgzero_main.frame` in Python.
+Die Spiellogik von Pygame Zero läuft komplett in Python-Modulen von Natter, ohne Zeichnen, Ton und Fenster. Der Host (Browser) zeichnet, spielt Töne ab und sammelt Eingaben. Er ruft nie selbst Funktionen des Schülerprogramms auf: Die Spielschleife `pgzero_main.go` läuft wie bei pgzero (`pgzrun.go()` → `PGZeroGame.mainloop`) im Hauptprogramm. Vor jedem Frame wartet sie, bis der Host Ereignisse und `dt` liefert. Deshalb gelten Haltepunkte und Einzelschritte auch in `update`, `draw` und den Hooks, und der Aufrufstapel ist `<module>` → `update`.
 
 | Modul | Inhalt (Vorbild) |
 |---|---|
@@ -14,7 +14,7 @@ Die Spiellogik von Pygame Zero läuft komplett in Python-Modulen von Natter, ohn
 | `pgzero_color` | Farbtabelle von pygame (`THECOLORS`), `Color`, `make_color` |
 | `pgzero_spellcheck` | Warnungen bei vertippten Hooks/Konstanten, Fehler bei falschen Hook-Parametern |
 | `pgzero_builtins` | alle Namen eines Pygame-Zero-Programms |
-| `pgzero_main` | Frame-Treiber (`start`, `frame`) |
+| `pgzero_main` | Spielschleife (`go`, ein Durchlauf: `frame`) |
 | `pgzrun` | `import pgzrun`, `pgzrun.go()` |
 
 ## Natives `_pgz`
@@ -22,7 +22,7 @@ Die Spiellogik von Pygame Zero läuft komplett in Python-Modulen von Natter, ohn
 `packages/core/src/stdlib/pgzero.js` stellt sie bereit (`PGZ_NATIVES`, `PGZ_NAMES`). Solange `builtins.js` das Modul `_pgz` nicht kennt, gibt der Host sie selbst mit:
 
 ```js
-import { PGZ_NATIVES, pgzHostModules, PGZ_BUILTIN_NAMES, installPgzero, pgzStart, pgzFrame } from '.../stdlib/pgzero.js';
+import { PGZ_NATIVES, pgzHostModules, PGZ_BUILTIN_NAMES, installPgzero, frameInput } from '.../stdlib/pgzero.js';
 const vm = new VM(compile(src, { known: PGZ_BUILTIN_NAMES }), {
   natives: PGZ_NATIVES,
   host: { ...pgzHostModules(), print, pgz: { resource, cmd } },
@@ -36,23 +36,28 @@ Vom Host zu liefern (`host.pgz`):
 | `resource(kind, name)` | `'images'` → `[breite, höhe]`, `'sounds'` → Länge in Sekunden, `'music'`/`'fonts'` → `true`; `null`, wenn es die Datei nicht gibt. `name` ohne Endung, Kleinschreibung wie bei pgzero (Unterordner: `name` mit `/`). |
 | `cmd(name, args)` | Befehl ausführen (Tabelle unten), `args` als JavaScript-Array. |
 
-Im Kern implementiert: `argnames(fn)` (Parameternamen eines Hooks), `main_get(name)`, `main_vars()` (globale Namen des Hauptprogramms), `install(dict)` (für `import pgzrun`), `go()` (wartet mit `wait.kind === 'pgzero'`).
+Im Kern implementiert: `argnames(fn)` (Parameternamen eines Hooks), `main_get(name)`, `main_vars()` (globale Namen des Hauptprogramms), `install(dict)` (für `import pgzrun`), `go()` (wartet einmal mit `wait.kind === 'pgzero'`: das Spiel beginnt), `next_frame(drawn)` (wartet vor jedem Frame mit `wait.kind === 'pgzero-frame'`).
 
 ## Start
 
-- **Mit `import pgzrun`:** Das Modul legt die Pygame-Zero-Namen in die Globalen des Programms (wie `prepare_mod`). `pgzrun.go()` hält das Hauptprogramm an (`task.state === 'waiting'`, `task.wait.kind === 'pgzero'`); daran erkennt der Host auch ohne Spielmodus, dass ein Spiel startet. Code nach `go()` läuft erst, wenn der Host das Programm nach Spielende mit `vm.resume(task)` fortsetzt (wie beim Schließen des Fensters).
-- **Ohne `import pgzrun`** (wie `pgzrun spiel.py`): Der Host im Spielmodus kompiliert mit `known: PGZ_BUILTIN_NAMES` und ruft vor `vm.start()` `installPgzero(vm)` auf (Namen als vordefinierte Globale). Läuft das Hauptprogramm durch, beginnt das Spiel.
-- Danach einmal `pgzStart(vm)` ausführen (liest `WIDTH`, `HEIGHT`, `TITLE`, sucht die Hooks, Rechtschreibprüfung); sonst macht es der erste Frame.
+- **Mit `import pgzrun`:** Das Modul legt die Pygame-Zero-Namen in die Globalen des Programms (wie `prepare_mod`). `pgzrun.go()` ruft die Spielschleife `pgzero_main.go()` auf.
+- **Ohne `import pgzrun`** (wie `pgzrun spiel.py`): Der Host im Spielmodus kompiliert mit `known: PGZ_BUILTIN_NAMES`, ruft vor `vm.start()` `installPgzero(vm)` auf (Namen als vordefinierte Globale) und hängt eine Zeile an, die `pgzero_main.go()` aufruft (die Zeilennummern bleiben).
+- Die Schleife wartet zuerst mit `task.wait.kind === 'pgzero'`. Daran erkennt der Host, dass ein Spiel startet, und macht das Fenster bereit; dann `vm.resume(task)`. Danach liest sie `WIDTH`, `HEIGHT`, `TITLE`, sucht die Hooks und prüft ihre Schreibweise.
 
 ## Pro Frame
 
+Die Schleife wartet mit `{ kind: 'pgzero-frame', drawn, running: true }`. `drawn`: Der letzte Frame hat `draw()` aufgerufen, die Leinwand wird angezeigt. `running`: Der Runner zählt das als laufendes Programm, nicht als „wartet“. Ist der nächste Frame fällig:
+
 ```js
-const task = pgzFrame(vm, events, dt);   // dt in Sekunden; fester Wert (z. B. 1/60) macht Läufe reproduzierbar
-vm.run(task, budget);                     // Status 'budget' = Endlosschleife im Spiel
-// task.result === true  → draw() lief: Leinwand anzeigen
-// 'exitCode' in task    → exit() oder Strg+Q: Spiel beenden
-// task.state === 'error' → task.error anzeigen, Spiel anhalten
+task.allowance = 20_000_000;                      // Befehle für diesen Frame; aufgebraucht: „dauert zu lange“ mit der Zeile
+vm.resume(task, frameInput(events, dt));          // dt in Sekunden; fester Wert (z. B. 1/60) macht Läufe reproduzierbar
+// task wartet wieder mit 'pgzero-frame' → nächster Frame
+// task.state === 'error'                         → Fehler in einem Hook (mit Traceback)
+// 'exitCode' in task                             → exit() oder Strg+Q: Programm beendet
+// sonst                                          → Fenster geschlossen ("quit"), Code nach go() läuft
 ```
+
+Am Ende der Schleife (Fenster zu, `exit()`, Fehler) kommt der Befehl `closed`: Der Host hört auf, Frames zu liefern, und stoppt die Klänge. Hält der Debugger an, bleibt die Schleife mitten im Frame stehen. Bis zum Weiterlaufen liefert der Host keine Frames und lässt die Zeit nicht weiterlaufen.
 
 Ablauf wie `PGZeroGame.mainloop`: Ereignisse (Tastaturzustand, Hooks), `clock.tick(dt)` mit Animationen, `update(dt)` bzw. `update()`, `draw()` nur, wenn es `update` gibt, die Uhr etwas ausgelöst hat oder ein Ereignis-Hook lief (sonst `False`). Hooks werden wie bei pgzero beim Start einmal gesucht.
 

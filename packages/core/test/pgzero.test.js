@@ -7,7 +7,7 @@ import { readFileSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { runPgz, pgzVM, finish, frame, runFrames } from './pgzHost.js';
-import { pgzStart, toPy, toHost } from '../src/stdlib/pgzero.js';
+import { toPy, toHost, frameInput } from '../src/stdlib/pgzero.js';
 import { PyTuple, PyFloat } from '../src/index.js';
 
 const golden = JSON.parse(readFileSync(join(dirname(fileURLToPath(import.meta.url)), 'data', 'pgzero-golden.json'), 'utf8'));
@@ -241,12 +241,13 @@ def update():
     expect(g.step().cmds).toEqual([]);
   });
 
-  it('quit returns None, Ctrl+Q ends the program with SystemExit, draw(x) and wrong hook parameters are errors', () => {
+  it('quit ends the game loop, Ctrl+Q ends the program with SystemExit, draw(x) and wrong hook parameters are errors', () => {
     let g = game('def draw():\n    pass');
     const t = g.step([['quit']]);
-    expect(t.drawn).toBe(false);
-    expect(t.exited).toBe(false);
-    expect(g.step([['key_down', 113, 64, 'q']])).toMatchObject({ exited: true, error: null });
+    expect(t).toMatchObject({ drawn: false, exited: false, ended: true, error: null });
+    expect(g.out.cmds.at(-1)).toEqual(['closed']);
+    g = game('def draw():\n    pass');
+    expect(g.step([['key_down', 113, 64, 'q']])).toMatchObject({ exited: true, ended: true, error: null });
     g = game('def update():\n    exit()');
     expect(g.step()).toMatchObject({ exited: true, error: null });
     g = game('def draw(screen):\n    pass');
@@ -259,17 +260,62 @@ def update():
     expect(g.step().error.kind).toBe('InvalidParameter');
   });
 
-  it('import pgzrun and go(): the main program waits (kind "pgzero") while the host runs frames', () => {
+  it('import pgzrun and go(): the main program runs the game loop, waits before every frame, goes on after quit', () => {
     const { vm, out } = pgzVM('import pgzrun\nprint(Actor("box"), screen)\ndef draw():\n    print("draw")\npgzrun.go()\nprint("after")');
     const main = vm.start();
     expect(finish(vm, main)).toBeNull();
     expect(main.state).toBe('waiting');
     expect(main.wait).toEqual({ kind: 'pgzero' });
-    expect(finish(vm, pgzStart(vm))).toBeNull();
-    frame(vm, out);
     vm.resume(main, null);
+    expect(finish(vm, main)).toBeNull();
+    expect(main.wait).toEqual({ kind: 'pgzero-frame', drawn: false, running: true });
+    vm.resume(main, frameInput([], 1 / 60));
     finish(vm, main);
+    expect(main.wait).toMatchObject({ kind: 'pgzero-frame', drawn: true });
+    vm.resume(main, frameInput([['quit']], 1 / 60));
+    finish(vm, main);
+    expect(main.state).toBe('done');
     expect(out.output).toBe("<Actor 'box' pos=(20.0, 15.0)> <Screen width=800 height=600>\ndraw\nafter\n");
+  });
+
+  it('debugger: breakpoints and single steps in the hooks, call stack from <module> through go() to update()', () => {
+    const src = 'import pgzrun\nn = 0\ndef update():\n    global n\n    n = n + 1\ndef draw():\n    print("draw", n)\npgzrun.go()\n';
+    const { vm, out } = pgzVM(src);
+    const main = vm.start(null, { bps: [5] });
+    const next = (events = []) => { vm.resume(main, frameInput(events, 1 / 60)); return vm.run(main, 1e6).status; };
+    vm.run(main, 1e6);
+    vm.resume(main, null);
+    expect(vm.run(main, 1e6).status).toBe('waiting');
+    expect(next()).toBe('paused');
+    expect(vm.placeOf(main).line).toBe(5);
+    expect(vm.inspect(main).frames.map((f) => f.name)).toEqual(expect.arrayContaining(['<module>', 'update']));
+    vm.debugCommand(main, 'over');
+    expect(vm.run(main, 1e6).status).toBe('paused');
+    expect(vm.placeOf(main).line).toBe(7); // over the end of update(): the next line of the program is in draw()
+    vm.debugCommand(main, 'out');
+    expect(vm.run(main, 1e6).status).toBe('waiting'); // out of draw(): the loop waits for the next frame
+    expect(next()).toBe('paused'); // which halts at its first line of the program (update)
+    expect(vm.placeOf(main).line).toBe(5);
+    expect(out.output).toBe('draw 1\n');
+    main.debug.bps = [];
+    vm.debugCommand(main, 'continue');
+    expect(vm.run(main, 1e6).status).toBe('waiting');
+    expect(main.wait.kind).toBe('pgzero-frame');
+  });
+
+  it('an endless loop in a hook: the allowance of the frame runs out, "too long" at its line', () => {
+    const { vm } = pgzVM('import pgzrun\ndef update():\n    while True:\n        pass\npgzrun.go()\n');
+    const main = vm.start();
+    vm.run(main, 1e6);
+    vm.resume(main, null);
+    vm.run(main, 1e6);
+    main.allowance = 100000;
+    vm.resume(main, frameInput([], 1 / 60));
+    let r;
+    for (let i = 0; i < 100 && (!r || r.status === 'budget'); i++) r = vm.run(main, 30000);
+    expect(r.status).toBe('error');
+    expect(main.error.code).toBe('err.script.tooLong');
+    expect([3, 4]).toContain(main.error.line);
   });
 
   it('from pgzero_builtins import * works without game mode', () => {

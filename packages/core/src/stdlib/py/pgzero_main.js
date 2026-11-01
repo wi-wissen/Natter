@@ -1,6 +1,8 @@
-// pgzero_main: the game loop of Pygame Zero (pgzero/game.py PGZeroGame.mainloop), one iteration per call of frame().
-// The host calls frame(events, dt) for every animation frame; everything that calls the program's functions
-// (on_key_down, update, draw, ...) happens here, in Python.
+// pgzero_main: the game loop of Pygame Zero (pgzero/game.py PGZeroGame.mainloop). go() runs it in the main program,
+// like pgzrun.go(): before every frame it waits until the host hands over the events and dt (_pgz.next_frame), then
+// frame() dispatches them and calls update() and draw(). Everything that calls the program's functions (on_key_down,
+// update, draw, ...) happens here, in Python, in the main program: breakpoints and single steps work in the hooks,
+// and the call stack is <module> → go → update as in CPython.
 //
 // events: tuples collected by the host since the last frame
 //   ("key_down", key, mod, unicode[, scancode])     ("key_up", key, mod[, unicode, scancode])
@@ -210,6 +212,21 @@ def start():
 
 
 def frame(events, dt):
-    """One iteration of the game loop (called by the host)."""
+    """One iteration of the game loop."""
     return game.frame(events, dt)
+
+
+def go():
+    """The game loop: runs until the window closes ("quit"); exit() and errors end the program."""
+    _pgz.go()
+    try:
+        start()
+        drawn = False
+        while True:
+            events, dt = _pgz.next_frame(drawn)
+            drawn = game.frame(events, dt)
+            if drawn is None:
+                return
+    finally:
+        _cmd("closed", ())
 `;

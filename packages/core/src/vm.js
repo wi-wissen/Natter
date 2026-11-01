@@ -52,6 +52,8 @@ const TRACE_HEAD = 3, TRACE_TAIL = 10;
  * @property {any} error  ScriptError as JSON
  * @property {any} debug  null or { mode: 'run'|'step', kind, depth, bps: number[], skip }
  * @property {any} meta   data of the host (e.g. event, section)
+ * @property {number|null} [allowance]  instructions the task may still run before it waits (set by the host, e.g. for
+ *   one frame of a game); used up: the error "takes too long" at the line it hangs in. Cleared when the task waits or ends.
  */
 
 export class VM {
@@ -252,7 +254,15 @@ export class VM {
    */
   run(task, budget = Infinity) {
     if (task.state !== 'ready') return { status: task.state === 'done' ? 'done' : task.state, used: 0 };
-    const used = this.execute(task, budget, false);
+    const limited = task.allowance != null;
+    const used = this.execute(task, limited ? Math.min(budget, task.allowance) : budget, false);
+    if (limited) {
+      if (task.state === 'ready') {
+        task.allowance -= used;
+        // an endless loop (e.g. in update() of a game): the error at the line it hangs in
+        if (task.allowance <= 0) this.fail(task, new ScriptError('tooLong', {}), task.frames[task.frames.length - 1]);
+      } else if (task.state !== 'paused') task.allowance = null;
+    }
     const status = task.state === 'ready' ? 'budget' : task.state;
     return { status, used };
   }
@@ -869,9 +879,14 @@ export class VM {
 
   /** Should the debugger stop before this instruction? */
   debugStop(task, frame, code, pc) {
-    if (code.lib) return false;
     const d = task.debug;
     const depth = task.frames.length;
+    if (code.lib) {
+      // stepped over or out of a function back into a library that called it (the game loop calls update(), then
+      // draw()): halt at the next line of the program that runs
+      if (d.mode === 'step' && d.kind !== 'into' && depth < d.depth) d.kind = 'into';
+      return false;
+    }
     if (d.skip) {
       const same = d.skip.depth === depth && d.skip.pc === pc;
       d.skip = null;
@@ -1283,7 +1298,8 @@ export class VM {
       }).join(', ');
       return { name: c.name, line: c.lines[Math.min(f.pc, c.lines.length - 1)], args, file: c.file ?? null };
     };
-    const all = task ? task.frames : [];
+    // calls in standard modules written in Python (the game loop of pgzrun.go()) are left out: the debugger steps over them
+    const all = task ? task.frames.filter((f) => !this.codes[f.code].lib) : [];
     const frames = all.length > 12
       ? [...all.slice(0, 2).map(callOf), { name: '…', line: 0, args: null, skipped: all.length - 10 }, ...all.slice(-8).map(callOf)]
       : all.map(callOf);

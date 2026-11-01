@@ -8,7 +8,7 @@ import {
   createStepper, roundHalfEven, pgzKey, pgzMods, rotatedSize, wrapLines, layoutText, fitFontSize, toneEnvelope, wavSeconds,
   pgzMode, usedNames, stringLiterals, fontPixels, fontCss, mouseButtons, SPECIAL_KEYS,
 } from '../src/pgzeroMath.js';
-import { createDriver, gameSource, installPgzero, systemExit, PGZ_BUILTIN_NAMES } from '../src/pgzeroDriver.js';
+import { createDriver, gameSource, installPgzero, PGZ_BUILTIN_NAMES } from '../src/pgzeroDriver.js';
 import { createRunner } from '../src/runner.js';
 import { PGZ_BUILTIN_NAMES as CORE_NAMES } from '../../core/src/stdlib/pgzero.js';
 import { testResource } from '../../core/test/pgzHost.js';
@@ -117,36 +117,34 @@ describe('helpers', () => {
 });
 
 /**
- * Run a game headless with the real runner: frames[i] = events of frame i (a function gets the driver).
- * Returns the final state, output, error and the recorded commands.
+ * Run a game headless with the real runner and driver: frames[i] = events of frame i; after the frames the window
+ * closes. onFrame(i, output) runs after frame i. Returns the final state, output, error and the recorded commands.
  */
-function play(src, { frames = 3, events = [], frameBudget, onFrame, resource = testResource } = {}) {
+function play(src, { frames = 3, events = [], frameBudget, onFrame, resource = testResource, breakpoints, onState } = {}) {
   const mode = pgzMode(src);
   const g = gameSource(src, mode);
   const out = [], cmds = [];
-  let error = null;
-  const runner = createRunner({ onOutput: (t) => out.push(t), onError: (e) => { error = e; } });
+  let error = null, d = null;
+  const runner = createRunner({ onOutput: (t) => out.push(t), onError: (e) => { error = e; }, onState: (s, info) => onState?.(s, info, runner) });
   runner.use({
     host: { pgz: { resource, cmd: (n, a) => cmds.push([n, ...a]) } },
     waits: {
-      pgzero(wait, ctx) {
-        const d = createDriver(ctx.vm, {
-          frameBudget,
-          onEnd: (how, e) => (how === 'error' ? ctx.throwError(e) : how === 'exit' ? ctx.throwError(systemExit()) : ctx.resume(null)),
-        });
+      pgzero(wait, ctx) { d = createDriver({ frameBudget }); ctx.resume(null); },
+      'pgzero-frame'(wait, ctx) {
+        const i = d.frames + (d.busy ? 1 : 0); // frames that ran, with the one that just ended
+        if (i > 0 && i <= frames) onFrame?.(i - 1, out.join(''));
+        d.wait(wait, ctx);
+        // the next frame: its events, or the window closes; a timer like the animation frames of a page
         setTimeout(() => {
-          for (let i = 0; i < frames && !d.ended; i++) {
-            for (const ev of events[i] ?? []) d.push(ev);
-            d.tick(0, 1);
-            onFrame?.(i, out.join(''));
-          }
-          if (!d.ended) d.push(['quit']), d.tick(0, 1);
+          const n = d.frames;
+          for (const ev of n < frames ? events[n] ?? [] : [['quit']]) d.push(ev);
+          d.tick(0, 1);
         }, 0);
       },
     },
     start(c) { if (mode === 'game') installPgzero(c.vm); },
   });
-  return runner.run(g.source, { globals: g.globals, seed: 1 }).then((state) => ({ state, output: out.join(''), error, cmds }));
+  return runner.run(g.source, { globals: g.globals, seed: 1, breakpoints }).then((state) => ({ state, output: out.join(''), error, cmds }));
 }
 
 describe('frame driver', () => {
@@ -194,6 +192,27 @@ def update():
     expect(r.state).toBe('done');
     expect(r.output).toBe('');
   });
+  it('debugger: a breakpoint in update() halts the game; continue goes on in the next frame', async () => {
+    const src = 'import pgzrun\nn = 0\ndef update():\n    global n\n    n = n + 1\ndef draw():\n    print("draw", n)\npgzrun.go()\nprint("closed")\n';
+    const seen = [];
+    const r = await play(src, {
+      frames: 3,
+      breakpoints: { 'main.py': [5] },
+      onState: (s, info, runner) => {
+        if (s !== 'paused') return;
+        seen.push([info.line, runner.inspect().frames.map((f) => f.name).join('>')]);
+        setTimeout(() => runner.continue(), 0);
+      },
+    });
+    expect(r.error).toBe(null);
+    expect(seen).toEqual([[5, '<module>>update'], [5, '<module>>update'], [5, '<module>>update']]);
+    expect(r.output).toBe('draw 1\ndraw 2\ndraw 3\nclosed\n');
+  });
+  it('the state stays "running" while the game runs (the frames are no waits of the program)', async () => {
+    const states = [];
+    await play('def update():\n    pass\n', { frames: 5, onState: (s) => states.push(s) });
+    expect(states).toEqual(['running', 'done']);
+  });
   it('animations and the clock advance by the fixed dt', async () => {
     const src = `a = Actor("alien", (0, 0))
 animate(a, tween="linear", duration=1, x=60)
@@ -214,9 +233,6 @@ def draw():
   });
 });
 
-describe('core error object of systemExit', () => {
-  it('is a SystemExit', () => { expect(systemExit().kind).toBe('SystemExit'); });
-});
 
 describe('the library (packages/assets/catalog.json)', () => {
   const catalog = JSON.parse(readFileSync(join(here, '../../assets/catalog.json'), 'utf8'));

@@ -7,7 +7,7 @@ import { createStage } from './stage.js';
 import { ensureStyles } from './styles.js';
 import { createAudio } from './pgzeroAudio.js';
 import { createAssets } from './pgzeroAssets.js';
-import { createDriver, gameSource, installPgzero, systemExit } from './pgzeroDriver.js';
+import { createDriver, gameSource, installPgzero } from './pgzeroDriver.js';
 import {
   pgzKey, pgzMods, PAD_KEYS, mouseButton, mouseButtons, cssColor, roundHalfEven, rotatedSize, fontPixels, fontCss,
   layoutText, fitFontSize, pgzMode,
@@ -126,7 +126,9 @@ export function createPgzero(container, opts = {}) {
   });
 
   // ---------- state ----------
-  let vm = null, live = false, driver = null, game = null, raf = 0, last = null, paused = false, hiddenTab = false;
+  let vm = null, live = false, driver = null, game = false, raf = 0, last = null, paused = false, hiddenTab = false;
+  /** the debugger halts the program (in a hook or elsewhere): the game time stands still */
+  let halted = false, offState = null;
   let title = '', showControls = opts.controls ?? false;
   /** Draw commands since the screen was last filled completely (replayed after a resize) */
   let display = [], snapshot = null;
@@ -350,6 +352,7 @@ export function createPgzero(container, opts = {}) {
 
   // ---------- host.pgz ----------
   function cmd(name, a) {
+    if (name === 'closed') { endGame(); return; } // the game loop ended (window closed, exit(), an error)
     if (audio.cmd(name, a)) return;
     if (name === 'window') {
       const [w, h, t] = a;
@@ -378,33 +381,40 @@ export function createPgzero(container, opts = {}) {
   function frameLoop(t) {
     raf = 0;
     if (!driver || driver.ended) return;
-    if (!paused && !hiddenTab) {
-      const ms = last === null ? 0 : t - last;
-      last = t;
-      driver.tick(ms);
-    }
+    const ms = last === null ? 0 : t - last;
+    last = t;
+    driver.tick(ms);
     if (driver && !driver.ended) raf = requestAnimationFrame(frameLoop);
   }
-  function startLoop() { if (!raf && driver && !paused && !hiddenTab) { last = null; raf = requestAnimationFrame(frameLoop); } }
+  /** Frames run while the game is live, not paused, the tab visible and the debugger does not halt. */
+  const canRun = () => driver && !driver.ended && !paused && !hiddenTab && !halted;
+  function startLoop() { if (!raf && canRun()) { last = null; driver.resetTime(); raf = requestAnimationFrame(frameLoop); } }
   function stopLoop() { if (raf) cancelAnimationFrame(raf); raf = 0; }
 
-  function endGame(how, error) {
+  /** The game loop ended: no more frames, sounds stop (the program goes on after pgzrun.go(), or has ended). */
+  function endGame() {
+    driver?.stop();
     stopLoop();
     releaseKeys(false);
     audio.stopAll();
     hint.hidden = true;
     root.classList.remove('nw-pgz-live');
-    const ctx = game;
-    game = null;
-    if (!ctx) return;
-    if (how === 'error') ctx.throwError(error);
-    else if (how === 'exit') ctx.throwError(systemExit());
-    else ctx.resume(null);
+    game = false;
   }
+
+  /** The tab was hidden or the debugger halted: time stands still, keys are let go, sounds wait. */
+  function hold() { stopLoop(); releaseKeys(true); audio.suspend(); }
+  function goOn() { if (hiddenTab || halted) return; audio.resume(); startLoop(); }
 
   function onVisibility() {
     hiddenTab = document.hidden;
-    if (hiddenTab) { stopLoop(); releaseKeys(true); audio.suspend(); } else { audio.resume(); driver?.resetTime(); startLoop(); }
+    if (hiddenTab) hold(); else goOn();
+  }
+  function onRunState(s) {
+    const h = s === 'paused';
+    if (h === halted) return;
+    halted = h;
+    if (halted) hold(); else goOn();
   }
 
   // ---------- input ----------
@@ -598,23 +608,28 @@ export function createPgzero(container, opts = {}) {
     /** Hold the game (the frames stop, input waits). */
     pause() { paused = true; stopLoop(); },
     /** Go on after pause(). */
-    resume() { paused = false; driver?.resetTime(); startLoop(); },
-    /** Run n frames now (single steps while paused; tests). */
+    resume() { paused = false; startLoop(); },
+    /** Run n more frames (single steps while paused; tests); they run one after the other right away, not at once. */
     step(n = 1) { if (driver && !driver.ended) driver.tick(0, n); },
     /** Close the window: the game ends, code after pgzrun.go() runs. */
     quit() { push(['quit']); if (paused) plugin.step(1); },
 
     host: { pgz: { resource: (kind, name) => resource(kind, name), cmd: (name, args) => cmd(name, args) } },
     waits: {
+      // pgzrun.go(): the game starts, the game loop runs in the main program from here on
       pgzero(wait, ctx) {
-        if (game) return; // go() a second time: only one game window
-        game = ctx;
-        driver = createDriver(ctx.vm, { frameBudget: opts.frameBudget, maxSteps: opts.maxCatchUp, onEnd: endGame });
-        ctx.onCancel(() => { game = null; driver?.stop(); endGame('stopped'); });
+        if (game) return; // go() a second time (in a hook): only one game window, it waits for good
+        game = true;
+        driver = createDriver({ frameBudget: opts.frameBudget, maxSteps: opts.maxCatchUp });
         root.classList.add('nw-pgz-live');
         canvas.focus({ preventScroll: true });
-        driver.tick(0, 0); // pgzero_main.start: window, hooks, spell check
+        ctx.resume(null);
         startLoop();
+      },
+      // the game loop asks for the next frame: the driver answers when it is due
+      'pgzero-frame'(wait, ctx) {
+        if (!driver || driver.ended) return;
+        driver.wait(wait, ctx);
       },
     },
     start(c) {
@@ -622,7 +637,9 @@ export function createPgzero(container, opts = {}) {
       live = !!mode;
       runs++;
       vm = c.vm;
-      driver = null; game = null; paused = false;
+      driver = null; game = false; paused = false; halted = false;
+      offState?.();
+      offState = c.runner?.on?.('state', onRunState) ?? null;
       releaseKeys(false);
       audio.stopAll();
       textCache.clear();
@@ -641,6 +658,9 @@ export function createPgzero(container, opts = {}) {
       hiddenTab = document.hidden;
     },
     end() {
+      offState?.();
+      offState = null;
+      halted = false;
       if (driver && !driver.ended) driver.stop();
       stopLoop();
       audio.stopAll();

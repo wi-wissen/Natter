@@ -1,7 +1,7 @@
-// The game loop of the Pygame Zero host without the DOM: starts the game in the VM, runs one frame task per fixed
-// time step (pgzero_main.frame, see docs/PGZERO-BRIDGE.md) in slices with an instruction budget, and reports how the
-// game ended. Uses only the public exports of the core (the same steps as installPgzero/pgzStart/pgzFrame of
-// packages/core/src/stdlib/pgzero.js).
+// The clock of the Pygame Zero host without the DOM. The game loop itself runs in the main program (pgzero_main.go,
+// see docs/PGZERO-BRIDGE.md): before every frame it waits (kind 'pgzero-frame'); the driver answers with the events
+// and the fixed dt when a frame is due, so breakpoints, single steps and the call stack work in the hooks like
+// anywhere else in the program. Uses only the public exports of the core.
 
 import { ScriptError, PyList, PyTuple, PyFloat, PyDict } from '@natterjs/core';
 import { createStepper } from './pgzeroMath.js';
@@ -18,8 +18,8 @@ export function toPy(v) {
   return v ?? null;
 }
 
-/** Line that ends a program in game mode: the main program waits there while the game runs (like pgzrun.go()). */
-export const GAME_TAIL = '\nimport _pgz as _pgz_host_\n_pgz_host_.go()\n';
+/** Line that ends a program in game mode: the main program runs the game loop there (like pgzrun.go()). */
+export const GAME_TAIL = '\nimport pgzero_main as _pgz_host_\n_pgz_host_.go()\n';
 
 /**
  * Source and globals for runner.run(): 'game' mode predefines the Pygame Zero names and hands over to the game at
@@ -45,107 +45,63 @@ export function systemExit() {
 }
 
 /**
- * @param {import('@natterjs/core').VM} vm
  * @param {{
  *   step?: number,          ms per game frame (1000/60); dt of every frame is exactly step / 1000
  *   maxSteps?: number,      frames to catch up at most per tick (4)
  *   frameBudget?: number,   instructions one frame may take before it counts as an endless loop (20 million)
- *   sliceMs?: number,       time per tick for the VM (8 ms), a slow frame goes on in the next tick
- *   now?: () => number,
- *   onEnd: (how: 'exit'|'quit'|'error', error?: any) => void,
- * }} opts
+ * }} [opts]
  */
-export function createDriver(vm, opts) {
-  const now = opts.now ?? (() => performance.now());
+export function createDriver(opts = {}) {
   const maxSteps = opts.maxSteps ?? 4;
   const stepper = createStepper({ step: opts.step ?? 1000 / 60, maxSteps });
   const dt = stepper.step / 1000;
   const frameBudget = opts.frameBudget ?? 20_000_000;
-  const sliceMs = opts.sliceMs ?? 8;
   /** @type {any[]} events since the last frame */
   const events = [];
-  let task = null, used = 0, chunk = 20000, ended = false, frames = 0, started = false, owed = 0;
+  /** the game loop waiting for its next frame (WaitContext of the runner), or null while a frame runs */
+  let pending = null;
+  let owed = 0, frames = 0, started = false, ended = false;
 
   const driver = {
+    /** frames that ran to their end */
     get frames() { return frames; },
     get ended() { return ended; },
-    get busy() { return !!task; },
+    /** a frame is running (or halted in the debugger) */
+    get busy() { return started && !pending && !ended; },
     dt,
     /** Queue an event for the next frame (['key_down', key, mod, unicode] ...). */
     push(ev) { if (!ended && events.length < 500) events.push(ev); },
-    /**
-     * Real time passed (ms): run the frames that are due. With frames = n, run exactly n frames (single steps,
-     * tests) and ignore the time. Returns { drawn } (draw() ran in at least one frame).
-     */
-    tick(ms, frames = null) {
-      if (ended) return { drawn: false, ran: 0 };
-      owed += frames ?? stepper.advance(ms);
-      return run(frames == null ? now() + sliceMs : Infinity);
+    /** The game loop waits for the next frame (wait handler of 'pgzero-frame'). */
+    wait(wait, ctx) {
+      if (ended) return;
+      if (started) frames++;
+      started = true;
+      pending = ctx;
+      serve();
     },
-    /** Forget time (after a pause, when the tab was hidden). */
-    resetTime() { stepper.reset(); if (!task) owed = 0; },
-    stop() { ended = true; if (task) vm.kill(task); task = null; events.length = 0; },
+    /**
+     * Real time passed (ms): the frames that are due run (one after the other, each when the loop asks for it).
+     * With frames = n: exactly n more frames, whatever the time (single steps, tests).
+     */
+    tick(ms, n = null) {
+      if (ended) return;
+      owed += n ?? stepper.advance(ms);
+      if (n == null && owed > maxSteps) owed = maxSteps; // a slow game slows down instead of piling up frames
+      serve();
+    },
+    /** Forget time (after a pause, while the debugger halts, when the tab was hidden). */
+    resetTime() { stepper.reset(); owed = 0; },
+    stop() { ended = true; pending = null; events.length = 0; },
   };
 
-  function finish(how, error) {
-    if (ended) return;
-    ended = true;
-    if (task && task.state !== 'error') vm.kill(task);
-    task = null;
-    vm.prune();
-    opts.onEnd(how, error);
-  }
-
-  /** Run due frames until the deadline. */
-  function run(deadline) {
-    let drawn = false, ran = 0;
-    while (!ended && (task || owed > 0 || !started)) {
-      if (!task) {
-        if (!started) { task = vm.spawn(vm.importModule('pgzero_main', null).ns.get('start'), [], { pgzero: 'start' }); }
-        else {
-          owed--;
-          task = vm.spawn(vm.importModule('pgzero_main', null).ns.get('frame'), [new PyList(events.splice(0).map(toPy)), new PyFloat(dt)], { pgzero: 'frame' });
-        }
-        used = 0;
-      }
-      const t0 = now();
-      const r = vm.run(task, Math.min(chunk, frameBudget - used));
-      const ms = now() - t0;
-      used += r.used;
-      if (r.status === 'budget') {
-        chunk = Math.max(2000, Math.min(500000, Math.round(chunk * (ms < 1 ? 1.5 : ms > 4 ? 0.7 : 1))));
-        if (used >= frameBudget) {
-          // an endless loop in update(), draw() or a hook: the core's "takes too long" error at the line it hangs in
-          vm.fail(task, new ScriptError('tooLong', {}), task.frames[task.frames.length - 1]);
-          finish('error', task.errorRaw);
-          break;
-        }
-        if (now() >= deadline) break;
-        continue;
-      }
-      if (task.state === 'waiting') {
-        if (task.wait?.kind === 'sleep') { // time.sleep in a hook: the game stands still (the virtual clock moves)
-          vm.virtualMs += Math.round(task.wait.seconds * 1000);
-          vm.resume(task, null);
-          continue;
-        }
-        vm.fail(task, new ScriptError('type', { what: 'waitInSync' }), task.frames[task.frames.length - 1]);
-      }
-      if (task.state === 'error') { const e = task.errorRaw; task = null; finish('error', e); break; }
-      // done
-      const t = task;
-      task = null;
-      if (!started) { started = true; vm.prune(); continue; }
-      frames++;
-      ran++;
-      vm.prune();
-      if ('exitCode' in t) { finish('exit'); break; }
-      if (t.result === null) { finish('quit'); break; }
-      if (t.result === true) drawn = true;
-      if (now() >= deadline) break;
-    }
-    if (deadline !== Infinity && owed > maxSteps) owed = maxSteps; // a slow game slows down instead of piling up frames
-    return { drawn, ran };
+  /** Hand the next frame to the waiting game loop when one is due. */
+  function serve() {
+    if (!pending || owed <= 0 || ended) return;
+    owed--;
+    const ctx = pending;
+    pending = null;
+    ctx.task.allowance = frameBudget; // an endless loop in a hook: "takes too long" at its line
+    ctx.resume(new PyTuple([new PyList(events.splice(0).map(toPy)), new PyFloat(dt)]));
   }
 
   return driver;
