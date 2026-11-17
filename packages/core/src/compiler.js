@@ -7,6 +7,7 @@
 // The compiler is deterministic – the same source text yields the same code numbers (important for loading).
 
 import { parse } from './parser.js';
+import { mangle } from './mangle.js';
 import { ScriptError, suggest } from './errors.js';
 
 export const OP = {
@@ -65,6 +66,7 @@ export const CMP_OPS = ['==', '!=', '<', '>', '<=', '>=', 'in', 'not in', 'is', 
  */
 export function compile(source, opts = {}) {
   const tree = parse(source);
+  mangle(tree);
   const prog = new Compiler(source, opts).program(tree);
   return prog;
 }
@@ -174,8 +176,8 @@ class Compiler {
       case 'FunctionDef': {
         for (const d of st.decorators) this.collectExpr(d, scope, renames);
         for (const p of [...st.params, ...st.kwonly]) if (p.default) this.collectExpr(p.default, scope, renames);
-        scope.assigned.add(st.name);
-        const nameNode = { type: 'Name', id: st.name, line: st.line, col: st.col };
+        scope.assigned.add(st.bound ?? st.name);
+        const nameNode = { type: 'Name', id: st.bound ?? st.name, line: st.line, col: st.col };
         st.nameNode = nameNode;
         scope.uses.push(nameNode);
         this.collectFunction(st, scope, renames, st.body);
@@ -184,8 +186,8 @@ class Compiler {
       case 'ClassDef': {
         for (const d of st.decorators) this.collectExpr(d, scope, renames);
         for (const b of st.bases) this.collectExpr(b, scope, renames);
-        scope.assigned.add(st.name);
-        const nameNode = { type: 'Name', id: st.name, line: st.line, col: st.col };
+        scope.assigned.add(st.bound ?? st.name);
+        const nameNode = { type: 'Name', id: st.bound ?? st.name, line: st.line, col: st.col };
         st.nameNode = nameNode;
         scope.uses.push(nameNode);
         const cs = new Scope('class', st, scope);
