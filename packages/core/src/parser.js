@@ -209,8 +209,8 @@ class Parser {
   exprStatement() {
     const p = this.pos();
     const first = this.testListStarExpr();
-    // Annotated assignment: x: int = 5 (type annotation is ignored)
-    if (this.atOp(':') && first.type === 'Name') {
+    // Annotated assignment: x: int = 5, self.x: int = 5, d[k]: int = 5 (type annotation is ignored)
+    if (this.atOp(':') && ['Name', 'Attribute', 'Subscript'].includes(first.type)) {
       this.next();
       this.test();
       if (!this.accept('op', '=')) return { type: 'Pass', ...p };
