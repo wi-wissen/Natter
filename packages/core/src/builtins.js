@@ -6,6 +6,7 @@
 
 import { ScriptError } from './errors.js';
 import { err, params, noKw, needInt, anyInt, needNum, needStr } from './args.js';
+import { powMod } from './powmod.js';
 import { MATH_NATIVES, MATH_NAMES, MATH_CONSTS } from './stdlib/math.js';
 import { RANDOM_NATIVES, RANDOM_NAMES } from './stdlib/random.js';
 import { CLOCK_NATIVES, CLOCK_NAMES } from './stdlib/clock.js';
@@ -390,7 +391,11 @@ export const BUILTINS = {
     const [a, b] = params('divmod', args, kw, ['a', 'b']);
     return new PyTuple([binary('//', a, b), binary('%', a, b)]);
   },
-  pow(ctx, args, kw) { const [a, b] = params('pow', args, kw, ['base', 'exp']); return binary('**', a, b); },
+  pow(ctx, args, kw) {
+    const [a, b, m] = params('pow', args, kw, ['base', 'exp', '?mod']);
+    if (m === undefined || m === null) return binary('**', a, b);
+    return powMod(a, b, m);
+  },
   hex(ctx, args, kw) { return radix(params('hex', args, kw, ['x'])[0], 16, '0x'); },
   bin(ctx, args, kw) { return radix(params('bin', args, kw, ['x'])[0], 2, '0b'); },
   oct(ctx, args, kw) { return radix(params('oct', args, kw, ['x'])[0], 8, '0o'); },

@@ -41,6 +41,8 @@ export function pyMessage(e) {
         case 'rangeStep': return 'range() arg 3 must not be zero';
         case 'emptySeq': return `${p.name}() iterable argument is empty`;
         case 'negativeShift': return 'negative shift count';
+        case 'powModZero': return 'pow() 3rd argument cannot be 0';
+        case 'powModInverse': return 'base is not invertible for the given modulus';
         case 'chrRange': return 'chr() arg not in range(0x110000)';
         case 'emptySeparator': return 'empty separator';
         case 'lenNegative': return '__len__() should return >= 0';
@@ -104,6 +106,7 @@ export function pyMessage(e) {
           : `float() argument must be a string or a real number, not '${p.type}'`;
         case 'numberNeeded': return `must be real number, not ${p.type}`;
         case 'intNeeded': return `'${p.type}' object cannot be interpreted as an integer`;
+        case 'powModInt': return 'pow() 3rd argument not allowed unless all arguments are integers';
         case 'inStr': return `'in <string>' requires string as left operand, not ${p.type}`;
         case 'joinStr': return `sequence item ${p.i}: expected str instance, ${p.type} found`;
         case 'noContext': return `'${p.type}' object does not support the context manager protocol`;
