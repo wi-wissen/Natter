@@ -43,7 +43,7 @@ export const SECTIONS = [
       { area: 'Functions', text: '`def` with defaults, `*args`, `**kwargs`, keyword-only parameters after `*`, `lambda`, closures, `global`, `nonlocal`, decorators, recursion up to depth 1000 like CPython.',
         ok: 'def gruss(name, *, laut=False, **extra):\n    t = "Hallo " + name\n    return t.upper() if laut else t\nprint(gruss("Ada", laut=True), (lambda x: x * 2)(21))',
         not: 'Positional-only parameters (`/`) are missing.', no: ['def f(a, /, b):\n    return a + b'] },
-      { area: 'Classes', text: '`class` with inheritance (also multiple, MRO as in CPython), `super()`, `@property` with setter, `@classmethod`, `@staticmethod`, operators via `__add__`, `__eq__`, `__lt__`, `__getitem__`, `__len__`, `__iter__`, `__call__`, `__getattr__` …',
+      { area: 'Classes', text: '`class` with inheritance (also multiple, MRO as in CPython), `super()`, `@property` with setter, `@classmethod`, `@staticmethod`, operators via `__add__`, `__eq__`, `__lt__`, `__getitem__`, `__len__`, `__iter__`, `__call__`, `__getattr__` …; private names (`self.__x` becomes `_Klasse__x`) as in CPython.',
         ok: 'class Tier:\n    def __init__(self, name):\n        self.name = name\n    def __str__(self):\n        return "Tier " + self.name\nclass Hund(Tier):\n    def __init__(self, name):\n        super().__init__(name)\nprint(Hund("Bello"))',
         not: 'No subclasses of built-in types (`class L(list)`), no metaclasses; `__setattr__` and `__slots__` have no effect.',
         no: ['class L(list):\n    pass', 'class M(type):\n    pass\nclass A(metaclass=M):\n    pass'],
@@ -59,9 +59,8 @@ export const SECTIONS = [
       { area: 'Modules', text: '`import` of standard modules and of the project\'s own files (`helpers.py`, packages with `__init__.py`, `from . import x`), `import a.b`, `import x as y`, `from x import *`.',
         ok: 'import math as m\nfrom os import path\nprint(m.floor(2.7), path.join("a", "b"))',
         not: 'Modules that do not exist (see the list on the left) raise `ModuleNotFoundError`.', no: ['import tkinter'] },
-      { area: 'Type hints', text: 'Parsed and ignored, so programs from books run.',
-        ok: 'def doppelt(x: int) -> int:\n    return 2 * x\nzahlen: list = [1, 2]\nprint(doppelt(4), zahlen)',
-        not: 'The module `typing` is missing (hints like `List[int]` do not need it if you write `list`).', no: ['from typing import List'] },
+      { area: 'Type hints', text: 'Parsed and ignored, so programs from books run: on names, attributes (`self.x: int = 0`) and items. The module `typing` has the names that hints use (`List[int]`, `Optional[str]`, `TypeVar`, `Generic` …).',
+        ok: 'from typing import Optional\ndef doppelt(x: int) -> Optional[int]:\n    return 2 * x\nzahlen: list[int] = [1, 2]\nprint(doppelt(4), zahlen)' },
       { area: 'Not available', text: 'Left out on purpose: rarely needed in class, or it would make the page unsafe.',
         not: '`eval`, `exec`, `dir`, `globals`; `...` equals `None`.', no: ['print(eval("1 + 2"))', 'print(dir())'],
         same: [{ code: 'print(...)', output: 'None\n' }] },
@@ -166,7 +165,7 @@ export const SECTIONS = [
     notes: [
       'Text files only (modes `r`, `w`, `a`, `x`, with `+`); `"rb"`/`"wb"` raise `ValueError`. The encoding is always UTF-8, line endings become `\\n`.',
       '`os.environ` is empty, `os.getcwd()` is `"/"`; `os.walk` works, `os.path.getsize` counts characters.',
-      '`pathlib`, `shutil`, `csv` and `sqlite3` are missing (read CSV with `split(",")`).',
+      '`pathlib`, `shutil` and `sqlite3` are missing; `csv` works on the files of `open()`.',
     ],
     desc: {
       open: 'Opens a text file. `mode`: `"r"` read, `"w"` write anew, `"a"` append, `"x"` create only, with `+` both.',
@@ -289,6 +288,19 @@ export const SECTIONS = [
     id: 'textwrap', title: 'textwrap', group: G_STD, source: 'module', module: 'textwrap', imports: 'import textwrap',
     intro: ['Wrapping, shortening and indenting text.'],
     example: { code: 'import textwrap\nsatz = "Natter ist ein kleiner Python-Interpreter für den Unterricht im Browser."\nprint(textwrap.fill(satz, width=30))\nprint(textwrap.shorten(satz, width=30))\nprint(textwrap.indent("a\\nb", "> "))' },
+  },
+
+  {
+    id: 'csv', title: 'csv', group: G_STD, source: 'module', module: 'csv', imports: 'import csv',
+    intro: ['Reading and writing CSV files: quoted fields, delimiters, header rows as dictionaries.'],
+    example: { code: 'import csv\nwith open("noten.csv", "w", newline="") as f:\n    w = csv.writer(f, delimiter=";")\n    w.writerow(["name", "note"])\n    w.writerows([["Ada", 1], ["Linus, B.", 2]])\nwith open("noten.csv", newline="") as f:\n    for zeile in csv.DictReader(f, delimiter=";"):\n        print(zeile["name"], zeile["note"])' },
+    notes: ['Dialects `excel`, `excel-tab` and `unix`; `Sniffer` and `field_size_limit` are missing.'],
+    desc: { reader: 'Rows of a file as lists of strings.', writer: 'Writes lists as rows.', DictReader: 'Rows as dictionaries, keys from the header row.', DictWriter: 'Writes dictionaries as rows (`writeheader()` for the header).' },
+  },
+  {
+    id: 'typing', title: 'typing', group: G_STD, source: 'module', module: 'typing', imports: 'from typing import List, Optional',
+    intro: ['The names that type hints use. Hints are not checked, so these only make programs from books run.'],
+    example: { code: 'from typing import List, Optional\ndef erstes(werte: List[int]) -> Optional[int]:\n    return werte[0] if werte else None\nprint(erstes([3, 4]), List[int])' },
   },
 
   // ------------------------------------------------------------------ drawing and games
