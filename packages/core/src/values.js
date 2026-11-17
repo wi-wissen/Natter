@@ -663,6 +663,12 @@ export function getItem(obj, idx) {
     const r = callDunder(obj, '__getitem__', [idx]);
     if (r !== NO_METHOD) return r;
   }
+  if (obj instanceof PyClass) {
+    // Cls[...] calls __class_getitem__ (implicitly a class method, as in CPython)
+    let f = lookupClass(obj, '__class_getitem__');
+    if (f instanceof PyClassMethod) f = f.fn;
+    if (f !== undefined && f !== null) return hooks.call(f, [obj, idx]);
+  }
   if (obj instanceof PyBuiltin || obj instanceof PyFunction) throw err('notSubscriptable', { what: 'function', type: typeName(obj), name: obj.name.replace(/^.*[.:]/, '') });
   throw err('notSubscriptable', { type: typeName(obj) });
 }

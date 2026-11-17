@@ -18,5 +18,7 @@ import _fileio from '../py/fileio.js';
 import os from '../py/os.js';
 import posixpath from '../py/posixpath.js';
 import requests from '../py/requests.js';
+import typing from '../py/typing.js';
+import csv from '../py/csv.js';
 
-Object.assign(PYMODULES, { collections, functools, itertools, statistics, string, json, sys, time, _calendar, datetime, re, textwrap, pprint, turtle, _fileio, os, posixpath, requests });
+Object.assign(PYMODULES, { collections, functools, itertools, statistics, string, json, sys, time, _calendar, datetime, re, textwrap, pprint, turtle, _fileio, os, posixpath, requests, typing, csv });
