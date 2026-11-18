@@ -319,6 +319,9 @@ export function keyOf(v) {
     return `o${v.id}`;
   }
   if (v instanceof PyClass || v instanceof PyFunction) return `c${identityOf(v)}`;
+  // a range is hashed by its items (range(0, 3) == range(3)), iterators and generators by identity, as in CPython
+  if (v instanceof PyRange) { const n = rangeLen(v); return n === 0 ? 'r0' : n === 1 ? `r1:${v.start}` : `r${n}:${v.start}:${v.step}`; }
+  if (v instanceof PyIterator || v instanceof PyGenerator || v instanceof PyUserIter) return `c${identityOf(v)}`;
   if (v instanceof PyMethod) return `m${keyOf(v.self)}:${identityOf(v.fn)}`;
   throw err('unhashable', { type: typeName(v) });
 }

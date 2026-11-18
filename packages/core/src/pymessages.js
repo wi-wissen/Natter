@@ -2,6 +2,7 @@
 // The friendly texts for learners live in messages.js; these are for programs that look at the exception themselves.
 
 import { message } from './errorText.js';
+import { reprStr } from './values.js';
 
 const plural = (n, one, many) => (n === 1 ? one : many);
 
@@ -99,6 +100,9 @@ export function pyMessage(e) {
     case 'type':
       switch (p.what) {
         case 'noLen': return `object of type '${p.type}' has no len()`;
+        case 'isinstanceType': return 'isinstance() arg 2 must be a type, a tuple of types, or a union';
+        case 'issubclassType': return 'issubclass() arg 2 must be a class, a tuple of classes, or a union';
+        case 'issubclassArg': return 'issubclass() arg 1 must be a class';
         case 'noItemAssign': return `'${p.type}' object does not support item assignment`;
         case 'noItemDelete': return `'${p.type}' object doesn't support item deletion`;
         case 'convert': return p.to === 'int'
@@ -125,7 +129,8 @@ export function pyMessage(e) {
   return message(e.code, p, 'en');
 }
 
-const pyStr = (s) => `'${String(s).replace(/\\/g, '\\\\').replace(/'/g, "\\'")}'`;
+/** repr() of a text, as CPython puts it into its messages. */
+const pyStr = (s) => reprStr(String(s));
 
 function operandMessage(p) {
   const seq = ['str', 'list', 'tuple'];

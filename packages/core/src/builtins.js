@@ -89,7 +89,12 @@ function parseFloatStr(s) {
 function isInstance(v, t) {
   if (t instanceof PyTuple) return t.items.some((x) => isInstance(v, x));
   if (t instanceof PyClass) return t === OBJECT || (v instanceof PyInstance && v.cls.mro.includes(t));
-  if (!(t instanceof PyBuiltin)) throw err('type', { what: 'isinstanceType' });
+  if (t instanceof PyInstance) {
+    // an object whose class defines __instancecheck__ (typing.List, typing.Union[int, str] …), as in CPython
+    const r = callDunder(t, '__instancecheck__', [v]);
+    if (r !== NO_METHOD) return truthy(r);
+  }
+  if (!(t instanceof PyBuiltin) || !isTypeLike(t)) throw err('type', { what: 'isinstanceType' });
   const name = t.name.startsWith('class:') ? t.name.slice(6) : t.name;
   const tn = typeName(v);
   return tn === name || (name === 'int' && tn === 'bool');
@@ -98,6 +103,11 @@ function isInstance(v, t) {
 /** issubclass(a, b) for classes made in Python and for the built-in types. */
 function isSubclassOf(a, b) {
   if (b instanceof PyTuple) return b.items.some((x) => isSubclassOf(a, x));
+  if (b instanceof PyInstance) {
+    const r = callDunder(b, '__subclasscheck__', [a]);
+    if (r !== NO_METHOD) return truthy(r);
+  }
+  if (!isTypeLike(b)) throw err('type', { what: 'issubclassType' });
   if (b === OBJECT) return a instanceof PyClass || a instanceof PyBuiltin;
   if (a instanceof PyClass && b instanceof PyClass) return a.mro.includes(b);
   if (a instanceof PyBuiltin && b instanceof PyBuiltin) {
