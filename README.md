@@ -46,7 +46,9 @@ npm run size      # bundle the core, print minified and gzip size
 
 The core lives in [`packages/core`](packages/core). Plain JavaScript with JSDoc, no TypeScript. The core must stay deterministic: a test forbids `Math.sin`, `Math.pow`, `Date` and similar in `packages/core/src`.
 
-Example programs are in `packages/core/test/cases/*.py` with the output of CPython in `*.out`. To add a case, write the `.py` file and run `python3 x.py > x.out`.
+**CPython 3.13 is the reference.** A program prints, returns and raises in Natter what it does in CPython, including `repr()` and the text of exceptions. A difference is a bug, unless the command reference lists it as left out or as a limit of the sandbox. So check new behaviour by running it in CPython, not from memory, and document any difference that cannot be avoided in `scripts/reference/content.mjs`. More in [`CLAUDE.md`](CLAUDE.md).
+
+Example programs are in `packages/core/test/cases/*.py` with the output of CPython in `*.out`. To add a case, write the `.py` file and run `python3 -I -W ignore x.py > x.out`. Run `npm test` with `python3` on the PATH, so the `.out` files are checked against CPython as well.
 
 ## Website
 
