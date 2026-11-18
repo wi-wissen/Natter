@@ -14,7 +14,7 @@ export const KINDS = {
   argDuplicate: 'TypeError', notIterable: 'TypeError', notSubscriptable: 'TypeError', unhashable: 'TypeError',
   operand: 'TypeError', compare: 'TypeError', notIndex: 'TypeError', unaryOperand: 'TypeError',
   zeroDivision: 'ZeroDivisionError', index: 'IndexError', key: 'KeyError', value: 'ValueError',
-  unpack: 'ValueError', attr: 'AttributeError', recursion: 'RecursionError', overflow: 'OverflowError',
+  unpack: 'ValueError', attr: 'AttributeError', recursion: 'RecursionError', overflow: 'OverflowError', memory: 'MemoryError',
   assertion: 'AssertionError', powFraction: 'ValueError', mathDomain: 'ValueError',
   importUnknown: 'ModuleNotFoundError', importRelative: 'ImportError', stopIteration: 'StopIteration', internal: 'RuntimeError', host: 'RuntimeError',
   fileNotFound: 'FileNotFoundError', fileExists: 'FileExistsError', isDir: 'IsADirectoryError', notDir: 'NotADirectoryError',

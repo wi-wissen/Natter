@@ -97,7 +97,8 @@ export function pyMessage(e) {
     case 'importRelative': return 'attempted relative import with no known parent package';
     case 'mathDomain': return 'math domain error';
     case 'mathRange': return 'math range error';
-    case 'overflow': return 'integer too large';
+    case 'overflow': return p.what === 'index' ? "cannot fit 'int' into an index-sized integer" : 'integer too large';
+    case 'memory': return '';
     case 'stopIteration': return '';
     case 'fileNotFound': return `[Errno 2] No such file or directory: ${pyStr(p.path)}`;
     case 'fileExists': return `[Errno 17] File exists: ${pyStr(p.path)}`;

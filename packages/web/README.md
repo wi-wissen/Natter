@@ -57,7 +57,7 @@ Without a build step, from jsDelivr (always pin a version):
 
 | Export | Purpose |
 |---|---|
-| `createRunner(options)` | Runs programs: `run(source, { file, files, seed, globals, inputs, breakpoints })`, `stop()`, `sendInput(text)`; events `output`, `error`, `state`, `input`, `file`; debugger `pause()`, `continue()`, `step('over'|'into'|'out')`, `setBreakpoints(…)`, `inspect()` |
+| `createRunner(options)` | Runs programs: `run(source, { file, files, seed, maxItems, maxStr, globals, inputs, breakpoints })`, `stop()`, `sendInput(text)`; events `output`, `error`, `state`, `input`, `file`; debugger `pause()`, `continue()`, `step('over'|'into'|'out')`, `setBreakpoints(…)`, `inspect()` |
 | `createConsole(el, { lang, onLineClick })` | Output, input line for `input()`, error box with line, message and traceback; `.connect(runner)` |
 | `createTurtle(el)` | Python `turtle`: pens, fills, text, stamps, several turtles, key/click events, `textinput` |
 | `createKara(el, { assets })` | Kara the ladybug: world with trees, berries and mushrooms, animated moves |

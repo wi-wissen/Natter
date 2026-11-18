@@ -53,7 +53,12 @@ export class PyDict {
     }
   }
   get(k) { const e = this.map.get(this.slot(k)); return e ? e[1] : undefined; }
-  set(k, v) { const key = this.slot(k); const e = this.map.get(key); if (e) e[1] = v; else this.map.set(key, [k, v]); }
+  set(k, v) {
+    const key = this.slot(k);
+    const e = this.map.get(key);
+    if (e) e[1] = v;
+    else { if (this.map.size >= maxItems()) throw tooLong('dict'); this.map.set(key, [k, v]); }
+  }
   has(k) { return this.map.has(this.slot(k)); }
   delete(k) {
     const key = this.slot(k);
@@ -518,19 +523,33 @@ export function rangeLen(r) {
   if (r.step > 0) return r.stop > r.start ? Math.floor((r.stop - r.start - 1) / r.step) + 1 : 0;
   return r.stop < r.start ? Math.floor((r.start - r.stop - 1) / -r.step) + 1 : 0;
 }
-/** Most elements a list may get, longest text (memory of a shared level stays bounded). */
-export const MAX_ITEMS = 1_000_000;
+/**
+ * Default limits of the sandbox: most elements of a list, tuple, dict or set, longest text. They keep a runaway
+ * program from using up the page's memory (it gets a MemoryError instead of crashing the tab). A host sets its own
+ * with new VM(prog, { maxItems, maxStr }), like the seed.
+ */
+export const MAX_ITEMS = 10_000_000;
 export const MAX_STR = 10_000_000;
+/** The limits of the VM that runs now. */
+export const maxItems = () => hooks.vm?.maxItems ?? MAX_ITEMS;
+export const maxStr = () => hooks.vm?.maxStr ?? MAX_STR;
+const group3 = (n) => String(n).replace(/\B(?=(\d{3})+(?!\d))/g, '\u202f');
+/** MemoryError for a container or text that would get too long. */
+export const tooLong = (what) => err('memory', { what, max: group3(what === 'str' ? maxStr() : maxItems()) });
+/** Check before a container grows to n elements. */
+export function checkItems(n) { if (n > maxItems()) throw tooLong('items'); }
+/** Check before a text grows to n characters. */
+export function checkStr(n) { if (n > maxStr()) throw tooLong('str'); }
 
 /** Append all items with a loop: spreading a huge array depends on the engine's argument limit. */
 export function pushAll(target, items) {
-  if (target.length + items.length > MAX_ITEMS) throw err('overflow', {});
+  checkItems(target.length + items.length);
   for (let i = 0; i < items.length; i++) target.push(items[i]);
 }
 
 export function rangeItems(r) {
   const n = rangeLen(r);
-  if (n > MAX_ITEMS) throw err('overflow', {});
+  checkItems(n);
   const out = new Array(n);
   for (let i = 0; i < n; i++) out[i] = r.start + i * r.step;
   return out;
@@ -551,7 +570,7 @@ export function iterItems(v) {
   if (v instanceof PyIterator || v instanceof PyUserIter || v instanceof PyGenerator || v instanceof PyInstance) {
     const it = makeIter(v);
     const out = [];
-    for (let x = iterNext(it); x !== DONE; x = iterNext(it)) { if (out.length >= MAX_ITEMS) throw err('overflow', {}); out.push(x); }
+    for (let x = iterNext(it); x !== DONE; x = iterNext(it)) { if (out.length >= maxItems()) throw tooLong('items'); out.push(x); }
     return out;
   }
   throw err('notIterable', { type: typeName(v) });
@@ -698,7 +717,11 @@ export function setItem(obj, idx, v) {
     if (idx instanceof PySlice) {
       const [start, stop, step] = sliceIndices(idx, obj.items.length);
       const vals = iterItems(v);
-      if (step === 1) { obj.items.splice(start, Math.max(0, stop - start), ...vals); return; }
+      if (step === 1) {
+        checkItems(obj.items.length - Math.max(0, stop - start) + vals.length);
+        obj.items.splice(start, Math.max(0, stop - start), ...vals);
+        return;
+      }
       const targets = [];
       if (step > 0) for (let i = start; i < stop; i += step) targets.push(i);
       else for (let i = start; i > stop; i += step) targets.push(i);
@@ -910,19 +933,19 @@ export function binary(op, a, b) {
   if (op === '|' && isTypeHint(a) && isTypeHint(b) && (a !== null || b !== null)) return makeUnion([a, b]);
   switch (op) {
     case '+':
-      if (typeof a === 'string' && typeof b === 'string') { if (a.length + b.length > MAX_STR) throw err('overflow', {}); return a + b; }
+      if (typeof a === 'string' && typeof b === 'string') { checkStr(a.length + b.length); return a + b; }
       if ((a instanceof PyList && b instanceof PyList) || (a instanceof PyTuple && b instanceof PyTuple)) {
-        if (a.items.length + b.items.length > MAX_ITEMS) throw err('overflow', {});
+        checkItems(a.items.length + b.items.length);
         return a instanceof PyList ? new PyList(a.items.concat(b.items)) : new PyTuple(a.items.concat(b.items));
       }
       break;
     case '*': {
       const [s, n0] = isInt(b) ? [a, num(b)] : isInt(a) ? [b, num(a)] : [null, 0];
-      if (typeof n0 === 'bigint' && s !== null && (typeof s === 'string' || s instanceof PyList || s instanceof PyTuple)) throw err('overflow', {});
+      if (typeof n0 === 'bigint' && s !== null && (typeof s === 'string' || s instanceof PyList || s instanceof PyTuple)) throw err('overflow', { what: 'index' });
       const n = Number(n0);
-      if (typeof s === 'string') { if (s.length * Math.max(0, n) > MAX_STR) throw err('overflow', {}); return n > 0 ? s.repeat(n) : ''; }
+      if (typeof s === 'string') { checkStr(s.length * Math.max(0, n)); return n > 0 ? s.repeat(n) : ''; }
       if (s instanceof PyList || s instanceof PyTuple) {
-        if (s.items.length * Math.max(0, n) > MAX_ITEMS) throw err('overflow', {});
+        checkItems(s.items.length * Math.max(0, n));
         const out = [];
         for (let i = 0; i < n; i++) pushAll(out, s.items);
         return s instanceof PyList ? new PyList(out) : new PyTuple(out);
@@ -1251,6 +1274,7 @@ export function formatValue(v, spec) {
   }
   const total = signStr.length + body.length;
   if (total >= width) return signStr + body;
+  checkStr(width);
   const pad = width - total;
   switch (align) {
     case '<': return signStr + body + fill.repeat(pad);

@@ -50,7 +50,7 @@ export function sourceHash(src) {
 /**
  * Simply run a program completely (tests, tools): returns output and, if any, the error.
  * @param {string} source
- * @param {{ budget?: number, seed?: number }} [opts]
+ * @param {{ budget?: number, seed?: number, maxItems?: number, maxStr?: number }} [opts]
  * @returns {{ output: string, error: any|null, vm: VM|null }}
  */
 export function runToEnd(source, opts = {}) {
@@ -61,7 +61,7 @@ export function runToEnd(source, opts = {}) {
     if (e instanceof ScriptError) return { output, error: e.toJSON(), vm: null };
     throw e;
   }
-  const vm = new VM(prog, { globals: opts.globals, files: opts.files, host: { print: (t) => { output += t; }, printErr: (t) => { errors += t; }, ...(opts.host ?? {}) }, seed: opts.seed ?? 1 });
+  const vm = new VM(prog, { globals: opts.globals, files: opts.files, host: { print: (t) => { output += t; }, printErr: (t) => { errors += t; }, ...(opts.host ?? {}) }, seed: opts.seed ?? 1, maxItems: opts.maxItems, maxStr: opts.maxStr });
   const task = vm.start();
   const plots = [];
   let budget = opts.budget ?? 50_000_000;

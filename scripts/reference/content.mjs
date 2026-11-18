@@ -60,6 +60,8 @@ export const SECTIONS = [
         not: 'Modules that do not exist (see the list on the left) raise `ModuleNotFoundError`.', no: ['import tkinter'] },
       { area: 'Type hints', text: 'Evaluated and stored as in CPython 3.13, but not checked: `__annotations__` of modules, classes and functions, `list[int]`, `int | None`, `from __future__ import annotations` (hints as text). On attributes (`self.x: int = 0`) and items they are allowed, too. The modules `typing` and `dataclasses` build on them.',
         ok: 'from typing import Optional\ndef doppelt(x: int) -> Optional[int]:\n    return 2 * x\nzahlen: list[int] = [1, 2]\nprint(doppelt(4), zahlen, doppelt.__annotations__)' },
+      { area: 'Limits', text: 'A list, tuple, dict or set holds at most 10 million items and a text at most 10 million characters (a page can set other limits). Beyond that the program gets a `MemoryError` instead of freezing the browser tab. CPython has no such limit, only the memory of the computer.',
+        same: [{ code: 'try:\n    x = [0] * 20_000_000\nexcept MemoryError:\n    print("zu groß")', output: 'zu groß\n' }] },
       { area: 'Not available', text: 'Left out on purpose: rarely needed in class, or it would make the page unsafe.',
         not: '`eval`, `exec`, `dir`, `globals`; `...` equals `None`.', no: ['print(eval("1 + 2"))', 'print(dir())'],
         same: [{ code: 'print(...)', output: 'None\n' }] },
@@ -268,7 +270,7 @@ export const SECTIONS = [
     id: 'sys', title: 'sys', group: G_STD, source: 'module', module: 'sys', imports: 'import sys',
     intro: ['The parts of `sys` that school programs need: `exit`, `stdout`/`stderr`/`stdin`, `argv`, version information.'],
     example: { code: 'import sys\nprint(sys.version_info[:2], sys.platform)\nsys.stdout.write("ohne Zeilenumbruch")\nprint()\nif len(sys.argv) < 2:\n    print("Keine Argumente, Ende.")\n    sys.exit()\nprint("nie erreicht")' },
-    notes: ['`setrecursionlimit` has no effect (the limit is 1000), `getsizeof` always returns 64, `sys.modules` and `sys.path` are empty.'],
+    notes: ['`setrecursionlimit` has no effect (the limit is 1000), `getsizeof` always returns 64, `sys.path` is empty; `sys.modules` holds `__main__` and the modules loaded so far.'],
     desc: { exit: 'Ends the program (`SystemExit`).', stdout: 'Standard output (`write`, `flush`).', stderr: 'Error output.', stdin: 'Input (`readline` asks like `input`).' },
   },
   {

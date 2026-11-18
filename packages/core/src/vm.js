@@ -14,7 +14,7 @@ import {
   PyFloat, PyList, PyTuple, PyDict, PySlice, PyFunction, PyBuiltin, PyPartial, PyBoundMethod, PyHost, PyModule,
   PySet, setInplace, PyGenerator, PyClass, PyInstance, PyMethod, PySuper, PyProperty, PyStaticMethod, PyClassMethod, OBJECT, NO_METHOD, hooks,
   Cell, binary, binaryDunder, unary, compare, truthy, makeIter, iterNext, DONE, iterItems, getItem, setItem, delItem, toStr,
-  formatValue, typeName, keyOf, pushAll, lookupClass, TYPE_NAMES, Suspend, PyGenericAlias, PyUnion,
+  formatValue, typeName, keyOf, pushAll, lookupClass, TYPE_NAMES, Suspend, PyGenericAlias, PyUnion, maxItems, tooLong,
 } from './values.js';
 import { BUILTINS, CLASS_GLOBALS, METHODS, MODULES, moduleAttr } from './builtins.js';
 import { EXCEPTION_CLASSES, exceptionClassFor, isExceptionClass } from './exceptions.js';
@@ -59,7 +59,7 @@ const TRACE_HEAD = 3, TRACE_TAIL = 10;
 export class VM {
   /**
    * @param {import('./compiler.js').Program} program
-   * @param {{ host?: any, natives?: Record<string, Function>, globals?: Record<string, any>, dynamic?: Record<string, () => any>, seed?: number }} [opts]
+   * @param {{ host?: any, natives?: Record<string, Function>, globals?: Record<string, any>, dynamic?: Record<string, () => any>, seed?: number, maxItems?: number, maxStr?: number }} [opts]
    *   host: { getattr(ctx, obj, name), setattr(ctx, obj, name, v), callMethod(ctx, obj, name, args, kw), repr(obj), print(text, task), dir(obj) }
    *   natives: additional functions (host API) – name → fn(ctx, args, kwargs)
    *   globals: predefined names (host API: functions as PyBuiltin, modules, constants)
@@ -92,6 +92,9 @@ export class VM {
     this.tasks = new Map();
     this.nextTask = 1;
     this.rng = seedRng(opts.seed ?? 1);
+    /** Limits of the sandbox (see MAX_ITEMS and MAX_STR in values.js): undefined keeps the defaults */
+    this.maxItems = opts.maxItems;
+    this.maxStr = opts.maxStr;
     /** Counted instructions (statistics, detecting infinite loops) */
     this.steps = 0;
     /** Next number for instances (stable ids for hashing and default repr) */
@@ -706,9 +709,9 @@ export class VM {
             for (let i = out.length - 1; i >= 0; i--) stack.push(out[i]);
             break;
           }
-          case OP.LIST_APPEND: { const v = stack.pop(); stack[stack.length - 1 - arg].items.push(v); break; }
+          case OP.LIST_APPEND: { const v = stack.pop(); const l = stack[stack.length - 1 - arg].items; if (l.length >= maxItems()) throw tooLong('items'); l.push(v); break; }
           case OP.DICT_SET: { const v = stack.pop(), k = stack.pop(); stack[stack.length - 1 - arg].set(k, v); break; }
-          case OP.LIST_PUSH: { const v = stack.pop(); stack[stack.length - 1].items.push(v); break; }
+          case OP.LIST_PUSH: { const v = stack.pop(); const l = stack[stack.length - 1].items; if (l.length >= maxItems()) throw tooLong('items'); l.push(v); break; }
           case OP.LIST_EXTEND: { const v = stack.pop(); pushAll(stack[stack.length - 1].items, iterItems(v)); break; }
           case OP.LIST_TO_TUPLE: stack.push(new PyTuple(stack.pop().items)); break;
           case OP.MAKE_FUNCTION: {

@@ -34,7 +34,7 @@ do { r = vm.run(task, 100_000); } while (r.status === 'budget');   // a page get
 console.log(r.status);   // "done"
 ```
 
-`runToEnd(source, { inputs, seed, budget, files, globals })` returns `{ output, errors, plots, error, vm }`. A `sleep()` advances a virtual clock, `plt.show()` collects the SVG in `plots`.
+`runToEnd(source, { inputs, seed, budget, files, globals, maxItems, maxStr })` returns `{ output, errors, plots, error, vm }`. A `sleep()` advances a virtual clock, `plt.show()` collects the SVG in `plots`.
 
 ### Two entry points
 
@@ -58,6 +58,7 @@ console.log(runToEnd(source).output);   // "['1', '22']\n"
 - Debugger hooks: breakpoints per file, step into/over/out, variables and call stack.
 - Friendly English and German error messages with hints and tracebacks.
 - Reproducible: optional random seed and deterministic, platform-independent math.
+- Bounded memory: a list, tuple, dict or set holds at most `maxItems` items and a text at most `maxStr` characters (10 million each by default, set with `new VM(prog, { maxItems, maxStr })`); beyond that the program gets a `MemoryError`.
 
 The full list of supported commands, with runnable examples, is in the [reference](https://natter.wi7.net/reference/).
 

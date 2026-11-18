@@ -23,7 +23,7 @@ import {
   PyModule, PyHost, checkInt, isInt, isNum, num, typeName, truthy, eq, lt, iterItems, makeIter, iterNext, DONE, length,
   roundFloat, formatValue, binary, TYPE_NAMES, toIndex, keyOf, normBig, pow10, pushAll,
   keyError, getItem, Suspend, PyGenerator, PySlice, PyUserIter, PySet, setOf, PyClass, PyInstance, PyMethod, PySuper, PyProperty, PyStaticMethod, PyClassMethod, OBJECT, NOT_IMPLEMENTED, NO_METHOD,
-  callDunder, lookupClass, defaultRepr, setOp, PyGenericAlias, PyUnion, hooks,
+  callDunder, lookupClass, defaultRepr, setOp, PyGenericAlias, PyUnion, hooks, checkItems, checkStr,
 } from './values.js';
 
 const radix = (v, base, prefix) => {
@@ -672,18 +672,25 @@ export const METHODS = {
       const n = needInt(size, 'tabsize');
       let out = '', col = 0;
       for (const ch of s) {
-        if (ch === '\t') { const k = n > 0 ? n - (col % n) : 0; out += ' '.repeat(k); col += k; } else { out += ch; col = ch === '\n' || ch === '\r' ? 0 : col + 1; }
+        if (ch === '\t') { const k = n > 0 ? n - (col % n) : 0; checkStr(out.length + k); out += ' '.repeat(k); col += k; } else { out += ch; col = ch === '\n' || ch === '\r' ? 0 : col + 1; }
       }
       return out;
     },
     join: (c, s, a, kw) => {
       const [it] = params('join', a, kw, ['iterable']);
-      return iterItems(it).map((x, i) => { if (typeof x !== 'string') throw err('type', { what: 'joinStr', i, type: typeName(x) }); return x; }).join(s);
+      let n = 0;
+      const parts = iterItems(it).map((x, i) => { if (typeof x !== 'string') throw err('type', { what: 'joinStr', i, type: typeName(x) }); n += x.length; return x; });
+      checkStr(n + s.length * Math.max(0, parts.length - 1));
+      return parts.join(s);
     },
     replace: (c, s, a, kw) => {
       const [o, n, count = -1] = params('replace', a, kw, ['old', 'new', '?count']);
       const old = needStr(o, 'old'), nw = needStr(n, 'new'), k = needInt(count, 'count');
-      if (k < 0) return old === '' ? [...s].join(nw).replace(/^/, nw) + nw : s.split(old).join(nw);
+      if (k < 0) {
+        const parts = old === '' ? [...s].length + 1 : s.split(old).length;
+        checkStr(s.length + (parts - 1) * (nw.length - old.length));
+        return old === '' ? [...s].join(nw).replace(/^/, nw) + nw : s.split(old).join(nw);
+      }
       let out = s, done = 0, from = 0;
       while (done < k) { const i = out.indexOf(old, from); if (i < 0) break; out = out.slice(0, i) + nw + out.slice(i + old.length); from = i + nw.length + (old === '' ? 1 : 0); done++; }
       return out;
@@ -718,17 +725,19 @@ export const METHODS = {
       const w = needInt(params('zfill', a, kw, ['width'])[0], 'width');
       const sign = s[0] === '-' || s[0] === '+' ? s[0] : '';
       const body = sign ? s.slice(1) : s;
+      checkStr(w);
       return sign + body.padStart(w - sign.length, '0');
     },
   },
   list: {
-    append: (c, l, a, kw) => { const [x] = params('append', a, kw, ['object']); l.items.push(x); return null; },
+    append: (c, l, a, kw) => { const [x] = params('append', a, kw, ['object']); checkItems(l.items.length + 1); l.items.push(x); return null; },
     extend: (c, l, a, kw) => { const [x] = params('extend', a, kw, ['iterable']); pushAll(l.items, iterItems(x)); return null; },
     insert: (c, l, a, kw) => {
       const [i, x] = params('insert', a, kw, ['index', 'object']);
       let k = toIndex(i);
       const n = l.items.length;
       if (k < 0) k = Math.max(0, k + n); else if (k > n) k = n;
+      checkItems(n + 1);
       l.items.splice(k, 0, x);
       return null;
     },
