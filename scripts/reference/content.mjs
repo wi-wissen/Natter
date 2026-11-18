@@ -294,12 +294,13 @@ export const SECTIONS = [
     id: 'csv', title: 'csv', group: G_STD, source: 'module', module: 'csv', imports: 'import csv',
     intro: ['Reading and writing CSV files: quoted fields, delimiters, header rows as dictionaries.'],
     example: { code: 'import csv\nwith open("noten.csv", "w", newline="") as f:\n    w = csv.writer(f, delimiter=";")\n    w.writerow(["name", "note"])\n    w.writerows([["Ada", 1], ["Linus, B.", 2]])\nwith open("noten.csv", newline="") as f:\n    for zeile in csv.DictReader(f, delimiter=";"):\n        print(zeile["name"], zeile["note"])' },
-    notes: ['Dialects `excel`, `excel-tab` and `unix`; `Sniffer` and `field_size_limit` are missing.'],
+    notes: ['Reader and writer follow CPython 3.13 (`_csv.c`), including the quoting modes `QUOTE_STRINGS` and `QUOTE_NOTNULL`. Dialects `excel`, `excel-tab`, `unix` and your own with `register_dialect`; `Sniffer` is missing, and dialect attributes can be changed (in CPython they are read-only).'],
     desc: { reader: 'Rows of a file as lists of strings.', writer: 'Writes lists as rows.', DictReader: 'Rows as dictionaries, keys from the header row.', DictWriter: 'Writes dictionaries as rows (`writeheader()` for the header).' },
   },
   {
     id: 'typing', title: 'typing', group: G_STD, source: 'module', module: 'typing', imports: 'from typing import List, Optional',
     intro: ['The names that type hints use. Hints are not checked, so these only make programs from books run.'],
+    notes: ['Printed, compared and checked like CPython 3.13: `List[int]`, `Optional[str]`, `isinstance(x, List)`, `isinstance(1, Union[int, str])`, `get_origin`, `get_args`. `NamedTuple`, `TypedDict`, `ParamSpec` and `Protocol` checks with `isinstance` are missing; `get_origin(Callable[…])` gives `typing.Callable` (Natter has no `collections.abc`).'],
     example: { code: 'from typing import List, Optional\ndef erstes(werte: List[int]) -> Optional[int]:\n    return werte[0] if werte else None\nprint(erstes([3, 4]), List[int])' },
   },
 
