@@ -1,0 +1,2 @@
+{'wert': 'int', 'nachfolger': 'Optional[Knoten]', 'g': 'Callable[[int], str]', 'h': "Literal['a', 'b']", 'i': '-1', 'j': 'x.y[1:2, ::3]'}
+{'a': 'dict[str, list[int]]', 'b': 'int | None', 'c': 'tuple[int, ...]', 'return': 'Knoten | None'}

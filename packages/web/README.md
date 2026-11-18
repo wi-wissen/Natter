@@ -29,8 +29,8 @@ Without a build step, from jsDelivr (always pin a version):
 <button id="stop">Stop</button>
 <script type="module">
   import { createRunner, createConsole, createTurtle, createKara, createPgzero, detectModules, karaGlobals }
-    from 'https://cdn.jsdelivr.net/npm/@natterjs/web@0.1.0/dist/natter-web.js';
-  import { assetsOption } from 'https://cdn.jsdelivr.net/npm/@natterjs/assets@0.1.0/index.js';
+    from 'https://cdn.jsdelivr.net/npm/@natterjs/web@0.2.0/dist/natter-web.js';
+  import { assetsOption } from 'https://cdn.jsdelivr.net/npm/@natterjs/assets@0.2.0/index.js';
 
   const source = 'import turtle\nfor i in range(4):\n    turtle.forward(100)\n    turtle.left(90)';
   const stage = document.querySelector('#stage');   // drawing surfaces need a container with a height
@@ -57,7 +57,7 @@ Without a build step, from jsDelivr (always pin a version):
 
 | Export | Purpose |
 |---|---|
-| `createRunner(options)` | Runs programs: `run(source, { file, files, seed, globals, inputs, breakpoints })`, `stop()`, `sendInput(text)`; events `output`, `error`, `state`, `input`, `file`; debugger `pause()`, `continue()`, `step('over'|'into'|'out')`, `setBreakpoints(…)`, `inspect()` |
+| `createRunner(options)` | Runs programs: `run(source, { file, files, seed, maxItems, maxStr, globals, inputs, breakpoints })`, `stop()`, `sendInput(text)`; events `output`, `error`, `state`, `input`, `file`; debugger `pause()`, `continue()`, `step('over'|'into'|'out')`, `setBreakpoints(…)`, `inspect()` |
 | `createConsole(el, { lang, onLineClick })` | Output, input line for `input()`, error box with line, message and traceback; `.connect(runner)` |
 | `createTurtle(el)` | Python `turtle`: pens, fills, text, stamps, several turtles, key/click events, `textinput` |
 | `createKara(el, { assets })` | Kara the ladybug: world with trees, berries and mushrooms, animated moves |

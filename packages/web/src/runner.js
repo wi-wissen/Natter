@@ -116,10 +116,11 @@ export function createRunner(options = {}) {
     /**
      * Start a program (a running one is stopped first). Resolves with the final state.
      * @param {string} src
-     * @param {{ files?: Record<string,string>, seed?: number, globals?: Record<string, any>, inputs?: string[], debug?: boolean,
+     * @param {{ files?: Record<string,string>, seed?: number, maxItems?: number, maxStr?: number, globals?: Record<string, any>, inputs?: string[], debug?: boolean,
      *   breakpoints?: number[]|Record<string, number[]>|Map<string, Iterable<number>>, file?: string }} [opts]
      *   file: path of the program in the project (default 'main.py'); files: the project (path → text): fills the file
      *   system and serves `import` of own files and packages; breakpoints: lines (any file) or lines per file
+     *   maxItems / maxStr: limits of the sandbox (most items of a list, dict or set; longest text), default 10 million each
      * @returns {Promise<RunState>}
      */
     run(src, opts = {}) {
@@ -165,7 +166,7 @@ export function createRunner(options = {}) {
         const pageRead = host.readModule;
         const fromFiles = projectModules(() => (vm?.fs ? vm.fs.files : normFiles(files)), () => mainFile);
         host.readModule = (name, ctx) => pageRead?.(name, ctx) ?? fromFiles(name, ctx);
-        vm = new VM(prog, { host, globals, files: opts.files ?? {}, seed: opts.seed ?? ((Math.random() * 2 ** 31) | 0) });
+        vm = new VM(prog, { host, globals, files: opts.files ?? {}, seed: opts.seed ?? ((Math.random() * 2 ** 31) | 0), maxItems: opts.maxItems, maxStr: opts.maxStr });
         const dbg = opts.debug || lineBps.length || hasBps(fileBps) ? { bps: lineBps, files: { ...fileBps } } : null;
         main = vm.start(null, dbg);
         for (const p of plugins) p.start?.({ vm, task: main, runner, source: src });

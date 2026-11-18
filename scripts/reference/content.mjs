@@ -43,11 +43,10 @@ export const SECTIONS = [
       { area: 'Functions', text: '`def` with defaults, `*args`, `**kwargs`, keyword-only parameters after `*`, `lambda`, closures, `global`, `nonlocal`, decorators, recursion up to depth 1000 like CPython.',
         ok: 'def gruss(name, *, laut=False, **extra):\n    t = "Hallo " + name\n    return t.upper() if laut else t\nprint(gruss("Ada", laut=True), (lambda x: x * 2)(21))',
         not: 'Positional-only parameters (`/`) are missing.', no: ['def f(a, /, b):\n    return a + b'] },
-      { area: 'Classes', text: '`class` with inheritance (also multiple, MRO as in CPython), `super()`, `@property` with setter, `@classmethod`, `@staticmethod`, operators via `__add__`, `__eq__`, `__lt__`, `__getitem__`, `__len__`, `__iter__`, `__call__`, `__getattr__` …',
+      { area: 'Classes', text: '`class` with inheritance (also multiple, MRO as in CPython), `super()`, `@property` with setter, `@classmethod`, `@staticmethod`, operators via `__add__`, `__eq__`, `__lt__`, `__getitem__`, `__len__`, `__iter__`, `__call__`, `__getattr__`, `__setattr__`, `__new__`, `__init_subclass__` …; private names (`self.__x` becomes `_Klasse__x`) as in CPython.',
         ok: 'class Tier:\n    def __init__(self, name):\n        self.name = name\n    def __str__(self):\n        return "Tier " + self.name\nclass Hund(Tier):\n    def __init__(self, name):\n        super().__init__(name)\nprint(Hund("Bello"))',
-        not: 'No subclasses of built-in types (`class L(list)`), no metaclasses; `__setattr__` and `__slots__` have no effect.',
-        no: ['class L(list):\n    pass', 'class M(type):\n    pass\nclass A(metaclass=M):\n    pass'],
-        same: [{ code: 'class A:\n    def __setattr__(self, k, v):\n        print("gerufen")\nA().x = 1\nprint("fertig")', output: 'fertig\n' }] },
+        not: 'No subclasses of built-in types (`class L(list)`), no metaclasses; `__slots__` has no effect.',
+        no: ['class L(list):\n    pass', 'class M(type):\n    pass\nclass A(metaclass=M):\n    pass'] },
       { area: 'Exceptions', text: '`try`/`except`/`else`/`finally`, `raise`, `raise … from …`, custom exception classes, all common built-in exceptions. Errors come with the line, the call stack and a hint in English or German.',
         ok: 'class ZuKlein(Exception):\n    pass\ntry:\n    raise ZuKlein("unter 0")\nexcept ZuKlein as e:\n    print("Fehler:", e)\nfinally:\n    print("fertig")',
         not: 'Exception groups (`except*`) are missing.', no: ['try:\n    pass\nexcept* ValueError:\n    pass'] },
@@ -59,9 +58,10 @@ export const SECTIONS = [
       { area: 'Modules', text: '`import` of standard modules and of the project\'s own files (`helpers.py`, packages with `__init__.py`, `from . import x`), `import a.b`, `import x as y`, `from x import *`.',
         ok: 'import math as m\nfrom os import path\nprint(m.floor(2.7), path.join("a", "b"))',
         not: 'Modules that do not exist (see the list on the left) raise `ModuleNotFoundError`.', no: ['import tkinter'] },
-      { area: 'Type hints', text: 'Parsed and ignored, so programs from books run.',
-        ok: 'def doppelt(x: int) -> int:\n    return 2 * x\nzahlen: list = [1, 2]\nprint(doppelt(4), zahlen)',
-        not: 'The module `typing` is missing (hints like `List[int]` do not need it if you write `list`).', no: ['from typing import List'] },
+      { area: 'Type hints', text: 'Evaluated and stored as in CPython 3.13, but not checked: `__annotations__` of modules, classes and functions, `list[int]`, `int | None`, `from __future__ import annotations` (hints as text). On attributes (`self.x: int = 0`) and items they are allowed, too. The modules `typing` and `dataclasses` build on them.',
+        ok: 'from typing import Optional\ndef doppelt(x: int) -> Optional[int]:\n    return 2 * x\nzahlen: list[int] = [1, 2]\nprint(doppelt(4), zahlen, doppelt.__annotations__)' },
+      { area: 'Limits', text: 'A list, tuple, dict or set holds at most 10 million items and a text at most 10 million characters (a page can set other limits). Beyond that the program gets a `MemoryError` instead of freezing the browser tab. CPython has no such limit, only the memory of the computer.',
+        same: [{ code: 'try:\n    x = [0] * 20_000_000\nexcept MemoryError:\n    print("zu groß")', output: 'zu groß\n' }] },
       { area: 'Not available', text: 'Left out on purpose: rarely needed in class, or it would make the page unsafe.',
         not: '`eval`, `exec`, `dir`, `globals`; `...` equals `None`.', no: ['print(eval("1 + 2"))', 'print(dir())'],
         same: [{ code: 'print(...)', output: 'None\n' }] },
@@ -166,7 +166,7 @@ export const SECTIONS = [
     notes: [
       'Text files only (modes `r`, `w`, `a`, `x`, with `+`); `"rb"`/`"wb"` raise `ValueError`. The encoding is always UTF-8, line endings become `\\n`.',
       '`os.environ` is empty, `os.getcwd()` is `"/"`; `os.walk` works, `os.path.getsize` counts characters.',
-      '`pathlib`, `shutil`, `csv` and `sqlite3` are missing (read CSV with `split(",")`).',
+      '`pathlib`, `shutil` and `sqlite3` are missing; `csv` works on the files of `open()`.',
     ],
     desc: {
       open: 'Opens a text file. `mode`: `"r"` read, `"w"` write anew, `"a"` append, `"x"` create only, with `+` both.',
@@ -239,7 +239,7 @@ export const SECTIONS = [
     id: 'collections', title: 'collections', group: G_STD, source: 'module', module: 'collections', imports: 'import collections', showMembers: true, inherited: false,
     intro: ['`Counter`, `defaultdict`, `deque`, `OrderedDict` and `namedtuple`.'],
     example: { code: 'from collections import Counter, defaultdict, deque, namedtuple\nprint(Counter("abrakadabra").most_common(2))\ngruppen = defaultdict(list)\nfor w in ["Apfel", "Birne", "Ananas"]:\n    gruppen[w[0]].append(w)\nprint(dict(gruppen))\nschlange = deque([1, 2, 3], maxlen=3)\nschlange.append(4)\nprint(schlange)\nPunkt = namedtuple("Punkt", "x y")\nprint(Punkt(2, 3).x)' },
-    notes: ['The classes are written in Python and are not subclasses of `dict`: `isinstance(Counter(), dict)` is `False`. `ChainMap` and `UserDict` are missing.'],
+    notes: ['The classes are written in Python and are not subclasses of `dict`: `isinstance(Counter(), dict)` is `False`. `ChainMap` and `UserDict` are missing.', '`namedtuple` follows CPython (checks, `defaults`, `rename`, `_make`, `_replace`, `_asdict`, comparing with tuples) and `isinstance(p, tuple)` is `True`; as a dictionary key a named tuple and a plain tuple with the same values are still two different keys.'],
     desc: { Counter: 'Counts items.', defaultdict: 'Dict that creates missing keys with `default_factory()`.', deque: 'Queue with fast appends and pops at both ends.', OrderedDict: 'Dict that can change its order.', namedtuple: 'Tuple class with named fields.' },
   },
   {
@@ -270,7 +270,7 @@ export const SECTIONS = [
     id: 'sys', title: 'sys', group: G_STD, source: 'module', module: 'sys', imports: 'import sys',
     intro: ['The parts of `sys` that school programs need: `exit`, `stdout`/`stderr`/`stdin`, `argv`, version information.'],
     example: { code: 'import sys\nprint(sys.version_info[:2], sys.platform)\nsys.stdout.write("ohne Zeilenumbruch")\nprint()\nif len(sys.argv) < 2:\n    print("Keine Argumente, Ende.")\n    sys.exit()\nprint("nie erreicht")' },
-    notes: ['`setrecursionlimit` has no effect (the limit is 1000), `getsizeof` always returns 64, `sys.modules` and `sys.path` are empty.'],
+    notes: ['`setrecursionlimit` has no effect (the limit is 1000), `getsizeof` always returns 64, `sys.path` is empty; `sys.modules` holds `__main__` and the modules loaded so far.'],
     desc: { exit: 'Ends the program (`SystemExit`).', stdout: 'Standard output (`write`, `flush`).', stderr: 'Error output.', stdin: 'Input (`readline` asks like `input`).' },
   },
   {
@@ -289,6 +289,41 @@ export const SECTIONS = [
     id: 'textwrap', title: 'textwrap', group: G_STD, source: 'module', module: 'textwrap', imports: 'import textwrap',
     intro: ['Wrapping, shortening and indenting text.'],
     example: { code: 'import textwrap\nsatz = "Natter ist ein kleiner Python-Interpreter für den Unterricht im Browser."\nprint(textwrap.fill(satz, width=30))\nprint(textwrap.shorten(satz, width=30))\nprint(textwrap.indent("a\\nb", "> "))' },
+  },
+
+  {
+    id: 'csv', title: 'csv', group: G_STD, source: 'module', module: 'csv', imports: 'import csv',
+    intro: ['Reading and writing CSV files: quoted fields, delimiters, header rows as dictionaries.'],
+    example: { code: 'import csv\nwith open("noten.csv", "w", newline="") as f:\n    w = csv.writer(f, delimiter=";")\n    w.writerow(["name", "note"])\n    w.writerows([["Ada", 1], ["Linus, B.", 2]])\nwith open("noten.csv", newline="") as f:\n    for zeile in csv.DictReader(f, delimiter=";"):\n        print(zeile["name"], zeile["note"])' },
+    notes: ['Reader and writer follow CPython 3.13 (`_csv.c`), including the quoting modes `QUOTE_STRINGS` and `QUOTE_NOTNULL`. Dialects `excel`, `excel-tab`, `unix` and your own with `register_dialect`; `Sniffer` is missing, and dialect attributes can be changed (in CPython they are read-only).'],
+    desc: { reader: 'Rows of a file as lists of strings.', writer: 'Writes lists as rows.', DictReader: 'Rows as dictionaries, keys from the header row.', DictWriter: 'Writes dictionaries as rows (`writeheader()` for the header).' },
+  },
+  {
+    id: 'typing', title: 'typing', group: G_STD, source: 'module', module: 'typing', imports: 'from typing import List, Optional',
+    intro: ['The names that type hints use. Hints are not checked, so these only make programs from books run.'],
+    notes: ['Printed, compared and checked like CPython 3.13: `List[int]`, `Optional[str]`, `int | None`, `isinstance(x, List)`, `isinstance(1, Union[int, str])`, `get_origin`, `get_args`, `get_type_hints`, `NamedTuple`, `TypedDict` (with `total`, `Required`, `NotRequired`).', 'Missing: `ParamSpec`, `TypeVarTuple`, `isinstance` with a `Protocol`; `get_origin(Callable[…])` gives `typing.Callable` (Natter has no `collections.abc`). `get_args(tuple[int, ...])` has `None` for `...`.'],
+    example: { code: 'from typing import NamedTuple, Optional, TypedDict\nclass Punkt(NamedTuple):\n    x: int\n    y: int = 0\nclass Film(TypedDict):\n    titel: str\n    jahr: int\ndef erstes(werte: list[int]) -> Optional[int]:\n    return werte[0] if werte else None\nprint(erstes([3, 4]), Punkt(2), Film(titel="M", jahr=1931))' },
+  },
+
+  {
+    id: 'dataclasses', title: 'dataclasses', group: G_STD, source: 'module', module: 'dataclasses', imports: 'from dataclasses import dataclass, field',
+    intro: ['Classes for data: `@dataclass` writes `__init__`, `__repr__`, `__eq__` (and with `order=True` the comparisons) from the annotated fields.'],
+    example: { code: 'from dataclasses import dataclass, field, asdict\n@dataclass(order=True)\nclass Schueler:\n    name: str\n    noten: list[int] = field(default_factory=list)\n    def schnitt(self) -> float:\n        return sum(self.noten) / len(self.noten)\na = Schueler("Ada", [1, 2])\nprint(a, a.schnitt(), a < Schueler("Bob"), asdict(a))' },
+    notes: ['Behaves like CPython 3.13, error messages included: `frozen`, `order`, `unsafe_hash`, `kw_only`, `KW_ONLY`, `InitVar`, `ClassVar`, `__post_init__`, `field(…)`, `fields`, `asdict`, `astuple`, `replace`. Missing: `make_dataclass`; `slots=True` adds no `__slots__`.'],
+    desc: { dataclass: 'Decorator that turns a class with annotated fields into a data class.', field: 'Options for one field: `default`, `default_factory`, `init`, `repr`, `compare`, `kw_only` …', fields: 'The fields of a data class.', asdict: 'The fields as a dictionary (also nested).', astuple: 'The fields as a tuple.', replace: 'A copy with some fields changed.', is_dataclass: 'Is it a data class or an instance of one?', FrozenInstanceError: 'Raised when a field of a `frozen` data class is changed.', InitVar: 'A parameter for `__post_init__` that is not a field.', KW_ONLY: 'Fields after `_: KW_ONLY` are keyword-only.', MISSING: 'Marks a field without a default.', Field: 'What `field()` returns and `fields()` lists.' },
+  },
+  {
+    id: 'types', title: 'types', group: G_STD, source: 'module', module: 'types', imports: 'import types',
+    intro: ['The types behind type hints (`list[int]` is a `types.GenericAlias`, `int | None` a `types.UnionType`) and of functions, methods, generators and modules, for `isinstance()`.'],
+    example: { code: 'import types\nprint(isinstance(int | None, types.UnionType), isinstance(len, types.BuiltinFunctionType))\nprint(types.GenericAlias(list, (int,)), types.NoneType)' },
+    notes: ['Only these names; `SimpleNamespace`, `MappingProxyType` and `new_class` are missing.'],
+    desc: { GenericAlias: 'Type of `list[int]`; `GenericAlias(list, (int,))` makes one.', UnionType: 'Type of `int | None`.', NoneType: 'Type of `None`.', FunctionType: 'Type of functions made with `def`.', LambdaType: 'Same as `FunctionType`.', MethodType: 'Type of bound methods.', BuiltinFunctionType: 'Type of built-in functions such as `len`.', BuiltinMethodType: 'Same as `BuiltinFunctionType`.', GeneratorType: 'Type of generators.', ModuleType: 'Type of modules.' },
+  },
+  {
+    id: 'keyword', title: 'keyword', group: G_STD, source: 'module', module: 'keyword', imports: 'import keyword',
+    intro: ['The reserved words of Python 3.13.'],
+    example: { code: 'import keyword\nprint(keyword.iskeyword("class"), keyword.iskeyword("klasse"), len(keyword.kwlist))' },
+    desc: { iskeyword: 'Is the text a reserved word?', issoftkeyword: 'Is the text a soft keyword (`match`, `case`, `type`, `_`)?', kwlist: 'All reserved words.', softkwlist: 'All soft keywords.' },
   },
 
   // ------------------------------------------------------------------ drawing and games

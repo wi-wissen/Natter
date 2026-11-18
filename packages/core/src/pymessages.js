@@ -2,6 +2,7 @@
 // The friendly texts for learners live in messages.js; these are for programs that look at the exception themselves.
 
 import { message } from './errorText.js';
+import { reprStr } from './values.js';
 
 const plural = (n, one, many) => (n === 1 ? one : many);
 
@@ -41,6 +42,8 @@ export function pyMessage(e) {
         case 'rangeStep': return 'range() arg 3 must not be zero';
         case 'emptySeq': return `${p.name}() iterable argument is empty`;
         case 'negativeShift': return 'negative shift count';
+        case 'powModZero': return 'pow() 3rd argument cannot be 0';
+        case 'powModInverse': return 'base is not invertible for the given modulus';
         case 'chrRange': return 'chr() arg not in range(0x110000)';
         case 'emptySeparator': return 'empty separator';
         case 'lenNegative': return '__len__() should return >= 0';
@@ -64,11 +67,22 @@ export function pyMessage(e) {
     case 'unaryOperand': return `bad operand type for unary ${p.op}: '${p.type}'`;
     case 'notIterable': return `'${p.type}' object is not iterable`;
     case 'notCallable': return `'${p.type}' object is not callable`;
-    case 'notSubscriptable': return `'${p.type}' object is not subscriptable`;
+    case 'notSubscriptable': return p.type === 'type' && p.name ? `type '${p.name}' is not subscriptable` : `'${p.type}' object is not subscriptable`;
     case 'notIndex': return p.container === 'str' ? `string indices must be integers, not '${p.type}'` : `${p.container ?? 'list'} indices must be integers or slices, not ${p.type}`;
     case 'unhashable': return `unhashable type: '${p.type}'`;
-    case 'argCount': return `${p.name}() takes ${p.max} positional ${plural(p.max, 'argument', 'arguments')} but ${p.given} ${plural(p.given, 'was', 'were')} given`;
-    case 'argMissing': return `${p.name}() missing 1 required positional argument: '${p.arg}'`;
+    case 'argCount': {
+      // CPython's too_many_positional()
+      const sig = p.min !== undefined ? `from ${p.min} to ${p.max}` : String(p.max);
+      const many = p.min !== undefined || p.max !== 1;
+      const kwonly = p.kwonlyGiven ? ` positional ${plural(p.given, 'argument', 'arguments')} (and ${p.kwonlyGiven} keyword-only ${plural(p.kwonlyGiven, 'argument', 'arguments')})` : '';
+      return `${p.name}() takes ${sig} positional ${many ? 'arguments' : 'argument'} but ${p.given}${kwonly} ${p.given === 1 && !p.kwonlyGiven ? 'was' : 'were'} given`;
+    }
+    case 'argMissing': {
+      // CPython's missing_arguments(): 'a', 'a' and 'b', 'a', 'b', and 'c'
+      const names = (p.args ?? [p.arg]).map((x) => `'${x}'`);
+      const list = names.length === 1 ? names[0] : names.length === 2 ? `${names[0]} and ${names[1]}` : `${names.slice(0, -1).join(', ')}, and ${names[names.length - 1]}`;
+      return `${p.name}() missing ${names.length} required ${p.what === 'keyword' ? 'keyword-only' : 'positional'} ${plural(names.length, 'argument', 'arguments')}: ${list}`;
+    }
     case 'argUnexpected': return `${p.name}() got an unexpected keyword argument '${p.arg}'`;
     case 'argDuplicate': return `${p.name}() got multiple values for argument '${p.arg}'`;
     case 'attr':
@@ -83,7 +97,8 @@ export function pyMessage(e) {
     case 'importRelative': return 'attempted relative import with no known parent package';
     case 'mathDomain': return 'math domain error';
     case 'mathRange': return 'math range error';
-    case 'overflow': return 'integer too large';
+    case 'overflow': return p.what === 'index' ? "cannot fit 'int' into an index-sized integer" : 'integer too large';
+    case 'memory': return '';
     case 'stopIteration': return '';
     case 'fileNotFound': return `[Errno 2] No such file or directory: ${pyStr(p.path)}`;
     case 'fileExists': return `[Errno 17] File exists: ${pyStr(p.path)}`;
@@ -97,6 +112,12 @@ export function pyMessage(e) {
     case 'type':
       switch (p.what) {
         case 'noLen': return `object of type '${p.type}' has no len()`;
+        case 'newArg': return `object.__new__(X): X is not a type object (${p.type})`;
+        case 'isinstanceGeneric': return `${p.name}() argument 2 cannot be a parameterized generic`;
+        case 'initSubclassKw': return `${p.name}.__init_subclass__() takes no keyword arguments`;
+        case 'isinstanceType': return 'isinstance() arg 2 must be a type, a tuple of types, or a union';
+        case 'issubclassType': return 'issubclass() arg 2 must be a class, a tuple of classes, or a union';
+        case 'issubclassArg': return 'issubclass() arg 1 must be a class';
         case 'noItemAssign': return `'${p.type}' object does not support item assignment`;
         case 'noItemDelete': return `'${p.type}' object doesn't support item deletion`;
         case 'convert': return p.to === 'int'
@@ -104,6 +125,7 @@ export function pyMessage(e) {
           : `float() argument must be a string or a real number, not '${p.type}'`;
         case 'numberNeeded': return `must be real number, not ${p.type}`;
         case 'intNeeded': return `'${p.type}' object cannot be interpreted as an integer`;
+        case 'powModInt': return 'pow() 3rd argument not allowed unless all arguments are integers';
         case 'inStr': return `'in <string>' requires string as left operand, not ${p.type}`;
         case 'joinStr': return `sequence item ${p.i}: expected str instance, ${p.type} found`;
         case 'noContext': return `'${p.type}' object does not support the context manager protocol`;
@@ -122,7 +144,8 @@ export function pyMessage(e) {
   return message(e.code, p, 'en');
 }
 
-const pyStr = (s) => `'${String(s).replace(/\\/g, '\\\\').replace(/'/g, "\\'")}'`;
+/** repr() of a text, as CPython puts it into its messages. */
+const pyStr = (s) => reprStr(String(s));
 
 function operandMessage(p) {
   const seq = ['str', 'list', 'tuple'];

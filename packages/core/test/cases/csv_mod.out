@@ -1,0 +1,18 @@
+['titel', 'kuenstler', 'dauer']
+['Hallo, Welt', 'Sag "Hi"', '215']
+['Zeile\nzwei', 'B', '3.5']
+['', '', '0']
+['']
+['titel', 'kuenstler', 'dauer']
+Hallo, Welt | 215
+Zeile
+zwei | 3.5
+ | 0
+ | None
+ValueError dict contains fields not in fieldnames: 'alter'
+[['name', 'note'], ['Ada', '1'], ['Bob', '']]
+[['a', ' b', 'c'], ['x"y', '  "z"'], [], ['1', '2']]
+[['a', 'b', 'c'], ['x"y', 'z'], [], ['1', '2']]
+[[1.0, 2.5, 'a']]
+[['a', 'b c']]
+[{'x': '1', 'y': '2', 'mehr': ['3']}, {'x': '4', 'y': '-'}]

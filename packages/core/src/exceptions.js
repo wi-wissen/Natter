@@ -20,7 +20,7 @@ const TREE = [
   ['SystemExit', 'BaseException'], ['KeyboardInterrupt', 'BaseException'], ['GeneratorExit', 'BaseException'],
   ['Exception', 'BaseException'],
   ['ArithmeticError', 'Exception'], ['FloatingPointError', 'ArithmeticError'], ['OverflowError', 'ArithmeticError'], ['ZeroDivisionError', 'ArithmeticError'],
-  ['AssertionError', 'Exception'], ['AttributeError', 'Exception'], ['EOFError', 'Exception'],
+  ['AssertionError', 'Exception'], ['MemoryError', 'Exception'], ['AttributeError', 'Exception'], ['EOFError', 'Exception'],
   ['ImportError', 'Exception'], ['ModuleNotFoundError', 'ImportError'],
   ['LookupError', 'Exception'], ['IndexError', 'LookupError'], ['KeyError', 'LookupError'],
   ['NameError', 'Exception'], ['UnboundLocalError', 'NameError'],

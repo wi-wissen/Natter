@@ -53,7 +53,12 @@ export class PyDict {
     }
   }
   get(k) { const e = this.map.get(this.slot(k)); return e ? e[1] : undefined; }
-  set(k, v) { const key = this.slot(k); const e = this.map.get(key); if (e) e[1] = v; else this.map.set(key, [k, v]); }
+  set(k, v) {
+    const key = this.slot(k);
+    const e = this.map.get(key);
+    if (e) e[1] = v;
+    else { if (this.map.size >= maxItems()) throw tooLong('dict'); this.map.set(key, [k, v]); }
+  }
   has(k) { return this.map.has(this.slot(k)); }
   delete(k) {
     const key = this.slot(k);
@@ -127,6 +132,8 @@ export class PyClass {
     this.bases = bases;
     this.dict = dict;
     this.native = native;
+    /** __module__: the module whose code made the class */
+    this.module = '__main__';
     this.mro = computeMro(this);
   }
 }
@@ -148,6 +155,10 @@ export class PyStaticMethod { constructor(fn) { this.fn = fn; } }
 export class PyClassMethod { constructor(fn) { this.fn = fn; } }
 /** Iterator over an object with __next__. */
 export class PyUserIter { constructor(obj) { this.obj = obj; } }
+/** list[int], dict[str, int] … (types.GenericAlias): `args` is an array (empty for tuple[()]). */
+export class PyGenericAlias { constructor(origin, args) { this.origin = origin; this.args = args; } }
+/** int | None (types.UnionType): `args` are the distinct members (None as NoneType). */
+export class PyUnion { constructor(args) { this.args = args; } }
 
 /** Linearisation of the base classes (C3), as in Python. */
 function computeMro(cls) {
@@ -259,6 +270,8 @@ export function typeName(v) {
   if (v instanceof PySuper) return 'super';
   if (v instanceof PyProperty) return 'property';
   if (v instanceof PyStaticMethod) return 'staticmethod';
+  if (v instanceof PyGenericAlias) return 'types.GenericAlias';
+  if (v instanceof PyUnion) return 'types.UnionType';
   if (v instanceof PyClassMethod) return 'classmethod';
   if (v instanceof PyNotImplemented) return 'NotImplementedType';
   return 'object';
@@ -319,6 +332,11 @@ export function keyOf(v) {
     return `o${v.id}`;
   }
   if (v instanceof PyClass || v instanceof PyFunction) return `c${identityOf(v)}`;
+  // a range is hashed by its items (range(0, 3) == range(3)), iterators and generators by identity, as in CPython
+  if (v instanceof PyGenericAlias) return nested(() => `G${keyOf(v.origin)}[${v.args.map(keyOf).join(',')}]`);
+  if (v instanceof PyUnion) return nested(() => `U(${v.args.map(keyOf).sort().join(',')})`);
+  if (v instanceof PyRange) { const n = rangeLen(v); return n === 0 ? 'r0' : n === 1 ? `r1:${v.start}` : `r${n}:${v.start}:${v.step}`; }
+  if (v instanceof PyIterator || v instanceof PyGenerator || v instanceof PyUserIter) return `c${identityOf(v)}`;
   if (v instanceof PyMethod) return `m${keyOf(v.self)}:${identityOf(v.fn)}`;
   throw err('unhashable', { type: typeName(v) });
 }
@@ -379,6 +397,9 @@ export function eq(a, b) {
   }
   if (a instanceof PySet && b instanceof PySet) return a.size === b.size && a.items().every((x) => b.has(x));
   if (a instanceof PyRange && b instanceof PyRange) return seqEq(rangeItems(a), rangeItems(b));
+  if (a instanceof PyGenericAlias && b instanceof PyGenericAlias) return eq(a.origin, b.origin) && a.args.length === b.args.length && a.args.every((x, i) => eq(x, b.args[i]));
+  if (a instanceof PyUnion && b instanceof PyUnion) return a.args.length === b.args.length && a.args.every((x) => b.args.some((y) => eq(x, y)));
+  if (a instanceof PyBuiltin && b instanceof PyBuiltin) return a.name === b.name;
   if (a instanceof PyHost && b instanceof PyHost) return a.cls === b.cls && a.id === b.id;
   if (a instanceof PyBuiltin && b instanceof PyBuiltin) return a.name === b.name;
   if (a instanceof PyBoundMethod && b instanceof PyBoundMethod) return a.name === b.name && eq(a.self, b.self);
@@ -502,19 +523,33 @@ export function rangeLen(r) {
   if (r.step > 0) return r.stop > r.start ? Math.floor((r.stop - r.start - 1) / r.step) + 1 : 0;
   return r.stop < r.start ? Math.floor((r.start - r.stop - 1) / -r.step) + 1 : 0;
 }
-/** Most elements a list may get, longest text (memory of a shared level stays bounded). */
-export const MAX_ITEMS = 1_000_000;
+/**
+ * Default limits of the sandbox: most elements of a list, tuple, dict or set, longest text. They keep a runaway
+ * program from using up the page's memory (it gets a MemoryError instead of crashing the tab). A host sets its own
+ * with new VM(prog, { maxItems, maxStr }), like the seed.
+ */
+export const MAX_ITEMS = 10_000_000;
 export const MAX_STR = 10_000_000;
+/** The limits of the VM that runs now. */
+export const maxItems = () => hooks.vm?.maxItems ?? MAX_ITEMS;
+export const maxStr = () => hooks.vm?.maxStr ?? MAX_STR;
+const group3 = (n) => String(n).replace(/\B(?=(\d{3})+(?!\d))/g, '\u202f');
+/** MemoryError for a container or text that would get too long. */
+export const tooLong = (what) => err('memory', { what, max: group3(what === 'str' ? maxStr() : maxItems()) });
+/** Check before a container grows to n elements. */
+export function checkItems(n) { if (n > maxItems()) throw tooLong('items'); }
+/** Check before a text grows to n characters. */
+export function checkStr(n) { if (n > maxStr()) throw tooLong('str'); }
 
 /** Append all items with a loop: spreading a huge array depends on the engine's argument limit. */
 export function pushAll(target, items) {
-  if (target.length + items.length > MAX_ITEMS) throw err('overflow', {});
+  checkItems(target.length + items.length);
   for (let i = 0; i < items.length; i++) target.push(items[i]);
 }
 
 export function rangeItems(r) {
   const n = rangeLen(r);
-  if (n > MAX_ITEMS) throw err('overflow', {});
+  checkItems(n);
   const out = new Array(n);
   for (let i = 0; i < n; i++) out[i] = r.start + i * r.step;
   return out;
@@ -535,7 +570,7 @@ export function iterItems(v) {
   if (v instanceof PyIterator || v instanceof PyUserIter || v instanceof PyGenerator || v instanceof PyInstance) {
     const it = makeIter(v);
     const out = [];
-    for (let x = iterNext(it); x !== DONE; x = iterNext(it)) { if (out.length >= MAX_ITEMS) throw err('overflow', {}); out.push(x); }
+    for (let x = iterNext(it); x !== DONE; x = iterNext(it)) { if (out.length >= maxItems()) throw tooLong('items'); out.push(x); }
     return out;
   }
   throw err('notIterable', { type: typeName(v) });
@@ -663,8 +698,18 @@ export function getItem(obj, idx) {
     const r = callDunder(obj, '__getitem__', [idx]);
     if (r !== NO_METHOD) return r;
   }
+  if (obj instanceof PyBuiltin && GENERIC_TYPES.has(obj.name)) {
+    // list[int], dict[str, int], tuple[()] … (PEP 585)
+    return new PyGenericAlias(obj, idx instanceof PyTuple ? idx.items.slice() : [idx]);
+  }
+  if (obj instanceof PyClass) {
+    // Cls[...] calls __class_getitem__ (implicitly a class method, as in CPython)
+    let f = lookupClass(obj, '__class_getitem__');
+    if (f instanceof PyClassMethod) f = f.fn;
+    if (f !== undefined && f !== null) return hooks.call(f, [obj, idx]);
+  }
   if (obj instanceof PyBuiltin || obj instanceof PyFunction) throw err('notSubscriptable', { what: 'function', type: typeName(obj), name: obj.name.replace(/^.*[.:]/, '') });
-  throw err('notSubscriptable', { type: typeName(obj) });
+  throw err('notSubscriptable', { type: typeName(obj), ...(obj instanceof PyClass ? { name: obj.name } : {}) });
 }
 
 export function setItem(obj, idx, v) {
@@ -672,7 +717,11 @@ export function setItem(obj, idx, v) {
     if (idx instanceof PySlice) {
       const [start, stop, step] = sliceIndices(idx, obj.items.length);
       const vals = iterItems(v);
-      if (step === 1) { obj.items.splice(start, Math.max(0, stop - start), ...vals); return; }
+      if (step === 1) {
+        checkItems(obj.items.length - Math.max(0, stop - start) + vals.length);
+        obj.items.splice(start, Math.max(0, stop - start), ...vals);
+        return;
+      }
       const targets = [];
       if (step > 0) for (let i = start; i < stop; i += step) targets.push(i);
       else for (let i = start; i > stop; i += step) targets.push(i);
@@ -881,21 +930,22 @@ export function binary(op, a, b) {
     if (r !== NO_METHOD) return r;
   }
   if (a instanceof PySet && b instanceof PySet && '|&-^'.includes(op) && op.length === 1) return setOp(op, a, b, a.frozen);
+  if (op === '|' && isTypeHint(a) && isTypeHint(b) && (a !== null || b !== null)) return makeUnion([a, b]);
   switch (op) {
     case '+':
-      if (typeof a === 'string' && typeof b === 'string') { if (a.length + b.length > MAX_STR) throw err('overflow', {}); return a + b; }
+      if (typeof a === 'string' && typeof b === 'string') { checkStr(a.length + b.length); return a + b; }
       if ((a instanceof PyList && b instanceof PyList) || (a instanceof PyTuple && b instanceof PyTuple)) {
-        if (a.items.length + b.items.length > MAX_ITEMS) throw err('overflow', {});
+        checkItems(a.items.length + b.items.length);
         return a instanceof PyList ? new PyList(a.items.concat(b.items)) : new PyTuple(a.items.concat(b.items));
       }
       break;
     case '*': {
       const [s, n0] = isInt(b) ? [a, num(b)] : isInt(a) ? [b, num(a)] : [null, 0];
-      if (typeof n0 === 'bigint' && s !== null && (typeof s === 'string' || s instanceof PyList || s instanceof PyTuple)) throw err('overflow', {});
+      if (typeof n0 === 'bigint' && s !== null && (typeof s === 'string' || s instanceof PyList || s instanceof PyTuple)) throw err('overflow', { what: 'index' });
       const n = Number(n0);
-      if (typeof s === 'string') { if (s.length * Math.max(0, n) > MAX_STR) throw err('overflow', {}); return n > 0 ? s.repeat(n) : ''; }
+      if (typeof s === 'string') { checkStr(s.length * Math.max(0, n)); return n > 0 ? s.repeat(n) : ''; }
       if (s instanceof PyList || s instanceof PyTuple) {
-        if (s.items.length * Math.max(0, n) > MAX_ITEMS) throw err('overflow', {});
+        checkItems(s.items.length * Math.max(0, n));
         const out = [];
         for (let i = 0; i < n; i++) pushAll(out, s.items);
         return s instanceof PyList ? new PyList(out) : new PyTuple(out);
@@ -1056,14 +1106,20 @@ export function toStr(v, asRepr = false, hostRepr = null, seen = new Set()) {
   }
   if (v instanceof PyFloat) return formatFloat(v.v);
   if (v instanceof PyInstance) return instStr(v, asRepr);
-  if (v instanceof PyClass) return v.native ? `<class '${v.name}'>` : `<class '__main__.${v.name}'>`;
-  if (v instanceof PyMethod) return `<bound method ${v.fn.name} of ${toStr(v.self, true, hostRepr, seen)}>`;
+  if (v instanceof PyClass) return v.native ? `<class '${v.name}'>` : `<class '${v.module}.${v.qualname ?? v.name}'>`;
+  if (v instanceof PyMethod) return `<bound method ${v.fn instanceof PyFunction ? fnQualname(v.fn) : v.fn.name} of ${toStr(v.self, true, hostRepr, seen)}>`;
   if (v instanceof PyNotImplemented) return 'NotImplemented';
   if (v instanceof PyGenerator) return `<generator object ${v.fn.name}>`;
   if (v instanceof PySuper) return `<super: <class '${v.cls.name}'>, <${typeName(v.obj)} object>>`;
   if (v instanceof PyProperty) return '<property object>';
   if (v instanceof PyStaticMethod) return '<staticmethod object>';
   if (v instanceof PyClassMethod) return '<classmethod object>';
+  if (v instanceof PyGenericAlias) {
+    const tupleEllipsis = v.origin.name === 'tuple' && v.args.length === 2 && v.args[1] === null;
+    const args = !v.args.length ? '()' : v.args.map((a, i) => (tupleEllipsis && i === 1 ? '...' : typeRepr(a))).join(', ');
+    return `${typeRepr(v.origin)}[${args}]`;
+  }
+  if (v instanceof PyUnion) return v.args.map((a) => (a instanceof PyBuiltin && a.name === 'class:NoneType' ? 'None' : typeRepr(a))).join(' | ');
   const rec = (x) => toStr(x, true, hostRepr, seen);
   if (v instanceof PyList || v instanceof PyTuple || v instanceof PyDict) {
     if (seen.has(v)) return v instanceof PyList ? '[...]' : v instanceof PyDict ? '{...}' : '(...)';
@@ -1090,7 +1146,7 @@ export function toStr(v, asRepr = false, hostRepr = null, seen = new Set()) {
     } finally { seen.delete(v); }
   }
   if (v instanceof PyRange) return v.step === 1 ? `range(${v.start}, ${v.stop})` : `range(${v.start}, ${v.stop}, ${v.step})`;
-  if (v instanceof PyFunction) return `<function ${v.name}>`;
+  if (v instanceof PyFunction) return `<function ${fnQualname(v)}>`;
   if (v instanceof PyBuiltin) {
     if (TYPE_NAMES.has(v.name)) return `<class '${v.name}'>`;
     if (v.name.startsWith('class:')) return `<class '${v.name.slice(6)}'>`;
@@ -1107,7 +1163,7 @@ export function toStr(v, asRepr = false, hostRepr = null, seen = new Set()) {
 }
 
 /** Default repr of an instance, like CPython without the memory address. */
-export const defaultRepr = (v) => `<__main__.${v.cls.name} object at 0x${v.id.toString(16).padStart(12, '0')}>`;
+export const defaultRepr = (v) => `<${v.cls.module}.${v.cls.qualname ?? v.cls.name} object at 0x${v.id.toString(16).padStart(12, '0')}>`;
 
 /** str() or repr() of an instance: __str__ (falling back to __repr__) or __repr__. */
 function instStr(v, asRepr) {
@@ -1218,6 +1274,7 @@ export function formatValue(v, spec) {
   }
   const total = signStr.length + body.length;
   if (total >= width) return signStr + body;
+  checkStr(width);
   const pad = width - total;
   switch (align) {
     case '<': return signStr + body + fill.repeat(pad);
@@ -1252,3 +1309,34 @@ export function percentFormat(fmt, args) {
   if (k < list.length && args instanceof PyTuple) throw err('type', { what: 'manyFormatArgs' });
   return out;
 }
+
+// ---------- Type hints: list[int], int | None ----------
+
+/** Types that take parameters with [] like CPython's builtins (PEP 585). */
+const GENERIC_TYPES = new Set(['list', 'tuple', 'dict', 'set', 'frozenset', 'type']);
+
+const isTypeObj = (v) => v instanceof PyClass || (v instanceof PyBuiltin && (TYPE_NAMES.has(v.name) || v.name.startsWith('class:')));
+/** What may stand on either side of | in a type hint. */
+const isTypeHint = (v) => v === null || isTypeObj(v) || v instanceof PyGenericAlias || v instanceof PyUnion;
+
+/** int | str | None: flattened, without repeats, a single member stays itself. */
+export function makeUnion(parts) {
+  const out = [];
+  for (let p of parts) {
+    if (p === null) p = new PyBuiltin('class:NoneType');
+    for (const m of p instanceof PyUnion ? p.args : [p]) if (!out.some((x) => eq(x, m))) out.push(m);
+  }
+  return out.length === 1 ? out[0] : new PyUnion(out);
+}
+
+/** How a type appears inside a type hint (CPython's _type_repr): int, __main__.K, list[int]. */
+export function typeRepr(v) {
+  if (v instanceof PyBuiltin && isTypeObj(v)) return v.name.replace(/^class:/, '');
+  if (v instanceof PyClass) return v.native ? v.name : `${v.module}.${v.qualname ?? v.name}`;
+  if (v instanceof PyFunction) return v.name;
+  if (v === null) return 'None';
+  return toStr(v, true);
+}
+
+/** __qualname__ of a function made in Python (A.m, f.<locals>.g); its code object knows it. */
+function fnQualname(fn) { return fn.attrs?.get('__qualname__') ?? hooks.vm?.codes?.[fn.code]?.qualname ?? fn.name; }

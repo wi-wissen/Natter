@@ -6,6 +6,7 @@
 
 import { ScriptError } from './errors.js';
 import { err, params, noKw, needInt, anyInt, needNum, needStr } from './args.js';
+import { powMod } from './powmod.js';
 import { MATH_NATIVES, MATH_NAMES, MATH_CONSTS } from './stdlib/math.js';
 import { RANDOM_NATIVES, RANDOM_NAMES } from './stdlib/random.js';
 import { CLOCK_NATIVES, CLOCK_NAMES } from './stdlib/clock.js';
@@ -22,7 +23,7 @@ import {
   PyModule, PyHost, checkInt, isInt, isNum, num, typeName, truthy, eq, lt, iterItems, makeIter, iterNext, DONE, length,
   roundFloat, formatValue, binary, TYPE_NAMES, toIndex, keyOf, normBig, pow10, pushAll,
   keyError, getItem, Suspend, PyGenerator, PySlice, PyUserIter, PySet, setOf, PyClass, PyInstance, PyMethod, PySuper, PyProperty, PyStaticMethod, PyClassMethod, OBJECT, NOT_IMPLEMENTED, NO_METHOD,
-  callDunder, lookupClass, defaultRepr, setOp,
+  callDunder, lookupClass, defaultRepr, setOp, PyGenericAlias, PyUnion, hooks, checkItems, checkStr,
 } from './values.js';
 
 const radix = (v, base, prefix) => {
@@ -87,8 +88,22 @@ function parseFloatStr(s) {
 /** isinstance(True, int) is true in Python. */
 function isInstance(v, t) {
   if (t instanceof PyTuple) return t.items.some((x) => isInstance(v, x));
-  if (t instanceof PyClass) return t === OBJECT || (v instanceof PyInstance && v.cls.mro.includes(t));
-  if (!(t instanceof PyBuiltin)) throw err('type', { what: 'isinstanceType' });
+  if (t instanceof PyUnion) return t.args.some((x) => isInstance(v, x));
+  if (t instanceof PyGenericAlias) throw err('type', { what: 'isinstanceGeneric', name: 'isinstance' });
+  if (t instanceof PyClass) {
+    // what a metaclass's __instancecheck__ does in CPython (TypedDict refuses isinstance)
+    const hook = lookupClass(t, '__natter_instancecheck__');
+    if (hook !== undefined) return truthy(hooks.call(hook instanceof PyClassMethod ? hook.fn : hook, [t, v]));
+    return t === OBJECT || (v instanceof PyInstance && v.cls.mro.includes(t));
+  }
+  // named tuples are tuples in CPython; here they are classes that say so
+  if (t instanceof PyBuiltin && t.name === 'tuple' && v instanceof PyInstance && lookupClass(v.cls, '__natter_tuple__') === true) return true;
+  if (t instanceof PyInstance) {
+    // an object whose class defines __instancecheck__ (typing.List, typing.Union[int, str] …), as in CPython
+    const r = callDunder(t, '__instancecheck__', [v]);
+    if (r !== NO_METHOD) return truthy(r);
+  }
+  if (!(t instanceof PyBuiltin) || !isTypeLike(t)) throw err('type', { what: 'isinstanceType' });
   const name = t.name.startsWith('class:') ? t.name.slice(6) : t.name;
   const tn = typeName(v);
   return tn === name || (name === 'int' && tn === 'bool');
@@ -97,8 +112,20 @@ function isInstance(v, t) {
 /** issubclass(a, b) for classes made in Python and for the built-in types. */
 function isSubclassOf(a, b) {
   if (b instanceof PyTuple) return b.items.some((x) => isSubclassOf(a, x));
+  if (b instanceof PyUnion) return b.args.some((x) => isSubclassOf(a, x));
+  if (b instanceof PyGenericAlias) throw err('type', { what: 'isinstanceGeneric', name: 'issubclass' });
+  if (b instanceof PyInstance) {
+    const r = callDunder(b, '__subclasscheck__', [a]);
+    if (r !== NO_METHOD) return truthy(r);
+  }
+  if (!isTypeLike(b)) throw err('type', { what: 'issubclassType' });
   if (b === OBJECT) return a instanceof PyClass || a instanceof PyBuiltin;
-  if (a instanceof PyClass && b instanceof PyClass) return a.mro.includes(b);
+  if (a instanceof PyClass && b instanceof PyClass) {
+    const hook = lookupClass(b, '__natter_instancecheck__');
+    if (hook !== undefined) return truthy(hooks.call(hook instanceof PyClassMethod ? hook.fn : hook, [b, null]));
+    return a.mro.includes(b);
+  }
+  if (a instanceof PyClass && b instanceof PyBuiltin && b.name === 'tuple' && lookupClass(a, '__natter_tuple__') === true) return true;
   if (a instanceof PyBuiltin && b instanceof PyBuiltin) {
     const x = a.name.replace(/^class:/, ''), y = b.name.replace(/^class:/, '');
     return x === y || (x === 'bool' && y === 'int');
@@ -316,12 +343,14 @@ export const BUILTINS = {
   hash(ctx, args, kw) {
     const [x] = params('hash', args, kw, ['obj']);
     const k = keyOf(x);
+    // a class's own __hash__: hash() gives its number, as in CPython
+    if (x instanceof PyInstance && k.startsWith('x')) { const h = BigInt(k.slice(1)); return normBig(BigInt.asIntN(64, h === -1n ? -2n : h)); }
     if (isNum(x) && !(x instanceof PyFloat && !Number.isInteger(x.v))) return typeof num(x) === 'bigint' ? fnv(k) : num(x);
     return fnv(k);
   },
   vars(ctx, args, kw) {
     const [o] = params('vars', args, kw, ['object']);
-    if (!(o instanceof PyInstance)) throw err('type', { what: 'varsArg', type: typeName(o) });
+    if (!(o instanceof PyInstance) && !(o instanceof PyClass && !o.native)) throw err('type', { what: 'varsArg', type: typeName(o) });
     const d = new PyDict();
     for (const [k, v] of o.dict) d.set(k, v);
     return d;
@@ -329,6 +358,14 @@ export const BUILTINS = {
 
   // ---------- Methods of object and helpers for properties ----------
   'object.__init__'() { return null; },
+  'object.__setattr__'(ctx, args, kw) { const [o, n, v] = params('__setattr__', args, kw, ['self', 'name', 'value']); ctx.vm.setattrRaw(ctx.task, o, needStr(n, 'name'), v); return null; },
+  'object.__delattr__'(ctx, args, kw) { const [o, n] = params('__delattr__', args, kw, ['self', 'name']); ctx.vm.delattrRaw(ctx.task, o, needStr(n, 'name')); return null; },
+  'object.__new__'(ctx, args) {
+    const cls = args[0];
+    if (!(cls instanceof PyClass)) throw err('type', { what: 'newArg', type: typeName(cls) });
+    return new PyInstance(cls);
+  },
+  'object.__init_subclass__'(ctx, args, kw) { if (kw && Object.keys(kw).length) throw err('argUnexpected', { name: '__init_subclass__', arg: Object.keys(kw)[0] }); return null; },
   'object.__repr__'(ctx, args) { return defaultRepr(args[0]); },
   'object.__str__'(ctx, args) { return ctx.vm.repr(args[0]); },
   'object.__eq__'(ctx, args) { return args[0] === args[1] ? true : NOT_IMPLEMENTED; },
@@ -390,7 +427,11 @@ export const BUILTINS = {
     const [a, b] = params('divmod', args, kw, ['a', 'b']);
     return new PyTuple([binary('//', a, b), binary('%', a, b)]);
   },
-  pow(ctx, args, kw) { const [a, b] = params('pow', args, kw, ['base', 'exp']); return binary('**', a, b); },
+  pow(ctx, args, kw) {
+    const [a, b, m] = params('pow', args, kw, ['base', 'exp', '?mod']);
+    if (m === undefined || m === null) return binary('**', a, b);
+    return powMod(a, b, m);
+  },
   hex(ctx, args, kw) { return radix(params('hex', args, kw, ['x'])[0], 16, '0x'); },
   bin(ctx, args, kw) { return radix(params('bin', args, kw, ['x'])[0], 2, '0b'); },
   oct(ctx, args, kw) { return radix(params('oct', args, kw, ['x'])[0], 8, '0o'); },
@@ -425,6 +466,10 @@ export const BUILTINS = {
   ...FS_NATIVES,
   ...HTTP_NATIVES,
   ...COPY_NATIVES,
+  'class:types.GenericAlias'(ctx, args, kw) {
+    const [origin, a] = params('GenericAlias', args, kw, ['origin', 'args']);
+    return new PyGenericAlias(origin, a instanceof PyTuple ? a.items.slice() : [a]);
+  },
 };
 
 /**
@@ -474,6 +519,10 @@ OBJECT.dict.set('__repr__', new PyBuiltin('object.__repr__'));
 OBJECT.dict.set('__str__', new PyBuiltin('object.__str__'));
 OBJECT.dict.set('__eq__', new PyBuiltin('object.__eq__'));
 OBJECT.dict.set('__ne__', new PyBuiltin('object.__ne__'));
+OBJECT.dict.set('__setattr__', new PyBuiltin('object.__setattr__'));
+OBJECT.dict.set('__delattr__', new PyBuiltin('object.__delattr__'));
+OBJECT.dict.set('__new__', new PyStaticMethod(new PyBuiltin('object.__new__')));
+OBJECT.dict.set('__init_subclass__', new PyBuiltin('object.__init_subclass__'));
 
 export const MODULES = {
   math: MATH_NAMES,
@@ -487,10 +536,18 @@ export const MODULES = {
   _http: HTTP_NAMES,
   _sys: ['write_err'],
   copy: COPY_NAMES,
+  types: ['GenericAlias', 'UnionType', 'NoneType', 'FunctionType', 'LambdaType', 'MethodType', 'BuiltinFunctionType', 'BuiltinMethodType', 'GeneratorType', 'ModuleType'],
 };
 
 /** Values of module attributes that are not functions (constants, classes). */
-const MODULE_CONSTS = { math: MATH_CONSTS };
+/** types: the classes behind type hints and a few others, for isinstance() and annotations. */
+const TYPES_CONSTS = Object.fromEntries([
+  ['GenericAlias', 'types.GenericAlias'], ['UnionType', 'types.UnionType'], ['NoneType', 'NoneType'], ['FunctionType', 'function'],
+  ['LambdaType', 'function'], ['MethodType', 'method'], ['BuiltinFunctionType', 'builtin_function_or_method'],
+  ['BuiltinMethodType', 'builtin_function_or_method'], ['GeneratorType', 'generator'], ['ModuleType', 'module'],
+].map(([k, t]) => [k, new PyBuiltin(`class:${t}`)]));
+
+const MODULE_CONSTS = { math: MATH_CONSTS, types: TYPES_CONSTS };
 
 /**
  * Add natives of a lazily loaded pack (numpy, plots, forms, Pygame Zero): call before a VM is created.
@@ -615,18 +672,25 @@ export const METHODS = {
       const n = needInt(size, 'tabsize');
       let out = '', col = 0;
       for (const ch of s) {
-        if (ch === '\t') { const k = n > 0 ? n - (col % n) : 0; out += ' '.repeat(k); col += k; } else { out += ch; col = ch === '\n' || ch === '\r' ? 0 : col + 1; }
+        if (ch === '\t') { const k = n > 0 ? n - (col % n) : 0; checkStr(out.length + k); out += ' '.repeat(k); col += k; } else { out += ch; col = ch === '\n' || ch === '\r' ? 0 : col + 1; }
       }
       return out;
     },
     join: (c, s, a, kw) => {
       const [it] = params('join', a, kw, ['iterable']);
-      return iterItems(it).map((x, i) => { if (typeof x !== 'string') throw err('type', { what: 'joinStr', i, type: typeName(x) }); return x; }).join(s);
+      let n = 0;
+      const parts = iterItems(it).map((x, i) => { if (typeof x !== 'string') throw err('type', { what: 'joinStr', i, type: typeName(x) }); n += x.length; return x; });
+      checkStr(n + s.length * Math.max(0, parts.length - 1));
+      return parts.join(s);
     },
     replace: (c, s, a, kw) => {
       const [o, n, count = -1] = params('replace', a, kw, ['old', 'new', '?count']);
       const old = needStr(o, 'old'), nw = needStr(n, 'new'), k = needInt(count, 'count');
-      if (k < 0) return old === '' ? [...s].join(nw).replace(/^/, nw) + nw : s.split(old).join(nw);
+      if (k < 0) {
+        const parts = old === '' ? [...s].length + 1 : s.split(old).length;
+        checkStr(s.length + (parts - 1) * (nw.length - old.length));
+        return old === '' ? [...s].join(nw).replace(/^/, nw) + nw : s.split(old).join(nw);
+      }
       let out = s, done = 0, from = 0;
       while (done < k) { const i = out.indexOf(old, from); if (i < 0) break; out = out.slice(0, i) + nw + out.slice(i + old.length); from = i + nw.length + (old === '' ? 1 : 0); done++; }
       return out;
@@ -648,6 +712,7 @@ export const METHODS = {
     isdigit: (c, s) => s.length > 0 && /^\d+$/.test(s),
     isnumeric: (c, s) => s.length > 0 && /^\d+$/.test(s),
     isalpha: (c, s) => s.length > 0 && /^\p{L}+$/u.test(s),
+    isidentifier: (c, s) => /^[\p{XID_Start}_][\p{XID_Continue}]*$/u.test(s),
     isalnum: (c, s) => s.length > 0 && /^[\p{L}\d]+$/u.test(s),
     isspace: (c, s) => s.length > 0 && /^\s+$/.test(s),
     isupper: (c, s) => /\p{L}/u.test(s) && s === s.toUpperCase(),
@@ -660,17 +725,19 @@ export const METHODS = {
       const w = needInt(params('zfill', a, kw, ['width'])[0], 'width');
       const sign = s[0] === '-' || s[0] === '+' ? s[0] : '';
       const body = sign ? s.slice(1) : s;
+      checkStr(w);
       return sign + body.padStart(w - sign.length, '0');
     },
   },
   list: {
-    append: (c, l, a, kw) => { const [x] = params('append', a, kw, ['object']); l.items.push(x); return null; },
+    append: (c, l, a, kw) => { const [x] = params('append', a, kw, ['object']); checkItems(l.items.length + 1); l.items.push(x); return null; },
     extend: (c, l, a, kw) => { const [x] = params('extend', a, kw, ['iterable']); pushAll(l.items, iterItems(x)); return null; },
     insert: (c, l, a, kw) => {
       const [i, x] = params('insert', a, kw, ['index', 'object']);
       let k = toIndex(i);
       const n = l.items.length;
       if (k < 0) k = Math.max(0, k + n); else if (k > n) k = n;
+      checkItems(n + 1);
       l.items.splice(k, 0, x);
       return null;
     },

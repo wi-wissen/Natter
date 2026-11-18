@@ -264,3 +264,15 @@ describe('Determinism and helpers', () => {
     expect(sourceHash('a = 1')).not.toBe(sourceHash('a = 2'));
   });
 });
+
+describe('from __future__ import', () => {
+  const kindOf = (src) => runToEnd(src).error;
+  it('is a SyntaxError later in the file, for unknown features and for braces (as in CPython)', () => {
+    expect(kindOf('x = 1\nfrom __future__ import annotations')).toMatchObject({ kind: 'SyntaxError', code: 'err.script.future', params: { what: 'late' } });
+    expect(kindOf('from __future__ import nope')).toMatchObject({ kind: 'SyntaxError', params: { name: 'nope' } });
+    expect(kindOf('from __future__ import braces')).toMatchObject({ kind: 'SyntaxError', code: 'err.script.future', params: { what: 'braces' } });
+  });
+  it('may follow the docstring', () => {
+    expect(runToEnd('"""Doc."""\nfrom __future__ import annotations, division\nx: int\nprint(__annotations__)').output).toBe("{'x': 'int'}\n");
+  });
+});

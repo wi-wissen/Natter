@@ -1,0 +1,49 @@
+{'delimiter': ''} TypeError "delimiter" must be a 1-character string
+{'delimiter': ';;'} TypeError "delimiter" must be a 1-character string
+{'delimiter': None} TypeError "delimiter" must be string, not NoneType
+{'delimiter': 1} TypeError "delimiter" must be string, not int
+{'quotechar': None} ok , None True False
+{'quotechar': ''} TypeError "quotechar" must be a 1-character string
+{'quotechar': 'ab'} TypeError "quotechar" must be a 1-character string
+{'quotechar': None, 'quoting': 3} ok , None True False
+{'escapechar': ''} TypeError "escapechar" must be a 1-character string
+{'escapechar': 'ab'} TypeError "escapechar" must be a 1-character string
+{'lineterminator': None} TypeError lineterminator must be set
+{'lineterminator': ''} ok , '"' True False
+{'quoting': 9} TypeError bad "quoting" value
+{'quoting': 'a'} TypeError "quoting" must be an integer
+{'delimiter': '"'} ValueError bad delimiter or quotechar value
+{'delimiter': '\\', 'escapechar': '\\'} ValueError bad delimiter or escapechar value
+{'quotechar': '\\', 'escapechar': '\\'} ValueError bad escapechar or quotechar value
+{'delimiter': ' ', 'skipinitialspace': True} ok   '"' True False
+{'delimiter': '\n'} ValueError bad delimiter value
+{'quotechar': '\r'} ValueError bad quotechar value
+{'escapechar': '\n'} ValueError bad escapechar value
+{'lineterminator': 'a'} ok , '"' True False
+{'lineterminator': ','} ValueError bad delimiter or lineterminator value
+{'foo': 1} TypeError this function got an unexpected keyword argument 'foo'
+{'strict': 1} ok , '"' True True
+{'doublequote': 0} ok , '"' False False
+nix Error unknown dialect
+['excel', 'excel-tab', 'unix'] 4 5 131072
+[['a', None, '', 'b']] [[1.0, None, '', 'b']]
+a,b,c
+1
+2
+3 None
+iterable expected, not int
+iterator should return strings, not int (the file should be opened in text mode)
+new-line character seen in unquoted field - do you need to open the file with newline=''?
+unexpected end of data
+['a'] 1 True 0
+[['a', 'b']] [['a', 'b']] 	 ['excel', 'excel-tab', 'semi', 'tab2', 'unix']
+"x;y";1
+, 	 1
+unknown dialect
+unknown dialect
+True Error
+None 3
+0 TypeError quotechar must be set if quoting enabled
+1 TypeError quotechar must be set if quoting enabled
+3 3
+','

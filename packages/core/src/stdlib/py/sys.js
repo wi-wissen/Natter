@@ -2,8 +2,8 @@
 export default String.raw`
 argv = [""]
 maxsize = 9223372036854775807
-version = "3.12.0 (Natter)"
-version_info = (3, 12, 0, "final", 0)
+version = "3.13.0 (Natter)"
+version_info = (3, 13, 0, "final", 0)
 platform = "browser"
 byteorder = "little"
 path = []

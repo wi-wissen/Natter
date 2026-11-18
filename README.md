@@ -2,13 +2,13 @@
 
 A small Python interpreter written in JavaScript, made for teaching in the browser.
 
-- **Small:** the core starts at about 38 KB gzipped (`packages/core/src/browser.js`). Standard modules, numpy, plots, forms and Pygame Zero are separate chunks (15 to 40 KB gzipped each) that load only when a program imports them. `npm run size` prints the numbers.
+- **Small:** the core starts at about 43 KB gzipped (`packages/core/src/browser.js`). Standard modules, numpy, plots, forms and Pygame Zero are separate chunks (15 to 40 KB gzipped each) that load only when a program imports them. `npm run size` prints the numbers.
 - **Never freezes:** programs run in slices with an instruction budget, so an endless loop stops instead of blocking the page.
 - **Debugger built in:** breakpoints, step into/over/out, variables and call stack.
 - **Friendly errors:** English and German messages with hints, in the style of CPython 3.12.
 - **Reproducible:** optional random seed and platform-independent math.
 
-> **Status: version 0.1.** The language, the standard library and the browser hosts (console, `turtle`, `kara`, Pygame Zero, `guizero` forms, numpy and plots, with an image and sound library) are done and compared with CPython and the real libraries in the tests. Published on npm as `@natterjs/core`, `@natterjs/web` and `@natterjs/assets`; see *Get started* on <https://natter.wi7.net/>.
+> **Status: version 0.2.** The language, the standard library and the browser hosts (console, `turtle`, `kara`, Pygame Zero, `guizero` forms, numpy and plots, with an image and sound library) are done and compared with CPython and the real libraries in the tests. Published on npm as `@natterjs/core`, `@natterjs/web` and `@natterjs/assets`; see *Get started* on <https://natter.wi7.net/>.
 
 ## Used by
 
@@ -46,7 +46,9 @@ npm run size      # bundle the core, print minified and gzip size
 
 The core lives in [`packages/core`](packages/core). Plain JavaScript with JSDoc, no TypeScript. The core must stay deterministic: a test forbids `Math.sin`, `Math.pow`, `Date` and similar in `packages/core/src`.
 
-Example programs are in `packages/core/test/cases/*.py` with the output of CPython in `*.out`. To add a case, write the `.py` file and run `python3 x.py > x.out`.
+**CPython 3.13 is the reference.** A program prints, returns and raises in Natter what it does in CPython, including `repr()` and the text of exceptions. A difference is a bug, unless the command reference lists it as left out or as a limit of the sandbox. So check new behaviour by running it in CPython, not from memory, and document any difference that cannot be avoided in `scripts/reference/content.mjs`. More in [`CLAUDE.md`](CLAUDE.md).
+
+Example programs are in `packages/core/test/cases/*.py` with the output of CPython in `*.out`. To add a case, write the `.py` file and run `python3 -I -W ignore x.py > x.out`. Run `npm test` with `python3` on the PATH, so the `.out` files are checked against CPython as well.
 
 ## Website
 
@@ -105,12 +107,12 @@ console.log(runToEnd('print(1 + 1)').output); // 2
 ```html
 <div id="console"></div>
 <script type="module">
-  import { createRunner, createConsole, createPgzero } from 'https://cdn.jsdelivr.net/npm/@natterjs/web@0.1.0/dist/natter-web.js';
+  import { createRunner, createConsole, createPgzero } from 'https://cdn.jsdelivr.net/npm/@natterjs/web@0.2.0/dist/natter-web.js';
   const runner = createRunner();
   createConsole(document.querySelector('#console')).connect(runner);
   await runner.run('for i in range(3):\n    print("Hallo", i)');
   // Bildbibliothek für Pygame Zero und Kara:
-  // createPgzero(el, { assets: { baseUrl: 'https://cdn.jsdelivr.net/npm/@natterjs/assets@0.1.0/', catalog: 'catalog.json' } })
+  // createPgzero(el, { assets: { baseUrl: 'https://cdn.jsdelivr.net/npm/@natterjs/assets@0.2.0/', catalog: 'catalog.json' } })
 </script>
 ```
 
@@ -119,11 +121,11 @@ console.log(runToEnd('print(1 + 1)').output); // 2
 **Ohne npm-Registry, aus dem GitHub-Release:** jedes Release hat die npm-Tarballs als Anhang (mit `SHA256SUMS.txt`):
 
 ```bash
-npm install https://github.com/wi-wissen/Natter/releases/download/v0.1.0/natterjs-core-0.1.0.tgz \
-            https://github.com/wi-wissen/Natter/releases/download/v0.1.0/natterjs-web-0.1.0.tgz
+npm install https://github.com/wi-wissen/Natter/releases/download/v0.2.0/natterjs-core-0.2.0.tgz \
+            https://github.com/wi-wissen/Natter/releases/download/v0.2.0/natterjs-web-0.2.0.tgz
 ```
 
-(`@natterjs/web` hängt von `@natterjs/core` ab, darum beide.) jsDelivr direkt aus GitHub (`https://cdn.jsdelivr.net/gh/wi-wissen/Natter@v0.1.0/…`) liefert nur, was im Repository liegt: die Bibliothek (`…/packages/assets/catalog.json`) und den Quelltext, aber nicht `dist/`, das nicht eingecheckt ist. Für den Browser-Build also die npm-Adresse oben nehmen.
+(`@natterjs/web` hängt von `@natterjs/core` ab, darum beide.) jsDelivr direkt aus GitHub (`https://cdn.jsdelivr.net/gh/wi-wissen/Natter@v0.2.0/…`) liefert nur, was im Repository liegt: die Bibliothek (`…/packages/assets/catalog.json`) und den Quelltext, aber nicht `dist/`, das nicht eingecheckt ist. Für den Browser-Build also die npm-Adresse oben nehmen.
 
 ## Veröffentlichen (Release)
 

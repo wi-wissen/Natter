@@ -7,6 +7,8 @@
 // The compiler is deterministic – the same source text yields the same code numbers (important for loading).
 
 import { parse } from './parser.js';
+import { mangle } from './mangle.js';
+import { unparse } from './unparse.js';
 import { ScriptError, suggest } from './errors.js';
 
 export const OP = {
@@ -65,6 +67,7 @@ export const CMP_OPS = ['==', '!=', '<', '>', '<=', '>=', 'in', 'not in', 'is', 
  */
 export function compile(source, opts = {}) {
   const tree = parse(source);
+  mangle(tree);
   const prog = new Compiler(source, opts).program(tree);
   return prog;
 }
@@ -84,6 +87,14 @@ class Scope {
     this.frees = new Set();
     this.locals = new Set();
   }
+}
+
+/** __qualname__ as in CPython: A.method, outer.<locals>.inner, f.<locals>.<lambda>. */
+function qualnameOf(scope, name) {
+  const p = scope.parent;
+  if (!p || p.kind === 'module' || scope.kind === 'module') return name;
+  const outer = qualnameOf(p, p.codeName ?? p.node?.name ?? '?');
+  return p.kind === 'function' ? `${outer}.<locals>.${name}` : `${outer}.${name}`;
 }
 
 class Compiler {
@@ -109,6 +120,7 @@ class Compiler {
   // ================= 1. Scopes =================
 
   program(tree) {
+    this.checkFuture(tree.body);
     const mod = new Scope('module', tree, null);
     tree.scope = mod;
     this.collectBody(tree.body, mod, []);
@@ -127,6 +139,34 @@ class Compiler {
     this.compileCode(tree, mod, '<module>', [], true);
     return { codes: this.codes, source: this.source, globals: [...this.globalNames], warnings: this.warnings, removed: this.removed, base: this.codeBase };
   }
+
+  /**
+   * `from __future__ import …` only at the beginning of the file (after the docstring), only known features, as in
+   * CPython. `annotations` makes the compiler store annotations as text instead of evaluating them.
+   */
+  checkFuture(body) {
+    const FEATURES = ['nested_scopes', 'generators', 'division', 'absolute_import', 'with_statement', 'print_function',
+      'unicode_literals', 'barry_as_FLUFL', 'generator_stop', 'annotations'];
+    let start = true;
+    body.forEach((st, i) => {
+      const future = st.type === 'ImportFrom' && st.module === '__future__';
+      if (future) {
+        if (!start) throw this.err('future', { what: 'late' }, st);
+        for (const n of st.names ?? []) {
+          if (n.name === 'braces') throw this.err('future', { what: 'braces' }, st);
+          if (!FEATURES.includes(n.name)) throw this.err('future', { what: 'unknown', name: n.name }, st);
+          if (n.name === 'annotations') this.futureAnnotations = true;
+        }
+        st.future = true;
+      } else if (!(i === 0 && st.type === 'Expr' && st.value.type === 'Const' && typeof st.value.value === 'string')) start = false;
+    });
+  }
+
+  /** Annotations are evaluated in module and class bodies (and for def), not inside functions, as in CPython. */
+  annScope(scope) { return scope.kind === 'module' || scope.kind === 'class'; }
+
+  /** Collect an annotation (unless it is kept as text). */
+  collectAnn(e, scope, renames) { if (e && !this.futureAnnotations) this.collectExpr(e, scope, renames); }
 
   /** @param {any[]} renames stack of renamings (loop variables in comprehensions) */
   collectBody(body, scope, renames) {
@@ -155,6 +195,23 @@ class Compiler {
     switch (st.type) {
       case 'Expr': this.collectExpr(st.value, scope, renames); break;
       case 'Assign': this.collectExpr(st.value, scope, renames); for (const t of st.targets) this.addAssign(t, scope, renames); break;
+      case 'AnnAssign':
+        if (st.value) this.collectExpr(st.value, scope, renames);
+        // `x: int` alone also makes x local in a function, as in CPython
+        this.addAssign(st.target, scope, renames);
+        if (this.annScope(scope)) {
+          this.collectAnn(st.annotation, scope, renames);
+          if (st.simple) {
+            if (!scope.annSetup) {
+              scope.annSetup = { type: 'Name', id: '__annotations__', line: st.line, col: st.col };
+              scope.assigned.add('__annotations__');
+              scope.uses.push(scope.annSetup);
+            }
+            st.annNode = { type: 'Name', id: '__annotations__', line: st.line, col: st.col };
+            scope.uses.push(st.annNode);
+          }
+        }
+        break;
       case 'AugAssign':
         this.collectExpr(st.value, scope, renames);
         if (st.target.type === 'Name') { this.renameNode(st.target, renames); scope.assigned.add(st.target.id); scope.uses.push(st.target); }
@@ -174,8 +231,9 @@ class Compiler {
       case 'FunctionDef': {
         for (const d of st.decorators) this.collectExpr(d, scope, renames);
         for (const p of [...st.params, ...st.kwonly]) if (p.default) this.collectExpr(p.default, scope, renames);
-        scope.assigned.add(st.name);
-        const nameNode = { type: 'Name', id: st.name, line: st.line, col: st.col };
+        for (const a of this.funcAnnotations(st)) this.collectAnn(a[1], scope, renames);
+        scope.assigned.add(st.bound ?? st.name);
+        const nameNode = { type: 'Name', id: st.bound ?? st.name, line: st.line, col: st.col };
         st.nameNode = nameNode;
         scope.uses.push(nameNode);
         this.collectFunction(st, scope, renames, st.body);
@@ -184,8 +242,9 @@ class Compiler {
       case 'ClassDef': {
         for (const d of st.decorators) this.collectExpr(d, scope, renames);
         for (const b of st.bases) this.collectExpr(b, scope, renames);
-        scope.assigned.add(st.name);
-        const nameNode = { type: 'Name', id: st.name, line: st.line, col: st.col };
+        for (const k of st.keywords ?? []) this.collectExpr(k.value, scope, renames);
+        scope.assigned.add(st.bound ?? st.name);
+        const nameNode = { type: 'Name', id: st.bound ?? st.name, line: st.line, col: st.col };
         st.nameNode = nameNode;
         scope.uses.push(nameNode);
         const cs = new Scope('class', st, scope);
@@ -236,6 +295,7 @@ class Compiler {
         }
         break;
       case 'ImportFrom':
+        if (st.future) break;
         if (!st.names) {
           if (scope.kind !== 'module') throw this.err('notSupported', { feature: 'starImportInFunction' }, st);
           const names = this.modules[st.module];
@@ -398,9 +458,10 @@ class Compiler {
    */
   compileCode(node, scope, name, params, isModule = false) {
     const idx = this.codeBase + this.codes.length;
+    scope.codeName = name;
     /** @type {Code} */
     const code = {
-      name, params: params.map((p) => p.name), ndefaults: params.filter((p) => p.default).length,
+      name, qualname: qualnameOf(scope, name), params: params.map((p) => p.name), ndefaults: params.filter((p) => p.default).length,
       kwonly: (node.kwonly ?? []).map((p) => p.name), kwMask: (node.kwonly ?? []).map((p) => !!p.default),
       vararg: node.vararg ?? null, kwarg: node.kwarg ?? null,
       varnames: [], cellvars: [], freevars: [], cellParams: [],
@@ -421,6 +482,11 @@ class Compiler {
       this.expr(node.body);
       this.emit(OP.RETURN, 0, node.body);
     } else {
+      if (scope.annSetup) {
+        // SETUP_ANNOTATIONS: the body gets its own __annotations__ (no statement of its own for the debugger)
+        this.emit(OP.BUILD_DICT, 0, node.body[0] ?? node);
+        this.storeName(scope.annSetup);
+      }
       this.body(node.body);
       this.pendingStmt = 0;
       this.emit(OP.LOAD_CONST, this.constIdx(null), { line: this.lastLine(node) });
@@ -489,6 +555,7 @@ class Compiler {
         break;
       }
       case 'AugAssign': this.augAssign(s); break;
+      case 'AnnAssign': this.annAssign(s); break;
       case 'If': {
         this.expr(s.test);
         const jf = this.emit(OP.JUMP_IF_FALSE, 0, s);
@@ -577,7 +644,14 @@ class Compiler {
         this.codes[idx - this.codeBase].classBody = true;
         for (const f of this.codes[idx - this.codeBase].freevars) this.emit(OP.LOAD_CLOSURE, this.cellIndex(f), s);
         this.emit(OP.MAKE_FUNCTION, idx, s);
-        this.emit(OP.BUILD_CLASS, 0, s);
+        const kws = s.keywords ?? [];
+        if (kws.length) {
+          // class keywords: a dict below the body function, BUILD_CLASS 1
+          for (const k of kws) { this.emit(OP.LOAD_CONST, this.constIdx(k.name), s); this.expr(k.value); }
+          this.emit(OP.BUILD_DICT, kws.length, s);
+          this.emit(OP.ROT2, 0, s);
+        }
+        this.emit(OP.BUILD_CLASS, kws.length ? 1 : 0, s);
         for (let i = 0; i < s.decorators.length; i++) this.emit(OP.CALL, 1, s);
         this.storeName(s.nameNode);
         break;
@@ -610,6 +684,7 @@ class Compiler {
         }
         break;
       case 'ImportFrom':
+        if (s.future) { this.emit(OP.NOP, 0, s); break; } // a compiler directive (no __future__ module to load)
         this.emit(OP.IMPORT, this.nameIdx(s.module), s);
         if (!s.names) { this.emit(OP.IMPORT_STAR, 0, s); break; }
         for (const n of s.names) {
@@ -759,7 +834,50 @@ class Compiler {
     const inner = this.codes[idx - this.codeBase];
     for (const f of inner.freevars) this.emit(OP.LOAD_CLOSURE, this.cellIndex(f), node);
     this.emit(OP.MAKE_FUNCTION, idx, node);
+    const anns = node.type === 'FunctionDef' ? this.funcAnnotations(node) : [];
+    if (anns.length) {
+      // f.__annotations__ = {'x': int, …, 'return': str}
+      this.emit(OP.DUP, 0, node);
+      for (const [k, a] of anns) { this.emit(OP.LOAD_CONST, this.constIdx(k), node); this.annValue(a); }
+      this.emit(OP.BUILD_DICT, anns.length, node);
+      this.emit(OP.ROT2, 0, node);
+      this.emit(OP.STORE_ATTR, this.nameIdx('__annotations__'), node);
+    }
     return idx;
+  }
+
+  /** The annotations of a def in CPython's order: [name, expression] pairs. */
+  funcAnnotations(node) {
+    const out = [];
+    for (const p of node.params) if (p.annotation) out.push([p.name, p.annotation]);
+    if (node.vararg && node.params.varargAnn) out.push([node.vararg, node.params.varargAnn]);
+    for (const p of node.kwonly ?? []) if (p.annotation) out.push([p.name, p.annotation]);
+    if (node.kwarg && node.params.kwargAnn) out.push([node.kwarg, node.params.kwargAnn]);
+    if (node.returns) out.push(['return', node.returns]);
+    return out;
+  }
+
+  /** Push the value of an annotation: evaluated, or its text with `from __future__ import annotations`. */
+  annValue(a) {
+    if (this.futureAnnotations) this.emit(OP.LOAD_CONST, this.constIdx(unparse(a)), a);
+    else this.expr(a);
+  }
+
+  /** x: int = 5, self.x: int, d[k]: int … like CPython 3.13 */
+  annAssign(s) {
+    const t = s.target;
+    if (s.value) { this.expr(s.value); this.store(t); }
+    const top = this.annScope(this.scope);
+    if (!top) { if (!s.value) this.emit(OP.NOP, 0, s); return; }
+    if (!s.value && t.type === 'Attribute') { this.expr(t.value); this.emit(OP.POP, 0, s); }
+    if (!s.value && t.type === 'Subscript') { this.expr(t.value); this.emit(OP.POP, 0, s); this.expr(t.index); this.emit(OP.POP, 0, s); }
+    if (s.simple) {
+      this.annValue(s.annotation);
+      this.loadName(s.annNode);
+      this.emit(OP.LOAD_CONST, this.constIdx(t.id), s);
+      this.emit(OP.STORE_INDEX, 0, s);
+    } else if (!this.futureAnnotations) { this.expr(s.annotation); this.emit(OP.POP, 0, s); }
+    else if (!s.value) this.emit(OP.NOP, 0, s);
   }
 
   cellIndex(name) {

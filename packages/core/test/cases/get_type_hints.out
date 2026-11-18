@@ -1,0 +1,5 @@
+{'wert': <class 'int'>, 'naechster': typing.Optional[__main__.Knoten], 'kinder': typing.List[__main__.Knoten], 'tabelle': dict[str, list[int]] | None, 'f': typing.Callable[[int], str], 'a': <class 'int'>}
+typing.Annotated[int, 'meter']
+{'x': <class 'int'>, 'y': typing.Dict[str, __main__.Knoten], 'return': <class 'NoneType'>}
+5 is not a module, class, method, or function.
+P(x=1, y='') {'x': <class 'int'>, 'y': <class 'str'>} {'x': ForwardRef('int'), 'y': ForwardRef("'str'")}

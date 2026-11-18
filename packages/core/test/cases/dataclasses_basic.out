@@ -1,0 +1,29 @@
+P(x=1, y=0) True True P(x=4, y=3)
+P.__init__() missing 1 required positional argument: 'x'
+P.__init__() takes from 2 to 3 positional arguments but 4 were given
+P.__init__() got an unexpected keyword argument 'z'
+P.__init__() got multiple values for argument 'x'
+P.__init__() missing 1 required positional argument: 'x'
+unhashable type: 'P'
+True True [V(a=1, b='z'), V(a=2, b='z'), V(a=3, b='z')] True
+FrozenInstanceError cannot assign to field 'a' True
+cannot delete field 'a'
+'<' not supported between instances of 'V' and 'P'
+L(items=[1, 2], secret='s', total=3) 3 10 True ['items', 'n', 'secret', 'total']
+{'items': [1, 2], 'n': 3, 'secret': 's', 'total': 3} ([1, 2], 3, 's', 3) L(items=[1, 2], secret='s', total=3) True True False
+mutable default <class 'list'> for field x is not allowed: use default_factory
+non-default argument 'y' follows default argument 'x'
+Q(x=1, y=2, z=5) 3 ['x', 'y', 'z']
+K(a=1, b=2)
+K.__init__() takes 1 positional argument but 2 were given
+M(a=1, b=1, c=3)
+I(a=6) ['a']
+False True
+Tree(kids=[...])
+True True
+Node(value=1, next=Node(value=2, next=None))
+{'value': 1, 'next': {'value': 2, 'next': None}}
+x <class 'int'> True True <dataclasses._MISSING_TYPE object at
+('x', 'y') dict_keys(['x', 'y'])
+True
+S(a=1)

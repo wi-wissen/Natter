@@ -1,0 +1,10 @@
+445 24 1 0
+1 -1 -6
+5 23 7
+19257466454105916172
+1024 4 1
+2790 65
+ValueError pow() 3rd argument cannot be 0
+ValueError base is not invertible for the given modulus
+TypeError pow() 3rd argument not allowed unless all arguments are integers
+TypeError pow() 3rd argument not allowed unless all arguments are integers

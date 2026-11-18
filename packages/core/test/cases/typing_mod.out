@@ -1,0 +1,6 @@
+3 None ['a', 'b']
+typing.List[int] typing.Dict[str, int] typing.Optional[str] typing.Tuple[int, str]
+typing.List typing.Any ~T False
+3
+[1]
+2

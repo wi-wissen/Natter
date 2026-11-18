@@ -1,0 +1,10 @@
+70 70
+70 1 1
+['_Konto__stand', 'inhaber']
+__pruefen
+AttributeError 'Konto' object has no attribute '__stand'
+1 70
+['_Intern__x', '__dunder__']
+10 99
+8 TypeError
+2

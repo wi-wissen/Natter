@@ -31,8 +31,8 @@ baseUrl;                 // folder of the library, ends with '/'; an image is at
 Pass `assetsOption()` as the `assets` option of `createPgzero` or `createKara` from [`@natterjs/web`](https://www.npmjs.com/package/@natterjs/web):
 
 ```js
-import { createRunner, createPgzero } from 'https://cdn.jsdelivr.net/npm/@natterjs/web@0.1.0/dist/natter-web.js';
-import { assetsOption } from 'https://cdn.jsdelivr.net/npm/@natterjs/assets@0.1.0/index.js';
+import { createRunner, createPgzero } from 'https://cdn.jsdelivr.net/npm/@natterjs/web@0.2.0/dist/natter-web.js';
+import { assetsOption } from 'https://cdn.jsdelivr.net/npm/@natterjs/assets@0.2.0/index.js';
 
 const runner = createRunner();
 const pgz = createPgzero(document.querySelector('#game'), { assets: assetsOption(), lang: 'en' });
@@ -40,7 +40,7 @@ runner.use(pgz);
 await pgz.run(runner, 'ship = Actor("sp_ship", (400, 300))\n\ndef draw():\n    screen.clear()\n    ship.draw()');
 ```
 
-When a bundler copies the package files elsewhere, serve the folder yourself and pass its address instead: `{ baseUrl: 'https://example.org/assets/', catalog: 'catalog.json' }`. Without a bundler or npm, use the jsDelivr folder directly as `baseUrl`: `https://cdn.jsdelivr.net/npm/@natterjs/assets@0.1.0/` (always pin a version).
+When a bundler copies the package files elsewhere, serve the folder yourself and pass its address instead: `{ baseUrl: 'https://example.org/assets/', catalog: 'catalog.json' }`. Without a bundler or npm, use the jsDelivr folder directly as `baseUrl`: `https://cdn.jsdelivr.net/npm/@natterjs/assets@0.2.0/` (always pin a version).
 
 ### How names map to files
 

@@ -1,0 +1,600 @@
+R 0 {} '".\'..1\na ' [[".'..1\na "]]
+W 0 ['', 3] ',3\r\n'
+R 1 {'delimiter': ';'} "'" [["'"]]
+W 1 ['\\', 'b\r;a'] '\\;"b\r;a"\r\n'
+R 2 {'quotechar': "'"} ';\\",\\,b,\r\r ' [[';\\"', '\\', 'b', ''], [], [' ']]
+W 2 ['a'] 'a\r\n'
+R 3 {'skipinitialspace': True} 'a;;,,"\';\n11;,' [['a;;', '', "';\n11;,"]]
+W 3 ['\\', "a'", ',,"'] '\\,a\',",,"""\r\n'
+R 4 {'escapechar': '\\'} "'" [["'"]]
+W 4 ['\ra\r1', 'b"'] '"\ra\r1","b"""\r\n'
+R 5 {'doublequote': False, 'escapechar': '\\'} '" .\',' [[" .',"]]
+W 5 ['.,a', 'a.', 2.5] '".,a",a.,2.5\r\n'
+R 6 {'quoting': 3, 'escapechar': '\\'} "\\a\n\\'\\\ra a.,\r" [['a'], ["'\ra a.", '']]
+W 6 [''] 'Error single empty field record must be quoted'
+R 7 {'quoting': 1} '; \'\n\'\n" b\r.\'' [["; '"], ["'"], [" b\r.'"]]
+W 7 ['', "b;'"] '"","b;\'"\r\n'
+R 8 {'strict': True} '\r\',\'".\nb' [[], ["'", '\'".'], ['b']]
+W 8 ['",', ''] '""",",\r\n'
+R 9 {'quoting': 3} ',.." ,.ab\r' [['', '.." ', '.ab']]
+W 9 ['a;.', '\'" 1', ',a1'] 'Error need to escape, but no escapechar set'
+R 10 {'quoting': 2} '' []
+W 10 [';,', ',1\\b', 3] '";,",",1\\b",3\r\n'
+R 11 {'lineterminator': '\n', 'quotechar': "'", 'delimiter': ';'} '\',a\\",' [[',a\\",']]
+W 11 [',\n  ', ' "'] '\',\n  \'; "\n'
+R 12 {} ' \\,b' [[' \\', 'b']]
+W 12 [",1 '", 'b'] '",1 \'",b\r\n'
+R 13 {'delimiter': ';'} '"\n\n\n\'b\'' [["\n\n\n'b'"]]
+W 13 ['1a"\'', '.1" ', '..'] '"1a""\'";".1"" ";..\r\n'
+R 14 {'quotechar': "'"} "'1,\r" [['1,\r']]
+W 14 ['\n"\''] '\'\n"\'\'\'\r\n'
+R 15 {'skipinitialspace': True} '" "\n11\'\'"1' [[' '], ['11\'\'"1']]
+W 15 ["',.", "''\n", 3] '"\',.","\'\'\n",3\r\n'
+R 16 {'escapechar': '\\'} ',;\' ".b.' [['', ';\' ".b.']]
+W 16 [',\r\r', '1\\"\r', '1".a'] '",\r\r","1\\\\""\r","1"".a"\r\n'
+R 17 {'doublequote': False, 'escapechar': '\\'} ',\r ' [['', ''], [' ']]
+W 17 [';', '1', ''] ';,1,\r\n'
+R 18 {'quoting': 3, 'escapechar': '\\'} ";,a,b'," [[';', 'a', "b'", '']]
+W 18 ['\n', ''] '\\\n,\r\n'
+R 19 {'quoting': 1} " '\\1\rb" [[" '\\1"], ['b']]
+W 19 [';', "a'", '"\\b'] '";","a\'","""\\b"\r\n'
+R 20 {'strict': True} '\n\'a\n\r"b"\n\n\'' [[], ["'a"], [], ['b'], [], ["'"]]
+W 20 ["',", '\\\r1', "' ,,", False] '"\',","\\\r1","\' ,,",False\r\n'
+R 21 {'quoting': 3} '\r ;,\rb' [[], [' ;', ''], ['b']]
+W 21 ['', "b'\r"] 'Error need to escape, but no escapechar set'
+R 22 {'quoting': 2} '\r\n,\'1\r\\\\\\; " .' ValueError could not convert string to float: "'1"
+W 22 [',\r\r', '."'] '",\r\r","."""\r\n'
+R 23 {'lineterminator': '\n', 'quotechar': "'", 'delimiter': ';'} '"\\a\'" "' [['"\\a\'" "']]
+W 23 ['ab1'] 'ab1\n'
+R 24 {} ' ;"a,\\a \n' [[' ;"a', '\\a ']]
+W 24 ['; ', '', ' '] '; ,, \r\n'
+R 25 {'delimiter': ';'} ',.""' [[',.""']]
+W 25 [' \n1\r', '', None] '" \n1\r";;\r\n'
+R 26 {'quotechar': "'"} ',""\n.\'\r".\na ' [['', '""'], [".'"], ['".'], ['a ']]
+W 26 ['1.', ',aa"'] '1.,\',aa"\'\r\n'
+R 27 {'skipinitialspace': True} ' 1b1\n;a\\' [['1b1'], [';a\\']]
+W 27 ['\r..1', '\\ \\'] '"\r..1",\\ \\\r\n'
+R 28 {'escapechar': '\\'} '.;" b"a.\\\r' [['.;" b"a.\r']]
+W 28 ['",,', '.\n '] '""",,",".\n "\r\n'
+R 29 {'doublequote': False, 'escapechar': '\\'} '\n,\\\r\n' [[], ['', '\r']]
+W 29 [''] '""\r\n'
+R 30 {'quoting': 3, 'escapechar': '\\'} ';"bb1a\'.\\b\\' [[';"bb1a\'.b\n']]
+W 30 ['abb', '\r', '', 0] 'abb,\\\r,,0\r\n'
+R 31 {'quoting': 1} ',". ,,\r,\\,b\r;a' [['', '. ,,\r,\\,b\r;a']]
+W 31 ['', '.b"', ''] '"",".b""",""\r\n'
+R 32 {'strict': True} '\rb.\\\r,a\\b' [[], ['b.\\'], ['', 'a\\b']]
+W 32 ["  '1", 'a,'] '  \'1,"a,"\r\n'
+R 33 {'quoting': 3} '",\r11\n"\n\n\r;' [['"', ''], ['11'], ['"'], [], [], [';']]
+W 33 ['', ';""\n'] 'Error need to escape, but no escapechar set'
+R 34 {'quoting': 2} ";'" ValueError could not convert string to float: ";'"
+W 34 [',,.', ''] '",,.",""\r\n'
+R 35 {'lineterminator': '\n', 'quotechar': "'", 'delimiter': ';'} "'b\r1abb\n\r " [['b\r1abb\n\r ']]
+W 35 ["  '", None] "'  ''';\n"
+R 36 {} '\na\n.\\a,\\1;.b' [[], ['a'], ['.\\a', '\\1;.b']]
+W 36 [';,.'] '";,."\r\n'
+R 37 {'delimiter': ';'} '\\\';"\'\r.\'\\' [["\\'", "'\r.'\\"]]
+W 37 ['.', '1"'] '.;"1"""\r\n'
+R 38 {'quotechar': "'"} "1\\'\na\r\r;.,\\b" [["1\\'"], ['a'], [], [';.', '\\b']]
+W 38 [''] "''\r\n"
+R 39 {'skipinitialspace': True} '' []
+W 39 [';'] ';\r\n'
+R 40 {'escapechar': '\\'} '' []
+W 40 ["1'a", ' "\r', True] '1\'a," ""\r",True\r\n'
+R 41 {'doublequote': False, 'escapechar': '\\'} '  b;,' [['  b;', '']]
+W 41 ['b', '\\ ', '\n'] 'b,\\\\ ,"\n"\r\n'
+R 42 {'quoting': 3, 'escapechar': '\\'} 'b","' [['b"', '"']]
+W 42 ['a', "a''", 'a.'] "a,a'',a.\r\n"
+R 43 {'quoting': 1} '' []
+W 43 [' ,b', '" ', '.'] '" ,b",""" ","."\r\n'
+R 44 {'strict': True} 'a;' [['a;']]
+W 44 ['', ';1b\r', ".'1"] ',";1b\r",.\'1\r\n'
+R 45 {'quoting': 3} ', \'"' [['', ' \'"']]
+W 45 [',;,', 0] 'Error need to escape, but no escapechar set'
+R 46 {'quoting': 2} 'a1\r' ValueError could not convert string to float: 'a1'
+W 46 ['a ', ''] '"a ",""\r\n'
+R 47 {'lineterminator': '\n', 'quotechar': "'", 'delimiter': ';'} '1\\,aa\n\n' [['1\\,aa'], []]
+W 47 ['b.', '', ' '] 'b.;; \n'
+R 48 {} ' ' [[' ']]
+W 48 ['1'] '1\r\n'
+R 49 {'delimiter': ';'} '' []
+W 49 ['aa"', ' "1'] '"aa""";" ""1"\r\n'
+R 50 {'quotechar': "'"} '' []
+W 50 [',', 0] "',',0\r\n"
+R 51 {'skipinitialspace': True} "1\\;\n;b'b" [['1\\;'], [";b'b"]]
+W 51 [',\rb.'] '",\rb."\r\n'
+R 52 {'escapechar': '\\'} '\ra ' [[], ['a ']]
+W 52 [' \\', '\\\n1,', ''] ' \\\\,"\\\\\n1,",\r\n'
+R 53 {'doublequote': False, 'escapechar': '\\'} '". ;\nb," b"\\\',' [['. ;\nb, b"\'', '']]
+W 53 ['b ;.'] 'b ;.\r\n'
+R 54 {'quoting': 3, 'escapechar': '\\'} '\\' [['\n']]
+W 54 ['"', '', '.;a'] '\\",,.;a\r\n'
+R 55 {'quoting': 1} ';"\'bb\\\'\\\na"' [[';"\'bb\\\'\\'], ['a"']]
+W 55 ['\r', '', ',.1', None] '"\r","",",.1",""\r\n'
+R 56 {'strict': True} 'a.\\"b\\\n,\'b"' [['a.\\"b\\'], ['', '\'b"']]
+W 56 ['"'] '""""\r\n'
+R 57 {'quoting': 3} '1\'"ab\n.' [['1\'"ab'], ['.']]
+W 57 ['', '', ''] ',,\r\n'
+R 58 {'quoting': 2} '' []
+W 58 ['\\"'] '"\\"""\r\n'
+R 59 {'lineterminator': '\n', 'quotechar': "'", 'delimiter': ';'} "a;\n\\,';''" [['a', ''], ["\\,'", '']]
+W 59 ['\r'] "'\r'\n"
+R 60 {} ',.b"\n\r,1.' [['', '.b"'], [], ['', '1.']]
+W 60 ['\\\\b', 2.5] '\\\\b,2.5\r\n'
+R 61 {'delimiter': ';'} ' ; \r\\' [[' ', ' '], ['\\']]
+W 61 ['a1,'] 'a1,\r\n'
+R 62 {'quotechar': "'"} '  \rab,\\1' [['  '], ['ab', '\\1']]
+W 62 ['a'] 'a\r\n'
+R 63 {'skipinitialspace': True} '' []
+W 63 [' ', '\\ ', ';'] ' ,\\ ,;\r\n'
+R 64 {'escapechar': '\\'} ';"\n\n' [[';"'], []]
+W 64 ["'", ';1'] "',;1\r\n"
+R 65 {'doublequote': False, 'escapechar': '\\'} "a\r \\',,; \\ab," [['a'], [" '", '', '; ab', '']]
+W 65 ['', ";'", True] ",;',True\r\n"
+R 66 {'quoting': 3, 'escapechar': '\\'} ' \n\rb;\\.ab\n' [[' '], [], ['b;.ab']]
+W 66 ['\r,\\a', '1a', '"\n\\\n'] '\\\r\\,\\\\a,1a,\\"\\\n\\\\\\\n\r\n'
+R 67 {'quoting': 1} '\n..\\ \r.' [[], ['..\\ '], ['.']]
+W 67 ['', ",\\'\r", ''] '"",",\\\'\r",""\r\n'
+R 68 {'strict': True} '\n;""bab\'\r\r' [[], [';""bab\''], []]
+W 68 ['"a"', 'b', ''] '"""a""",b,\r\n'
+R 69 {'quoting': 3} 'b1"\'..\r\r\n; \n' [['b1"\'..'], [], ['; ']]
+W 69 [''] 'Error single empty field record must be quoted'
+R 70 {'quoting': 2} "'\n\\" ValueError could not convert string to float: "'"
+W 70 ['', '\\,1', False] '"","\\,1",False\r\n'
+R 71 {'lineterminator': '\n', 'quotechar': "'", 'delimiter': ';'} ";1\r'\\'b.\n..';b" [['', '1'], ['\\b.'], ["..'", 'b']]
+W 71 ['""'] '""\n'
+R 72 {} '\rb,b1\\,;1b\r\r' [[], ['b', 'b1\\', ';1b'], []]
+W 72 ['.\\\\;', ' \n\r', '"'] '.\\\\;," \n\r",""""\r\n'
+R 73 {'delimiter': ';'} '"b\r\',\\' [["b\r',\\"]]
+W 73 ['b'] 'b\r\n'
+R 74 {'quotechar': "'"} '\r\n\r\r' [[], [], []]
+W 74 [";'\r"] "';''\r'\r\n"
+R 75 {'skipinitialspace': True} '1' [['1']]
+W 75 ['.b', '', ',\nb', 2.5] '.b,,",\nb",2.5\r\n'
+R 76 {'escapechar': '\\'} ' 1\\' [[' 1\n']]
+W 76 [' ba;'] ' ba;\r\n'
+R 77 {'doublequote': False, 'escapechar': '\\'} ",bb','\rb\r " [['', "bb'", "'"], ['b'], [' ']]
+W 77 [',.', "\r1b'", ''] '",.","\r1b\'",\r\n'
+R 78 {'quoting': 3, 'escapechar': '\\'} "b;;'', 1.b;\\\n" [["b;;''", ' 1.b;\n']]
+W 78 ['ab\r', ',1'] 'ab\\\r,\\,1\r\n'
+R 79 {'quoting': 1} '' []
+W 79 ["'.b", '.."'] '"\'.b",".."""\r\n'
+R 80 {'strict': True} '' []
+W 80 ["'.;", 2.5] "'.;,2.5\r\n"
+R 81 {'quoting': 3} '," 1.b' [['', '" 1.b']]
+W 81 ['', "\\'", ''] ",\\',\r\n"
+R 82 {'quoting': 2} '\\a;\\;"1.' ValueError could not convert string to float: '\\a;\\;"1.'
+W 82 ['"'] '""""\r\n'
+R 83 {'lineterminator': '\n', 'quotechar': "'", 'delimiter': ';'} '\n' [[]]
+W 83 [',\n\\', 'b'] "',\n\\';b\n"
+R 84 {} "',ba,'a" [["'", 'ba', "'a"]]
+W 84 ['\n '] '"\n "\r\n'
+R 85 {'delimiter': ';'} '\nba;; ' [[], ['ba', '', ' ']]
+W 85 ['\nb"', False] '"\nb""";False\r\n'
+R 86 {'quotechar': "'"} '1 \naa,\\\n\\\r11\r' [['1 '], ['aa', '\\'], ['\\'], ['11']]
+W 86 ['a;a\\', '\\\\a', "'"] "a;a\\,\\\\a,''''\r\n"
+R 87 {'skipinitialspace': True} '";' [[';']]
+W 87 ['', ';\\'] ',;\\\r\n'
+R 88 {'escapechar': '\\'} ';", \'"' [[';"', ' \'"']]
+W 88 [''] '""\r\n'
+R 89 {'doublequote': False, 'escapechar': '\\'} ', bb1\\a\\,;1a' [['', ' bb1a,;1a']]
+W 89 ["'\r ", ' ', 'b'] '"\'\r ", ,b\r\n'
+R 90 {'quoting': 3, 'escapechar': '\\'} '\'\raa,\\b",1\'\';,' [["'"], ['aa', 'b"', "1'';", '']]
+W 90 ['.\nb"', '', None] '.\\\nb\\",,\r\n'
+R 91 {'quoting': 1} '\\\'"\' \n\r ;\r' [['\\\'"\' '], [], [' ;']]
+W 91 ['a\n'] '"a\n"\r\n'
+R 92 {'strict': True} '' []
+W 92 [',; ', '', ''] '",; ",,\r\n'
+R 93 {'quoting': 3} '' []
+W 93 [';\n.'] 'Error need to escape, but no escapechar set'
+R 94 {'quoting': 2} ';"a\n;a.\\\'' ValueError could not convert string to float: ';"a'
+W 94 ['"  b'] '"""  b"\r\n'
+R 95 {'lineterminator': '\n', 'quotechar': "'", 'delimiter': ';'} 'b\'\r\n".\r\r\\\\' [["b'"], ['".'], [], ['\\\\']]
+W 95 ['\r', '', 0] "'\r';;0\n"
+R 96 {} 'a.;\n\r\\b' [['a.;'], [], ['\\b']]
+W 96 ["\n'", ", '", ''] '"\n\'",", \'",\r\n'
+R 97 {'delimiter': ';'} 'a\r\r;\r a' [['a'], [], ['', ''], [' a']]
+W 97 [''] '""\r\n'
+R 98 {'quotechar': "'"} "'" [['']]
+W 98 ['\'"'] '\'\'\'"\'\r\n'
+R 99 {'skipinitialspace': True} '" ,.b""a1"\\,1' [[' ,.b"a1\\', '1']]
+W 99 ['\r '] '"\r "\r\n'
+R 100 {'escapechar': '\\'} ",\r,\ra.'\nba a.\r" [['', ''], ['', ''], ["a.'"], ['ba a.']]
+W 100 ['', '', False] ',,False\r\n'
+R 101 {'doublequote': False, 'escapechar': '\\'} 'b\\.\n\r ' [['b.'], [], [' ']]
+W 101 [';\n.b', '', 'bab.'] '";\n.b",,bab.\r\n'
+R 102 {'quoting': 3, 'escapechar': '\\'} '"1\n\n.b1' [['"1'], [], ['.b1']]
+W 102 ['b\\', '" ', '"a'] 'b\\\\,\\" ,\\"a\r\n'
+R 103 {'quoting': 1} '\'\n1  \\,1;"\'\r; ' [["'"], ['1  \\', '1;"\''], ['; ']]
+W 103 ["'"] '"\'"\r\n'
+R 104 {'strict': True} '1' [['1']]
+W 104 ['\r\n1', ',;,'] '"\r\n1",",;,"\r\n'
+R 105 {'quoting': 3} ' ,1\n \r\'a,\\"\r \n' [[' ', '1'], [' '], ["'a", '\\"'], [' ']]
+W 105 ['\n', '1', '\\', False] 'Error need to escape, but no escapechar set'
+R 106 {'quoting': 2} '"\'"\rb;"\\\'\n" ' ValueError could not convert string to float: 'b;"\\\''
+W 106 ['', '', ''] '"","",""\r\n'
+R 107 {'lineterminator': '\n', 'quotechar': "'", 'delimiter': ';'} 'bb1"\r' [['bb1"']]
+W 107 [''] "''\n"
+R 108 {} '\n\\,1\'."b\\\'b"' [[], ['\\', '1\'."b\\\'b"']]
+W 108 [".'"] ".'\r\n"
+R 109 {'delimiter': ';'} '\\bb"b,' [['\\bb"b,']]
+W 109 [''] '""\r\n'
+R 110 {'quotechar': "'"} '.\n\\b \\b;\\a\r\n' [['.'], ['\\b \\b;\\a']]
+W 110 ['', "''b ", True] ",'''''b ',True\r\n"
+R 111 {'skipinitialspace': True} ',' [['', '']]
+W 111 [''] '""\r\n'
+R 112 {'escapechar': '\\'} '\nbb11\n\\\\b' [[], ['bb11'], ['\\b']]
+W 112 ['\n ', 'a;\n'] '"\n ","a;\n"\r\n'
+R 113 {'doublequote': False, 'escapechar': '\\'} ',\\11,;\'.\nb,"a1' [['', '11', ";'."], ['b', 'a1']]
+W 113 [' \n', '1\n""'] '" \n","1\n\\"\\""\r\n'
+R 114 {'quoting': 3, 'escapechar': '\\'} '.1' [['.1']]
+W 114 [' \\.', 'b,\r;'] ' \\\\.,b\\,\\\r;\r\n'
+R 115 {'quoting': 1} '..b ;,;' [['..b ;', ';']]
+W 115 ['', 0] '"","0"\r\n'
+R 116 {'strict': True} '"\r 1,. ' Error unexpected end of data
+W 116 ['\r"'] '"\r"""\r\n'
+R 117 {'quoting': 3} "'.a\n.\nb;a'" [["'.a"], ['.'], ["b;a'"]]
+W 117 [' 1 \n', '"\r\'a', ',\n'] 'Error need to escape, but no escapechar set'
+R 118 {'quoting': 2} '"\\\',"1' [["\\',1"]]
+W 118 [''] '""\r\n'
+R 119 {'lineterminator': '\n', 'quotechar': "'", 'delimiter': ';'} '' []
+W 119 ['"', '1"\\'] '";1"\\\n'
+R 120 {} "\r1 '.\n\n'..\ra," [[], ["1 '."], [], ["'.."], ['a', '']]
+W 120 ['1a\n', " 'a", '\n', None] '"1a\n", \'a,"\n",\r\n'
+R 121 {'delimiter': ';'} 'b.;,,\n;' [['b.', ',,'], ['', '']]
+W 121 ['1b\\', '1;1', 'a;'] '1b\\;"1;1";"a;"\r\n'
+R 122 {'quotechar': "'"} ';\rb.\n\'\\\r";' [[';'], ['b.'], ['\\\r";']]
+W 122 ['', '\n\r', ' 1.a'] ",'\n\r', 1.a\r\n"
+R 123 {'skipinitialspace': True} '"\na,\\a a;;b,  ' [['\na,\\a a;;b,  ']]
+W 123 ['"\nb', ''] '"""\nb",\r\n'
+R 124 {'escapechar': '\\'} '.\r\r \r\r\r.\r;a1' [['.'], [], [' '], [], [], ['.'], [';a1']]
+W 124 [";b.'", 'b'] ";b.',b\r\n"
+R 125 {'doublequote': False, 'escapechar': '\\'} "'b,;\\aa\\" [["'b", ';aa\n']]
+W 125 [';.', True] ';.,True\r\n'
+R 126 {'quoting': 3, 'escapechar': '\\'} ',b\\.;;' [['', 'b.;;']]
+W 126 [' ,\\'] ' \\,\\\\\r\n'
+R 127 {'quoting': 1} '' []
+W 127 ['\n;.', 'b;'] '"\n;.","b;"\r\n'
+R 128 {'strict': True} '\\\\11\n.. .;;\'\r"' Error unexpected end of data
+W 128 ['', '\n', "'"] ',"\n",\'\r\n'
+R 129 {'quoting': 3} 'b.\r\\\',1",a' [['b.'], ["\\'", '1"', 'a']]
+W 129 ['.', 'b.a', " '.b"] ".,b.a, '.b\r\n"
+R 130 {'quoting': 2} ",'aa.\r'" ValueError could not convert string to float: "'aa."
+W 130 ['\r ', '\r\n', True] '"\r ","\r\n",True\r\n'
+R 131 {'lineterminator': '\n', 'quotechar': "'", 'delimiter': ';'} '\\\\' [['\\\\']]
+W 131 ['a; ', 'b\n', ''] "'a; ';'b\n';\n"
+R 132 {} "\n ;b11\r'bb.'" [[], [' ;b11'], ["'bb.'"]]
+W 132 ["'", 'a"'] '\',"a"""\r\n'
+R 133 {'delimiter': ';'} '1b\nb111ba ' [['1b'], ['b111ba ']]
+W 133 ['; "', '\\', '\r '] '"; """;\\;"\r "\r\n'
+R 134 {'quotechar': "'"} 'b1\n;"b\r"b' [['b1'], [';"b'], ['"b']]
+W 134 ['\\b', "'"] "\\b,''''\r\n"
+R 135 {'skipinitialspace': True} "\\b';'1b 'b" [["\\b';'1b 'b"]]
+W 135 ['a1', '.a\r', 3] 'a1,".a\r",3\r\n'
+R 136 {'escapechar': '\\'} '""" \n\n\'\n\nb\n\r \\' [['" \n\n\'\n\nb\n\r \n']]
+W 136 ['\r', '\\b,', ''] '"\r","\\\\b,",\r\n'
+R 137 {'doublequote': False, 'escapechar': '\\'} '\'a"\'\\\r\r' [['\'a"\'\r']]
+W 137 ['a'] 'a\r\n'
+R 138 {'quoting': 3, 'escapechar': '\\'} ',."a\rb\r' [['', '."a'], ['b']]
+W 138 ['', '', ''] ',,\r\n'
+R 139 {'quoting': 1} '1""\\' [['1""\\']]
+W 139 ['a', ' ",', '\n.'] '"a"," "",","\n."\r\n'
+R 140 {'strict': True} "\r\\ \r a,'" [[], ['\\ '], [' a', "'"]]
+W 140 ['\rb', '', True] '"\rb",,True\r\n'
+R 141 {'quoting': 3} '"\'\'1b\\\\ ",,..\n' [['"\'\'1b\\\\ "', '', '..']]
+W 141 ['",', '\\'] 'Error need to escape, but no escapechar set'
+R 142 {'quoting': 2} '' []
+W 142 ['\'";', ',\\\r\n', 'b"\\'] '"\'"";",",\\\r\n","b""\\"\r\n'
+R 143 {'lineterminator': '\n', 'quotechar': "'", 'delimiter': ';'} '' []
+W 143 ['1'] '1\n'
+R 144 {} ';. \r1\n' [[';. '], ['1']]
+W 144 [''] '""\r\n'
+R 145 {'delimiter': ';'} '\n"b\'\'\r\',aa; ' [[], ["b''\r',aa; "]]
+W 145 [' \n', 3] '" \n";3\r\n'
+R 146 {'quotechar': "'"} '' []
+W 146 ["';"] "''';'\r\n"
+R 147 {'skipinitialspace': True} ' aa.b' [['aa.b']]
+W 147 [''] '""\r\n'
+R 148 {'escapechar': '\\'} '"b;b1b.\r\'\'"' [["b;b1b.\r''"]]
+W 148 ['"', 'b\\'] '"""",b\\\\\r\n'
+R 149 {'doublequote': False, 'escapechar': '\\'} ';.' [[';.']]
+W 149 ['', ' ;'] ', ;\r\n'
+R 150 {'quoting': 3, 'escapechar': '\\'} 'a...\n;\\1\rb" a' [['a...'], [';1'], ['b" a']]
+W 150 ['a ', 'b', '', 3] 'a ,b,,3\r\n'
+R 151 {'quoting': 1} "';\r a" [["';"], [' a']]
+W 151 ['', "'\n\\'", '"1'] '"","\'\n\\\'","""1"\r\n'
+R 152 {'strict': True} '\r" ' Error unexpected end of data
+W 152 [''] '""\r\n'
+R 153 {'quoting': 3} '\r;;a\r"b;;' [[], [';;a'], ['"b;;']]
+W 153 ['11\r'] 'Error need to escape, but no escapechar set'
+R 154 {'quoting': 2} '".,' [['.,']]
+W 154 ['b'] '"b"\r\n'
+R 155 {'lineterminator': '\n', 'quotechar': "'", 'delimiter': ';'} '\r\r..\r ; 1' [[], [], ['..'], [' ', ' 1']]
+W 155 ['b\r', '\r', True] "'b\r';'\r';True\n"
+R 156 {} '\n1b1.1\'\r \na"' [[], ["1b1.1'"], [' '], ['a"']]
+W 156 [',\r,1'] '",\r,1"\r\n'
+R 157 {'delimiter': ';'} '"\\" \r\r1\',; \n' [['\\ '], [], ["1',", ' ']]
+W 157 ['.', '', 'a ,"'] '.;;"a ,"""\r\n'
+R 158 {'quotechar': "'"} 'a;".,"\\"' [['a;".', '"\\"']]
+W 158 ['".'] '".\r\n'
+R 159 {'skipinitialspace': True} '\r' [[]]
+W 159 [''] '""\r\n'
+R 160 {'escapechar': '\\'} ';"\\ "b \\ ' [[';" "b  ']]
+W 160 ['1. ', False] '1. ,False\r\n'
+R 161 {'doublequote': False, 'escapechar': '\\'} '' []
+W 161 ['\ra;\n', "'\n"] '"\ra;\n","\'\n"\r\n'
+R 162 {'quoting': 3, 'escapechar': '\\'} ",'\\\r\r11,\\." [['', "'\r"], ['11', '.']]
+W 162 ['\r', '\r1a"', '\\'] '\\\r,\\\r1a\\",\\\\\r\n'
+R 163 {'quoting': 1} ' \n.,   ' [[' '], ['.', '   ']]
+W 163 [";;'.", ','] '";;\'.",","\r\n'
+R 164 {'strict': True} 'b' [['b']]
+W 164 ['\n1a', 'a'] '"\n1a",a\r\n'
+R 165 {'quoting': 3} '.\r1.,ba' [['.'], ['1.', 'ba']]
+W 165 [' ,b', None] 'Error need to escape, but no escapechar set'
+R 166 {'quoting': 2} '\\\n1\n1' ValueError could not convert string to float: '\\'
+W 166 [',', '\n 1'] '",","\n 1"\r\n'
+R 167 {'lineterminator': '\n', 'quotechar': "'", 'delimiter': ';'} '\n\'a\r\'a a;;\n"""' [[], ['a\ra a', '', ''], ['"""']]
+W 167 [' '] ' \n'
+R 168 {} 'b\r  ;\'\\";\'' [['b'], ['  ;\'\\";\'']]
+W 168 ['', 'b,'] ',"b,"\r\n'
+R 169 {'delimiter': ';'} '\'";' [['\'"', '']]
+W 169 ['"', ''] '"""";\r\n'
+R 170 {'quotechar': "'"} '\n "b\n\n1"a,' [[], [' "b'], [], ['1"a', '']]
+W 170 ['', '', '",\n', 3] ',,\'",\n\',3\r\n'
+R 171 {'skipinitialspace': True} "',a\\1" [["'", 'a\\1']]
+W 171 ['ab"', '.\\.b'] '"ab""",.\\.b\r\n'
+R 172 {'escapechar': '\\'} 'ba\'"\n ,.1,\'\n' [['ba\'"'], [' ', '.1', "'"]]
+W 172 ['b\\', '\na '] 'b\\\\,"\na "\r\n'
+R 173 {'doublequote': False, 'escapechar': '\\'} '". b"\nb' [['. b'], ['b']]
+W 173 ['bb\r'] '"bb\r"\r\n'
+R 174 {'quoting': 3, 'escapechar': '\\'} '1\n\r' [['1'], []]
+W 174 [';111', "\n\n'"] ";111,\\\n\\\n'\r\n"
+R 175 {'quoting': 1} ',.a' [['', '.a']]
+W 175 ['', False] '"","False"\r\n'
+R 176 {'strict': True} "\\a1 '\n" [["\\a1 '"]]
+W 176 [' "'] '" """\r\n'
+R 177 {'quoting': 3} ';  ' [[';  ']]
+W 177 ['', 'b\r'] 'Error need to escape, but no escapechar set'
+R 178 {'quoting': 2} '\r\n".\\a1 a1,a;\\' [[], ['.\\a1 a1,a;\\']]
+W 178 [",;';", '', '\\,; '] '",;\';","","\\,; "\r\n'
+R 179 {'lineterminator': '\n', 'quotechar': "'", 'delimiter': ';'} '1 \r, ,\' b "b \'' [['1 '], [', ,\' b "b \'']]
+W 179 ['\r.', 'b', '"11\''] '\'\r.\';b;\'"11\'\'\'\n'
+R 180 {} '"1\na.\'\'\',;\\\n\\\'' [["1\na.''',;\\\n\\'"]]
+W 180 ['\\\\', '\r', '.', None] '\\\\,"\r",.,\r\n'
+R 181 {'delimiter': ';'} 'ab;.\\' [['ab', '.\\']]
+W 181 [' 1.b', ";';", 'b\ra'] ' 1.b;";\';";"b\ra"\r\n'
+R 182 {'quotechar': "'"} "';',\\'" [[';', "\\'"]]
+W 182 [" '", ';'] "' ''',;\r\n"
+R 183 {'skipinitialspace': True} 'a \';b1 \'"b",\r\'' [['a \';b1 \'"b"', ''], ["'"]]
+W 183 ['1, ', '\\', '"1\r'] '"1, ",\\,"""1\r"\r\n'
+R 184 {'escapechar': '\\'} "\ra.\r;b\\,\na.1\r'" [[], ['a.'], [';b,'], ['a.1'], ["'"]]
+W 184 ['aa', "'\\11", ''] "aa,'\\\\11,\r\n"
+R 185 {'doublequote': False, 'escapechar': '\\'} '\n;1,.\r1\'".;' [[], [';1', '.'], ['1\'".;']]
+W 185 ['.,,', ' "\r\\', '\'."', 2.5] '".,,"," \\"\r\\\\",\'.\\",2.5\r\n'
+R 186 {'quoting': 3, 'escapechar': '\\'} 'a"1\\ ' [['a"1 ']]
+W 186 ['1;"b', '', ''] '1;\\"b,,\r\n'
+R 187 {'quoting': 1} "b\r\\1\rb', " [['b'], ['\\1'], ["b'", ' ']]
+W 187 ['', "\r''"] '"","\r\'\'"\r\n'
+R 188 {'strict': True} '1\r"b\n.1\n;\r\r.' Error unexpected end of data
+W 188 [',.b'] '",.b"\r\n'
+R 189 {'quoting': 3} '",1\r.' [['"', '1'], ['.']]
+W 189 [''] 'Error single empty field record must be quoted'
+R 190 {'quoting': 2} 'b, b;1' ValueError could not convert string to float: 'b'
+W 190 ['', '.a', None] '"",".a",""\r\n'
+R 191 {'lineterminator': '\n', 'quotechar': "'", 'delimiter': ';'} '\n;\r\r1;\r.\\' [[], ['', ''], [], ['1', ''], ['.\\']]
+W 191 [' "b;', '\n', "\r'1"] '\' "b;\';\'\n\';\'\r\'\'1\'\n'
+R 192 {} ' a1,1\\1",' [[' a1', '1\\1"', '']]
+W 192 ['', 'a\\,', '\r1'] ',"a\\,","\r1"\r\n'
+R 193 {'delimiter': ';'} "1  \\;''" [['1  \\', "''"]]
+W 193 ['b.a', '..a;'] 'b.a;"..a;"\r\n'
+R 194 {'quotechar': "'"} ".\n ,''11\\b" [['.'], [' ', '11\\b']]
+W 194 ['\\b', ''] '\\b,\r\n'
+R 195 {'skipinitialspace': True} '1' [['1']]
+W 195 ['', 0] ',0\r\n'
+R 196 {'escapechar': '\\'} "\n,b; \\'\\;\r';;" [[], ['', "b; ';"], ["';;"]]
+W 196 ['"a'] '"""a"\r\n'
+R 197 {'doublequote': False, 'escapechar': '\\'} "\\\r\\;\r',\r\r,a" [['\r;'], ["'", ''], [], ['', 'a']]
+W 197 ['1;a'] '1;a\r\n'
+R 198 {'quoting': 3, 'escapechar': '\\'} 'a1\'"   b \nb1\'' [['a1\'"   b '], ["b1'"]]
+W 198 ['\na\rb'] '\\\na\\\rb\r\n'
+R 199 {'quoting': 1} "a\r'bb a\n;\r" [['a'], ["'bb a"], [';']]
+W 199 ['', '\\'] '"","\\"\r\n'
+R 200 {'strict': True} 'bab.;' [['bab.;']]
+W 200 ['";', '\r ', False] '""";","\r ",False\r\n'
+R 201 {'quoting': 3} ';;,' [[';;', '']]
+W 201 [''] 'Error single empty field record must be quoted'
+R 202 {'quoting': 2} '\r\\1 a1"\r ;a' ValueError could not convert string to float: '\\1 a1"'
+W 202 [''] '""\r\n'
+R 203 {'lineterminator': '\n', 'quotechar': "'", 'delimiter': ';'} '.\\,,\\",\'' [['.\\,,\\",\'']]
+W 203 ['', '";', '1\n'] ';\'";\';\'1\n\'\n'
+R 204 {} ".',\\., ;'a" [[".'", '\\.', " ;'a"]]
+W 204 ['\n"",'] '"\n"""","\r\n'
+R 205 {'delimiter': ';'} ' ' [[' ']]
+W 205 ['', False] ';False\r\n'
+R 206 {'quotechar': "'"} '".' [['".']]
+W 206 ['a ', '1'] 'a ,1\r\n'
+R 207 {'skipinitialspace': True} ' ; ,\n,"1\'1;.1\\' [['; ', ''], ['', "1'1;.1\\"]]
+W 207 [''] '""\r\n'
+R 208 {'escapechar': '\\'} "'\\;'" [["';'"]]
+W 208 ['a. .'] 'a. .\r\n'
+R 209 {'doublequote': False, 'escapechar': '\\'} "\r'.\n1\rb' . \\\nb" [[], ["'."], ['1'], ["b' . \nb"]]
+W 209 ['1\r', ';\\"', ''] '"1\r",;\\\\\\",\r\n'
+R 210 {'quoting': 3, 'escapechar': '\\'} 'b\'\'\\\'\n";b",",.' [["b'''"], ['";b"', '"', '.']]
+W 210 ['b', 3] 'b,3\r\n'
+R 211 {'quoting': 1} '\rb,\n1' [[], ['b', ''], ['1']]
+W 211 ['.\r', '1\\', ''] '".\r","1\\",""\r\n'
+R 212 {'strict': True} '"\\ \\;1' Error unexpected end of data
+W 212 [';'] ';\r\n'
+R 213 {'quoting': 3} '\';\n;"\\, \'' [["';"], [';"\\', " '"]]
+W 213 ['\r,"', 'b\n'] 'Error need to escape, but no escapechar set'
+R 214 {'quoting': 2} ',1\\b1' ValueError could not convert string to float: '1\\b1'
+W 214 ['\r\r\\b', '\n",a', '1 \n;'] '"\r\r\\b","\n"",a","1 \n;"\r\n'
+R 215 {'lineterminator': '\n', 'quotechar': "'", 'delimiter': ';'} '' []
+W 215 ["b1'", ',;', 0] "'b1''';',;';0\n"
+R 216 {} '\na", b\\' [[], ['a"', ' b\\']]
+W 216 ["\r'", ',\n1"', '1'] '"\r\'",",\n1""",1\r\n'
+R 217 {'delimiter': ';'} ',,.' [[',,.']]
+W 217 ['"', ' 1 ', ','] '""""; 1 ;,\r\n'
+R 218 {'quotechar': "'"} "\na,,.'" [[], ['a', '', ".'"]]
+W 218 ['a', ';.', '\r\r\r'] "a,;.,'\r\r\r'\r\n"
+R 219 {'skipinitialspace': True} '1a,1 ".,b. \'1,' [['1a', '1 ".', "b. '1", '']]
+W 219 ['.;. '] '.;. \r\n'
+R 220 {'escapechar': '\\'} "11'" [["11'"]]
+W 220 ['b\r,', '.b', 3] '"b\r,",.b,3\r\n'
+R 221 {'doublequote': False, 'escapechar': '\\'} 'b' [['b']]
+W 221 ['\\ '] '\\\\ \r\n'
+R 222 {'quoting': 3, 'escapechar': '\\'} ';1.' [[';1.']]
+W 222 [' b\\', '"\';'] ' b\\\\,\\"\';\r\n'
+R 223 {'quoting': 1} 'a,a1"\'\r' [['a', 'a1"\'']]
+W 223 ['', '1\n\\', ' '] '"","1\n\\"," "\r\n'
+R 224 {'strict': True} '\n' [[]]
+W 224 ["1 ;'", '\\;,', "'\r"] '1 ;\',"\\;,","\'\r"\r\n'
+R 225 {'quoting': 3} ';; \n1b\'1\n\\\n",' [[';; '], ["1b'1"], ['\\'], ['"', '']]
+W 225 ['..', '"\'', "\r';1", None] 'Error need to escape, but no escapechar set'
+R 226 {'quoting': 2} ',1\\\r",' ValueError could not convert string to float: '1\\'
+W 226 ["',"] '"\',"\r\n'
+R 227 {'lineterminator': '\n', 'quotechar': "'", 'delimiter': ';'} "'\\" [['\\']]
+W 227 ['\\;'] "'\\;'\n"
+R 228 {} '\r" ' [[], [' ']]
+W 228 [';1\\1'] ';1\\1\r\n'
+R 229 {'delimiter': ';'} ',' [[',']]
+W 229 ['\n"\\1', '', ''] '"\n""\\1";;\r\n'
+R 230 {'quotechar': "'"} "\r',\\" [[], [',\\']]
+W 230 ['', 0] ',0\r\n'
+R 231 {'skipinitialspace': True} "',\n'\\a," [["'", ''], ["'\\a", '']]
+W 231 [' b', ''] ' b,\r\n'
+R 232 {'escapechar': '\\'} '\rb' [[], ['b']]
+W 232 [''] '""\r\n'
+R 233 {'doublequote': False, 'escapechar': '\\'} '' []
+W 233 ['.\\ \n', '\n\r'] '".\\\\ \n","\n\r"\r\n'
+R 234 {'quoting': 3, 'escapechar': '\\'} '\\\\a".' [['\\a".']]
+W 234 [';'] ';\r\n'
+R 235 {'quoting': 1} "\n'.a;," [[], ["'.a;", '']]
+W 235 ['', '"', '.', False] '"","""",".","False"\r\n'
+R 236 {'strict': True} '\\."a' [['\\."a']]
+W 236 [',', ",'"] '",",",\'"\r\n'
+R 237 {'quoting': 3} '\r;.' [[], [';.']]
+W 237 [';', '\r\r  '] 'Error need to escape, but no escapechar set'
+R 238 {'quoting': 2} '.,;;\r,.\r' ValueError could not convert string to float: '.'
+W 238 ["\n;'\n", '\n,a'] '"\n;\'\n","\n,a"\r\n'
+R 239 {'lineterminator': '\n', 'quotechar': "'", 'delimiter': ';'} '1,\r1"  a1"\r" "' [['1,'], ['1"  a1"'], ['" "']]
+W 239 ['', '', ''] ';;\n'
+R 240 {} ';;; ";,;;\',' [[';;; ";', ";;'", '']]
+W 240 ["a',", '', 0] '"a\',",,0\r\n'
+R 241 {'delimiter': ';'} '.1' [['.1']]
+W 241 ['\\,\\1', '1'] '\\,\\1;1\r\n'
+R 242 {'quotechar': "'"} '\r\n\ra ";\\.bb,' [[], [], ['a ";\\.bb', '']]
+W 242 [';.,1', ';\\\\', ',, '] "';.,1',;\\\\,',, '\r\n"
+R 243 {'skipinitialspace': True} '\r\'a."".."\n' [[], ['\'a."".."']]
+W 243 ['ba\n\n', '"\''] '"ba\n\n","""\'"\r\n'
+R 244 {'escapechar': '\\'} 'bb,\n\' ";ba\\' [['bb', ''], ['\' ";ba\n']]
+W 244 ['\n'] '"\n"\r\n'
+R 245 {'doublequote': False, 'escapechar': '\\'} "'b" [["'b"]]
+W 245 ['', None] ',\r\n'
+R 246 {'quoting': 3, 'escapechar': '\\'} 'a\'"\\"ba\\\r\n\'' [['a\'""ba\r'], ["'"]]
+W 246 ['\n1aa'] '\\\n1aa\r\n'
+R 247 {'quoting': 1} "'..," [["'..", '']]
+W 247 ["\r'", 'b\n'] '"\r\'","b\n"\r\n'
+R 248 {'strict': True} "',1" [["'", '1']]
+W 248 ['\r', '\n'] '"\r","\n"\r\n'
+R 249 {'quoting': 3} '"\'  \r\r\\' [['"\'  '], [], ['\\']]
+W 249 ['\n"', '\n\r'] 'Error need to escape, but no escapechar set'
+R 250 {'quoting': 2} '1";' ValueError could not convert string to float: '1";'
+W 250 [' ', '', 2.5] '" ","",2.5\r\n'
+R 251 {'lineterminator': '\n', 'quotechar': "'", 'delimiter': ';'} "\r\n '1" [[], [" '1"]]
+W 251 ['.\n\\\r', '\n1'] "'.\n\\\r';'\n1'\n"
+R 252 {} '\\\n."\'1;.' [['\\'], ['."\'1;.']]
+W 252 ["'aa", '"'] '\'aa,""""\r\n'
+R 253 {'delimiter': ';'} '1\\b\r";b' [['1\\b'], [';b']]
+W 253 ['\\'] '\\\r\n'
+R 254 {'quotechar': "'"} "1;''., \\;1;'" [["1;''.", " \\;1;'"]]
+W 254 ['', '\ra\n1', '\n\n..'] ",'\ra\n1','\n\n..'\r\n"
+R 255 {'skipinitialspace': True} "\\\\'a\r a;1 b.1" [["\\\\'a"], ['a;1 b.1']]
+W 255 ['..', '.1', 'b', False] '..,.1,b,False\r\n'
+R 256 {'escapechar': '\\'} ',\n;\n1 1' [['', ''], [';'], ['1 1']]
+W 256 ['', '\r. \n', "'"] ',"\r. \n",\'\r\n'
+R 257 {'doublequote': False, 'escapechar': '\\'} "ba;a, b\\ b'\r" [['ba;a', " b b'"]]
+W 257 ['\r'] '"\r"\r\n'
+R 258 {'quoting': 3, 'escapechar': '\\'} ',;;\\' [['', ';;\n']]
+W 258 ['\\, \\', ';1.b', '1\n\r'] '\\\\\\, \\\\,;1.b,1\\\n\\\r\r\n'
+R 259 {'quoting': 1} 'a.\\\\b; .\r"\\"\n' [['a.\\\\b; .'], ['\\']]
+W 259 ['1.', '\r. b'] '"1.","\r. b"\r\n'
+R 260 {'strict': True} 'b\r' [['b']]
+W 260 ["'b,\r", '', 'a\r.b', True] '"\'b,\r",,"a\r.b",True\r\n'
+R 261 {'quoting': 3} 'a."b"\r"a"\'. ' [['a."b"'], ['"a"\'. ']]
+W 261 ['. b,', '""\n '] 'Error need to escape, but no escapechar set'
+R 262 {'quoting': 2} '.a,\r' ValueError could not convert string to float: '.a'
+W 262 ['', ',.'] '"",",."\r\n'
+R 263 {'lineterminator': '\n', 'quotechar': "'", 'delimiter': ';'} '\r""\\' [[], ['""\\']]
+W 263 ['\\,\\b'] '\\,\\b\n'
+R 264 {} '.,.a\\\\b' [['.', '.a\\\\b']]
+W 264 ['b1', ''] 'b1,\r\n'
+R 265 {'delimiter': ';'} 'a\'\'\'\n\n\\b,;"' [["a'''"], [], ['\\b,', '']]
+W 265 [';b1\r', ",b'", 2.5] '";b1\r";,b\';2.5\r\n'
+R 266 {'quotechar': "'"} '' []
+W 266 ['bb'] 'bb\r\n'
+R 267 {'skipinitialspace': True} 'a\',b,,." ;;aa ' [["a'", 'b', '', '." ;;aa ']]
+W 267 ['', '\n,\r'] ',"\n,\r"\r\n'
+R 268 {'escapechar': '\\'} '\ra\n,,.b1,"".' [[], ['a'], ['', '', '.b1', '.']]
+W 268 ['.;,'] '".;,"\r\n'
+R 269 {'doublequote': False, 'escapechar': '\\'} '\\",\n\\\n ' [['"', ''], ['\n ']]
+W 269 ["'\r.;", '\n', ''] '"\'\r.;","\n",\r\n'
+R 270 {'quoting': 3, 'escapechar': '\\'} '.;\n' [['.;']]
+W 270 ['ba",', '\r;\rb', True] 'ba\\"\\,,\\\r;\\\rb,True\r\n'
+R 271 {'quoting': 1} 'a"b;a\\.b\\\n\'\n\nb' [['a"b;a\\.b\\'], ["'"], [], ['b']]
+W 271 ['.\n1'] '".\n1"\r\n'
+R 272 {'strict': True} '' []
+W 272 ['\n\n', '1', '.,;\r'] '"\n\n",1,".,;\r"\r\n'
+R 273 {'quoting': 3} '; 1\r' [['; 1']]
+W 273 ['\'."', '\n;\\.'] 'Error need to escape, but no escapechar set'
+R 274 {'quoting': 2} ' ;;' ValueError could not convert string to float: ' ;;'
+W 274 ['', '\r'] '"","\r"\r\n'
+R 275 {'lineterminator': '\n', 'quotechar': "'", 'delimiter': ';'} 'aa.\r' [['aa.']]
+W 275 ["','", '.', 2.5] "''',''';.;2.5\n"
+R 276 {} '\r,\ra"' [[], ['', ''], ['a"']]
+W 276 ['', ',a"', '1  '] ',",a""",1  \r\n'
+R 277 {'delimiter': ';'} '\r, ;,,' [[], [', ', ',,']]
+W 277 ['\n'] '"\n"\r\n'
+R 278 {'quotechar': "'"} '\n "a"b\\1,a.,' [[], [' "a"b\\1', 'a.', '']]
+W 278 [''] "''\r\n"
+R 279 {'skipinitialspace': True} "a,'1a" [['a', "'1a"]]
+W 279 ['.', '"a', ''] '.,"""a",\r\n'
+R 280 {'escapechar': '\\'} '\na"' [[], ['a"']]
+W 280 ['', 3] ',3\r\n'
+R 281 {'doublequote': False, 'escapechar': '\\'} " ';'a1''" [[" ';'a1''"]]
+W 281 ['\\', 'b\n', ';,\n'] '\\\\,"b\n",";,\n"\r\n'
+R 282 {'quoting': 3, 'escapechar': '\\'} 'a1.\r, "\\\r.' [['a1.'], ['', ' "\r.']]
+W 282 ['. \\\\', '.,', "';; "] ". \\\\\\\\,.\\,,';; \r\n"
+R 283 {'quoting': 1} ' "a' [[' "a']]
+W 283 ['a\ra ', 'b\r"b', '\\1b'] '"a\ra ","b\r""b","\\1b"\r\n'
+R 284 {'strict': True} 'b' [['b']]
+W 284 ['."', ''] '".""",\r\n'
+R 285 {'quoting': 3} ' ' [[' ']]
+W 285 ['', '.\r;', ';', 0] 'Error need to escape, but no escapechar set'
+R 286 {'quoting': 2} "b\r\n'\\\n',\nb1" ValueError could not convert string to float: 'b'
+W 286 ['",1\r', '1'] '""",1\r","1"\r\n'
+R 287 {'lineterminator': '\n', 'quotechar': "'", 'delimiter': ';'} 'a\r\n1"' [['a'], ['1"']]
+W 287 ["\r'", "' ", ";\\'."] "'\r''';''' ';';\\''.'\n"
+R 288 {} '\n.a\\b.b\r\n' [[], ['.a\\b.b']]
+W 288 ['', 'a,b'] ',"a,b"\r\n'
+R 289 {'delimiter': ';'} '\\1, a' [['\\1, a']]
+W 289 ['', '', '".b\''] ';;""".b\'"\r\n'
+R 290 {'quotechar': "'"} '\\\r.1\r\\b\n1\n"' [['\\'], ['.1'], ['\\b'], ['1'], ['"']]
+W 290 ['bb1 ', '', '.;a', True] 'bb1 ,,.;a,True\r\n'
+R 291 {'skipinitialspace': True} '"\r' [['\r']]
+W 291 ['', 'a;a\n'] ',"a;a\n"\r\n'
+R 292 {'escapechar': '\\'} '",\r;1;b a"b' [[',\r;1;b ab']]
+W 292 ['1;bb'] '1;bb\r\n'
+R 293 {'doublequote': False, 'escapechar': '\\'} '11\\..;,' [['11..;', '']]
+W 293 ['"1\r\r'] '"\\"1\r\r"\r\n'
+R 294 {'quoting': 3, 'escapechar': '\\'} " a .\\\\b\ra'." [[' a .\\b'], ["a'."]]
+W 294 [''] 'Error single empty field record must be quoted'
+R 295 {'quoting': 1} "\n b\r';a\n1\\1.1a" [[], [' b'], ["';a"], ['1\\1.1a']]
+W 295 ['."', None] '".""",""\r\n'
+R 296 {'strict': True} 'aa\r  \r\r' [['aa'], ['  '], []]
+W 296 ['" \n', ''] '""" \n",\r\n'
+R 297 {'quoting': 3} '' []
+W 297 ["b'", '\n\r",', '".'] 'Error need to escape, but no escapechar set'
+R 298 {'quoting': 2} '' []
+W 298 ['\\.."', ''] '"\\..""",""\r\n'
+R 299 {'lineterminator': '\n', 'quotechar': "'", 'delimiter': ';'} '".\n,,\'\r\'\'' [['".'], [",,'"], ['']]
+W 299 ['\n.b', '\n'] "'\n.b';'\n'\n"
