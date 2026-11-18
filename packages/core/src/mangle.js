@@ -1,6 +1,6 @@
 // Private name mangling like CPython: inside a class body, an identifier `__x` (not ending in `__`) becomes
 // `_Class__x` (leading underscores of the class name removed). It applies to names, attributes, parameters,
-// `global`/`nonlocal`, `except … as` and the names that `def` and `class` bind. The code object
+// `global`/`nonlocal`, `except … as`, the names that `import`, `def` and `class` bind. The code object
 // keeps its plain name (`__name__` stays `__x`), so the binding name goes to `node.bound`.
 
 /** @param {string} name @param {string|null} cls */
@@ -35,6 +35,14 @@ export function mangle(node, cls = null) {
       break;
     case 'Global': case 'Nonlocal': node.names = node.names.map(m); break;
     case 'Try': for (const h of node.handlers) if (h.name) h.name = m(h.name); break;
+    case 'Import': case 'ImportFrom':
+      // the bound name is mangled, not the module or the imported name (import __x binds _Class__x)
+      for (const n of node.names ?? []) {
+        const bound = n.asname ?? (node.type === 'Import' ? n.name.split('.')[0] : n.name);
+        if (node.type === 'Import' && !n.asname && n.name.includes('.')) continue;
+        if (m(bound) !== bound) n.asname = m(bound);
+      }
+      return;
   }
   for (const [k, v] of Object.entries(node)) if (v && typeof v === 'object') mangle(v, cls);
 }
