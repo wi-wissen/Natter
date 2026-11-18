@@ -70,8 +70,19 @@ export function pyMessage(e) {
     case 'notSubscriptable': return p.type === 'type' && p.name ? `type '${p.name}' is not subscriptable` : `'${p.type}' object is not subscriptable`;
     case 'notIndex': return p.container === 'str' ? `string indices must be integers, not '${p.type}'` : `${p.container ?? 'list'} indices must be integers or slices, not ${p.type}`;
     case 'unhashable': return `unhashable type: '${p.type}'`;
-    case 'argCount': return `${p.name}() takes ${p.max} positional ${plural(p.max, 'argument', 'arguments')} but ${p.given} ${plural(p.given, 'was', 'were')} given`;
-    case 'argMissing': return `${p.name}() missing 1 required positional argument: '${p.arg}'`;
+    case 'argCount': {
+      // CPython's too_many_positional()
+      const sig = p.min !== undefined ? `from ${p.min} to ${p.max}` : String(p.max);
+      const many = p.min !== undefined || p.max !== 1;
+      const kwonly = p.kwonlyGiven ? ` positional ${plural(p.given, 'argument', 'arguments')} (and ${p.kwonlyGiven} keyword-only ${plural(p.kwonlyGiven, 'argument', 'arguments')})` : '';
+      return `${p.name}() takes ${sig} positional ${many ? 'arguments' : 'argument'} but ${p.given}${kwonly} ${p.given === 1 && !p.kwonlyGiven ? 'was' : 'were'} given`;
+    }
+    case 'argMissing': {
+      // CPython's missing_arguments(): 'a', 'a' and 'b', 'a', 'b', and 'c'
+      const names = (p.args ?? [p.arg]).map((x) => `'${x}'`);
+      const list = names.length === 1 ? names[0] : names.length === 2 ? `${names[0]} and ${names[1]}` : `${names.slice(0, -1).join(', ')}, and ${names[names.length - 1]}`;
+      return `${p.name}() missing ${names.length} required ${p.what === 'keyword' ? 'keyword-only' : 'positional'} ${plural(names.length, 'argument', 'arguments')}: ${list}`;
+    }
     case 'argUnexpected': return `${p.name}() got an unexpected keyword argument '${p.arg}'`;
     case 'argDuplicate': return `${p.name}() got multiple values for argument '${p.arg}'`;
     case 'attr':

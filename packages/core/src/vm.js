@@ -206,7 +206,12 @@ export class VM {
   bindFrame(fn, args, kw) {
     const c = this.codes[fn.code];
     const n = c.params.length;
-    if (args.length > n && !c.vararg) throw new ScriptError('argCount', { name: fn.name, max: n, given: args.length });
+    // CPython's texts name the function by its __qualname__ (A.__init__)
+    const name = c.qualname ?? fn.name;
+    if (args.length > n && !c.vararg) {
+      const kwonlyGiven = kw ? kw.filter(([k]) => c.kwonly.includes(k)).length : 0;
+      throw new ScriptError('argCount', { name, max: n, min: c.ndefaults ? n - c.ndefaults : undefined, given: args.length, kwonlyGiven, short: fn.name });
+    }
     const locals = new Array(c.varnames.length).fill(undefined);
     for (let i = 0; i < Math.min(n, args.length); i++) locals[i] = args[i];
     if (c.vararg) locals[n] = new PyTuple(args.slice(n));
@@ -219,29 +224,32 @@ export class VM {
         if (i < 0) {
           const j = c.kwonly.indexOf(k);
           if (j >= 0) {
-            if (locals[kwBase + j] !== undefined) throw new ScriptError('argDuplicate', { name: fn.name, arg: k });
+            if (locals[kwBase + j] !== undefined) throw new ScriptError('argDuplicate', { name, arg: k });
             locals[kwBase + j] = v;
             continue;
           }
           if (extra) { extra.set(k, v); continue; }
-          throw new ScriptError('argUnexpected', { name: fn.name, arg: k, suggestion: suggest(k, [...c.params, ...c.kwonly]) });
+          throw new ScriptError('argUnexpected', { name, arg: k, suggestion: suggest(k, [...c.params, ...c.kwonly]) });
         }
-        if (locals[i] !== undefined) throw new ScriptError('argDuplicate', { name: fn.name, arg: k });
+        if (locals[i] !== undefined) throw new ScriptError('argDuplicate', { name, arg: k });
         locals[i] = v;
       }
     }
     const firstDefault = n - c.ndefaults;
+    const missing = [];
     for (let i = 0; i < n; i++) {
       if (locals[i] !== undefined) continue;
       if (i >= firstDefault) locals[i] = fn.defaults[i - firstDefault];
-      else throw new ScriptError('argMissing', { name: fn.name, arg: c.params[i] });
+      else missing.push(c.params[i]);
     }
+    if (missing.length) throw new ScriptError('argMissing', { name, arg: missing[0], args: missing });
     for (let j = 0; j < c.kwonly.length; j++) {
       if (locals[kwBase + j] !== undefined) continue;
       const d = fn.kwdefaults?.[j];
-      if (d === undefined) throw new ScriptError('argMissing', { name: fn.name, arg: c.kwonly[j], what: 'keyword' });
-      locals[kwBase + j] = d;
+      if (d === undefined) missing.push(c.kwonly[j]);
+      else locals[kwBase + j] = d;
     }
+    if (missing.length) throw new ScriptError('argMissing', { name, arg: missing[0], args: missing, what: 'keyword' });
     const cells = c.cellvars.map((_, j) => new Cell(c.cellParams[j] >= 0 ? locals[c.cellParams[j]] : undefined)).concat(fn.cells);
     return { code: fn.code, pc: 0, locals, stack: [], cells, fn, g: fn.g ?? this.globals };
   }
@@ -1141,6 +1149,7 @@ export class VM {
     }
     if (obj instanceof PyFunction) {
       if (name === '__name__') return obj.name;
+      if (name === '__qualname__') return obj.attrs?.get(name) ?? this.codes[obj.code].qualname ?? obj.name;
       const own = obj.attrs?.get(name);
       if (own !== undefined) return own;
       // as in CPython, a function without annotations has an empty dict that stays
@@ -1197,7 +1206,8 @@ export class VM {
   }
 
   classAttr(task, cls, name) {
-    if (name === '__name__' || name === '__qualname__') return cls.name;
+    if (name === '__name__') return cls.name;
+    if (name === '__qualname__') return cls.qualname ?? cls.name;
     if (name === '__module__') return cls.native ? 'builtins' : cls.module;
     if (name === '__bases__') return new PyTuple(cls.bases.slice());
     if (name === '__mro__') return new PyTuple(cls.mro.slice());
@@ -1245,6 +1255,7 @@ export class VM {
     for (const n of ['__init_subclass__', '__class_getitem__']) if (dict.get(n) instanceof PyFunction) dict.set(n, new PyClassMethod(dict.get(n)));
     if (dict.get('__new__') instanceof PyFunction) dict.set('__new__', new PyStaticMethod(dict.get('__new__')));
     const cls = new PyClass(name, bases.length ? bases : [OBJECT], dict, null);
+    cls.qualname = this.codes[frame.code].qualname;
     const modName = frame.g?.get('__name__') ?? this.predef.get('__name__');
     if (typeof modName === 'string') cls.module = modName;
     // Functions remember their class (for super())
@@ -1303,7 +1314,8 @@ export class VM {
       return;
     }
     if (obj instanceof PyClass) {
-      if (name === '__name__' && typeof v === 'string') obj.name = v;
+      if (name === '__name__' && typeof v === 'string') { if (obj.qualname === obj.name) obj.qualname = v; obj.name = v; }
+      else if (name === '__qualname__' && typeof v === 'string') obj.qualname = v;
       else if (name === '__module__' && typeof v === 'string') obj.module = v;
       else obj.dict.set(name, v);
       return;

@@ -1083,8 +1083,8 @@ export function toStr(v, asRepr = false, hostRepr = null, seen = new Set()) {
   }
   if (v instanceof PyFloat) return formatFloat(v.v);
   if (v instanceof PyInstance) return instStr(v, asRepr);
-  if (v instanceof PyClass) return v.native ? `<class '${v.name}'>` : `<class '${v.module}.${v.name}'>`;
-  if (v instanceof PyMethod) return `<bound method ${v.fn.name} of ${toStr(v.self, true, hostRepr, seen)}>`;
+  if (v instanceof PyClass) return v.native ? `<class '${v.name}'>` : `<class '${v.module}.${v.qualname ?? v.name}'>`;
+  if (v instanceof PyMethod) return `<bound method ${v.fn instanceof PyFunction ? fnQualname(v.fn) : v.fn.name} of ${toStr(v.self, true, hostRepr, seen)}>`;
   if (v instanceof PyNotImplemented) return 'NotImplemented';
   if (v instanceof PyGenerator) return `<generator object ${v.fn.name}>`;
   if (v instanceof PySuper) return `<super: <class '${v.cls.name}'>, <${typeName(v.obj)} object>>`;
@@ -1123,7 +1123,7 @@ export function toStr(v, asRepr = false, hostRepr = null, seen = new Set()) {
     } finally { seen.delete(v); }
   }
   if (v instanceof PyRange) return v.step === 1 ? `range(${v.start}, ${v.stop})` : `range(${v.start}, ${v.stop}, ${v.step})`;
-  if (v instanceof PyFunction) return `<function ${v.name}>`;
+  if (v instanceof PyFunction) return `<function ${fnQualname(v)}>`;
   if (v instanceof PyBuiltin) {
     if (TYPE_NAMES.has(v.name)) return `<class '${v.name}'>`;
     if (v.name.startsWith('class:')) return `<class '${v.name.slice(6)}'>`;
@@ -1140,7 +1140,7 @@ export function toStr(v, asRepr = false, hostRepr = null, seen = new Set()) {
 }
 
 /** Default repr of an instance, like CPython without the memory address. */
-export const defaultRepr = (v) => `<${v.cls.module}.${v.cls.name} object at 0x${v.id.toString(16).padStart(12, '0')}>`;
+export const defaultRepr = (v) => `<${v.cls.module}.${v.cls.qualname ?? v.cls.name} object at 0x${v.id.toString(16).padStart(12, '0')}>`;
 
 /** str() or repr() of an instance: __str__ (falling back to __repr__) or __repr__. */
 function instStr(v, asRepr) {
@@ -1308,8 +1308,11 @@ export function makeUnion(parts) {
 /** How a type appears inside a type hint (CPython's _type_repr): int, __main__.K, list[int]. */
 export function typeRepr(v) {
   if (v instanceof PyBuiltin && isTypeObj(v)) return v.name.replace(/^class:/, '');
-  if (v instanceof PyClass) return v.native ? v.name : `${v.module}.${v.name}`;
+  if (v instanceof PyClass) return v.native ? v.name : `${v.module}.${v.qualname ?? v.name}`;
   if (v instanceof PyFunction) return v.name;
   if (v === null) return 'None';
   return toStr(v, true);
 }
+
+/** __qualname__ of a function made in Python (A.m, f.<locals>.g); its code object knows it. */
+function fnQualname(fn) { return fn.attrs?.get('__qualname__') ?? hooks.vm?.codes?.[fn.code]?.qualname ?? fn.name; }

@@ -89,6 +89,14 @@ class Scope {
   }
 }
 
+/** __qualname__ as in CPython: A.method, outer.<locals>.inner, f.<locals>.<lambda>. */
+function qualnameOf(scope, name) {
+  const p = scope.parent;
+  if (!p || p.kind === 'module' || scope.kind === 'module') return name;
+  const outer = qualnameOf(p, p.codeName ?? p.node?.name ?? '?');
+  return p.kind === 'function' ? `${outer}.<locals>.${name}` : `${outer}.${name}`;
+}
+
 class Compiler {
   constructor(source, opts) {
     this.source = source;
@@ -449,9 +457,10 @@ class Compiler {
    */
   compileCode(node, scope, name, params, isModule = false) {
     const idx = this.codeBase + this.codes.length;
+    scope.codeName = name;
     /** @type {Code} */
     const code = {
-      name, params: params.map((p) => p.name), ndefaults: params.filter((p) => p.default).length,
+      name, qualname: qualnameOf(scope, name), params: params.map((p) => p.name), ndefaults: params.filter((p) => p.default).length,
       kwonly: (node.kwonly ?? []).map((p) => p.name), kwMask: (node.kwonly ?? []).map((p) => !!p.default),
       vararg: node.vararg ?? null, kwarg: node.kwarg ?? null,
       varnames: [], cellvars: [], freevars: [], cellParams: [],

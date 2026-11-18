@@ -1,0 +1,13 @@
+A.__init__() missing 1 required positional argument: 'x'
+A.__init__() takes from 2 to 3 positional arguments but 4 positional arguments (and 1 keyword-only argument) were given
+A.__init__() got an unexpected keyword argument 'z'
+A.__init__() got multiple values for argument 'x'
+A.__init__() missing 1 required keyword-only argument: 'k'
+f() missing 3 required positional arguments: 'a', 'b', and 'c'
+g() missing 2 required keyword-only arguments: 'a' and 'b'
+h() takes 1 positional argument but 2 were given
+h() missing 1 required positional argument: 'a'
+g() takes 0 positional arguments but 1 positional argument (and 2 keyword-only arguments) were given
+aussen.<locals>.innen aussen.<locals>.Lokal aussen.<locals>.Lokal.m A.__init__ A <lambda>
+O.Innen.m() missing 1 required positional argument: 'x'
+O.Innen <class '__main__.O.Innen'> O.Innen.m
