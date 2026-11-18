@@ -8,7 +8,7 @@ A small Python interpreter written in JavaScript, made for teaching in the brows
 - **Friendly errors:** English and German messages with hints, in the style of CPython 3.12.
 - **Reproducible:** optional random seed and platform-independent math.
 
-> **Status: version 0.1.** The language, the standard library and the browser hosts (console, `turtle`, `kara`, Pygame Zero, `guizero` forms, numpy and plots, with an image and sound library) are done and compared with CPython and the real libraries in the tests. Published on npm as `@natterjs/core`, `@natterjs/web` and `@natterjs/assets`; see *Get started* on <https://natter.wi7.net/>.
+> **Status: version 0.2.** The language, the standard library and the browser hosts (console, `turtle`, `kara`, Pygame Zero, `guizero` forms, numpy and plots, with an image and sound library) are done and compared with CPython and the real libraries in the tests. Published on npm as `@natterjs/core`, `@natterjs/web` and `@natterjs/assets`; see *Get started* on <https://natter.wi7.net/>.
 
 ## Used by
 
@@ -107,12 +107,12 @@ console.log(runToEnd('print(1 + 1)').output); // 2
 ```html
 <div id="console"></div>
 <script type="module">
-  import { createRunner, createConsole, createPgzero } from 'https://cdn.jsdelivr.net/npm/@natterjs/web@0.1.0/dist/natter-web.js';
+  import { createRunner, createConsole, createPgzero } from 'https://cdn.jsdelivr.net/npm/@natterjs/web@0.2.0/dist/natter-web.js';
   const runner = createRunner();
   createConsole(document.querySelector('#console')).connect(runner);
   await runner.run('for i in range(3):\n    print("Hallo", i)');
   // Bildbibliothek für Pygame Zero und Kara:
-  // createPgzero(el, { assets: { baseUrl: 'https://cdn.jsdelivr.net/npm/@natterjs/assets@0.1.0/', catalog: 'catalog.json' } })
+  // createPgzero(el, { assets: { baseUrl: 'https://cdn.jsdelivr.net/npm/@natterjs/assets@0.2.0/', catalog: 'catalog.json' } })
 </script>
 ```
 
@@ -121,11 +121,11 @@ console.log(runToEnd('print(1 + 1)').output); // 2
 **Ohne npm-Registry, aus dem GitHub-Release:** jedes Release hat die npm-Tarballs als Anhang (mit `SHA256SUMS.txt`):
 
 ```bash
-npm install https://github.com/wi-wissen/Natter/releases/download/v0.1.0/natterjs-core-0.1.0.tgz \
-            https://github.com/wi-wissen/Natter/releases/download/v0.1.0/natterjs-web-0.1.0.tgz
+npm install https://github.com/wi-wissen/Natter/releases/download/v0.2.0/natterjs-core-0.2.0.tgz \
+            https://github.com/wi-wissen/Natter/releases/download/v0.2.0/natterjs-web-0.2.0.tgz
 ```
 
-(`@natterjs/web` hängt von `@natterjs/core` ab, darum beide.) jsDelivr direkt aus GitHub (`https://cdn.jsdelivr.net/gh/wi-wissen/Natter@v0.1.0/…`) liefert nur, was im Repository liegt: die Bibliothek (`…/packages/assets/catalog.json`) und den Quelltext, aber nicht `dist/`, das nicht eingecheckt ist. Für den Browser-Build also die npm-Adresse oben nehmen.
+(`@natterjs/web` hängt von `@natterjs/core` ab, darum beide.) jsDelivr direkt aus GitHub (`https://cdn.jsdelivr.net/gh/wi-wissen/Natter@v0.2.0/…`) liefert nur, was im Repository liegt: die Bibliothek (`…/packages/assets/catalog.json`) und den Quelltext, aber nicht `dist/`, das nicht eingecheckt ist. Für den Browser-Build also die npm-Adresse oben nehmen.
 
 ## Veröffentlichen (Release)
 

@@ -110,7 +110,7 @@ Hi Grace!
 &lt;div id="console"&gt;&lt;/div&gt;
 &lt;script type="module"&gt;
   <span class="k">import</span> { createRunner, createConsole } <span class="k">from</span>
-    <span class="s">"https://cdn.jsdelivr.net/npm/@natterjs/web@0.1/dist/natter-web.js"</span>;
+    <span class="s">"https://cdn.jsdelivr.net/npm/@natterjs/web@0.2/dist/natter-web.js"</span>;
 
   <span class="k">const</span> runner = createRunner();
   createConsole(document.getElementById(<span class="s">"console"</span>)).connect(runner);
@@ -126,11 +126,11 @@ npm install @natterjs/assets       <span class="c"># optional: images and sounds
 
 <span class="c"># Node only, no browser</span>
 npm install @natterjs/core</code></pre>
-<p><code>@0.1</code> in the URL means &ldquo;the newest 0.1.x&rdquo;; use <code>@0.1.1</code> to pin a version. A running program can be paused, stepped and inspected: <code>runner.pause()</code>, <code>runner.step("over")</code>, <code>runner.inspect()</code>, <code>runner.stop()</code>.</p>
+<p><code>@0.2</code> in the URL means &ldquo;the newest 0.2.x&rdquo;; use <code>@0.2.0</code> to pin a version. A running program can be paused, stepped and inspected: <code>runner.pause()</code>, <code>runner.step("over")</code>, <code>runner.inspect()</code>, <code>runner.stop()</code>.</p>
 <pre class="codeblock" tabindex="0" aria-label="Node"><code><span class="c">// Node 18+, no browser: npm install @natterjs/core</span>
 <span class="k">import</span> { runToEnd } <span class="k">from</span> <span class="s">"@natterjs/core"</span>;
 console.log(runToEnd(<span class="s">"print(1 + 1)"</span>).output);   <span class="c">// 2</span></code></pre>
-<p><b>Images and sounds</b> for Pygame Zero and Kara: <code>createPgzero(el, { assets: { baseUrl: "https://cdn.jsdelivr.net/npm/@natterjs/assets@0.1/", catalog: "catalog.json" } })</code>. <b>Self-hosting:</b> copy the whole <code>dist/</code> folder (the start file loads its chunks from next to itself). Each <a href="https://github.com/wi-wissen/Natter/releases">GitHub release</a> also has <code>natter-web-&lt;version&gt;.zip</code> and the npm tarballs, with checksums. More options, such as turtle, Kara, forms and plots, are in the <a href="reference/">reference</a>.</p>
+<p><b>Images and sounds</b> for Pygame Zero and Kara: <code>createPgzero(el, { assets: { baseUrl: "https://cdn.jsdelivr.net/npm/@natterjs/assets@0.2/", catalog: "catalog.json" } })</code>. <b>Self-hosting:</b> copy the whole <code>dist/</code> folder (the start file loads its chunks from next to itself). Each <a href="https://github.com/wi-wissen/Natter/releases">GitHub release</a> also has <code>natter-web-&lt;version&gt;.zip</code> and the npm tarballs, with checksums. More options, such as turtle, Kara, forms and plots, are in the <a href="reference/">reference</a>.</p>
   </div>
 </section>
 

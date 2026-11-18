@@ -68,7 +68,7 @@ The package is plain ES modules, so jsDelivr serves it as it is (always pin a ve
 
 ```html
 <script type="module">
-  import { runToEnd } from 'https://cdn.jsdelivr.net/npm/@natterjs/core@0.1.0/src/index.js';
+  import { runToEnd } from 'https://cdn.jsdelivr.net/npm/@natterjs/core@0.2.0/src/index.js';
   console.log(runToEnd('print(6 * 7)').output);
 </script>
 ```

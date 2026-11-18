@@ -29,8 +29,8 @@ Without a build step, from jsDelivr (always pin a version):
 <button id="stop">Stop</button>
 <script type="module">
   import { createRunner, createConsole, createTurtle, createKara, createPgzero, detectModules, karaGlobals }
-    from 'https://cdn.jsdelivr.net/npm/@natterjs/web@0.1.0/dist/natter-web.js';
-  import { assetsOption } from 'https://cdn.jsdelivr.net/npm/@natterjs/assets@0.1.0/index.js';
+    from 'https://cdn.jsdelivr.net/npm/@natterjs/web@0.2.0/dist/natter-web.js';
+  import { assetsOption } from 'https://cdn.jsdelivr.net/npm/@natterjs/assets@0.2.0/index.js';
 
   const source = 'import turtle\nfor i in range(4):\n    turtle.forward(100)\n    turtle.left(90)';
   const stage = document.querySelector('#stage');   // drawing surfaces need a container with a height
