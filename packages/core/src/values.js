@@ -127,6 +127,8 @@ export class PyClass {
     this.bases = bases;
     this.dict = dict;
     this.native = native;
+    /** __module__: the module whose code made the class */
+    this.module = '__main__';
     this.mro = computeMro(this);
   }
 }
@@ -148,6 +150,10 @@ export class PyStaticMethod { constructor(fn) { this.fn = fn; } }
 export class PyClassMethod { constructor(fn) { this.fn = fn; } }
 /** Iterator over an object with __next__. */
 export class PyUserIter { constructor(obj) { this.obj = obj; } }
+/** list[int], dict[str, int] … (types.GenericAlias): `args` is an array (empty for tuple[()]). */
+export class PyGenericAlias { constructor(origin, args) { this.origin = origin; this.args = args; } }
+/** int | None (types.UnionType): `args` are the distinct members (None as NoneType). */
+export class PyUnion { constructor(args) { this.args = args; } }
 
 /** Linearisation of the base classes (C3), as in Python. */
 function computeMro(cls) {
@@ -259,6 +265,8 @@ export function typeName(v) {
   if (v instanceof PySuper) return 'super';
   if (v instanceof PyProperty) return 'property';
   if (v instanceof PyStaticMethod) return 'staticmethod';
+  if (v instanceof PyGenericAlias) return 'types.GenericAlias';
+  if (v instanceof PyUnion) return 'types.UnionType';
   if (v instanceof PyClassMethod) return 'classmethod';
   if (v instanceof PyNotImplemented) return 'NotImplementedType';
   return 'object';
@@ -320,6 +328,8 @@ export function keyOf(v) {
   }
   if (v instanceof PyClass || v instanceof PyFunction) return `c${identityOf(v)}`;
   // a range is hashed by its items (range(0, 3) == range(3)), iterators and generators by identity, as in CPython
+  if (v instanceof PyGenericAlias) return nested(() => `G${keyOf(v.origin)}[${v.args.map(keyOf).join(',')}]`);
+  if (v instanceof PyUnion) return nested(() => `U(${v.args.map(keyOf).sort().join(',')})`);
   if (v instanceof PyRange) { const n = rangeLen(v); return n === 0 ? 'r0' : n === 1 ? `r1:${v.start}` : `r${n}:${v.start}:${v.step}`; }
   if (v instanceof PyIterator || v instanceof PyGenerator || v instanceof PyUserIter) return `c${identityOf(v)}`;
   if (v instanceof PyMethod) return `m${keyOf(v.self)}:${identityOf(v.fn)}`;
@@ -382,6 +392,9 @@ export function eq(a, b) {
   }
   if (a instanceof PySet && b instanceof PySet) return a.size === b.size && a.items().every((x) => b.has(x));
   if (a instanceof PyRange && b instanceof PyRange) return seqEq(rangeItems(a), rangeItems(b));
+  if (a instanceof PyGenericAlias && b instanceof PyGenericAlias) return eq(a.origin, b.origin) && a.args.length === b.args.length && a.args.every((x, i) => eq(x, b.args[i]));
+  if (a instanceof PyUnion && b instanceof PyUnion) return a.args.length === b.args.length && a.args.every((x) => b.args.some((y) => eq(x, y)));
+  if (a instanceof PyBuiltin && b instanceof PyBuiltin) return a.name === b.name;
   if (a instanceof PyHost && b instanceof PyHost) return a.cls === b.cls && a.id === b.id;
   if (a instanceof PyBuiltin && b instanceof PyBuiltin) return a.name === b.name;
   if (a instanceof PyBoundMethod && b instanceof PyBoundMethod) return a.name === b.name && eq(a.self, b.self);
@@ -666,6 +679,10 @@ export function getItem(obj, idx) {
     const r = callDunder(obj, '__getitem__', [idx]);
     if (r !== NO_METHOD) return r;
   }
+  if (obj instanceof PyBuiltin && GENERIC_TYPES.has(obj.name)) {
+    // list[int], dict[str, int], tuple[()] … (PEP 585)
+    return new PyGenericAlias(obj, idx instanceof PyTuple ? idx.items.slice() : [idx]);
+  }
   if (obj instanceof PyClass) {
     // Cls[...] calls __class_getitem__ (implicitly a class method, as in CPython)
     let f = lookupClass(obj, '__class_getitem__');
@@ -673,7 +690,7 @@ export function getItem(obj, idx) {
     if (f !== undefined && f !== null) return hooks.call(f, [obj, idx]);
   }
   if (obj instanceof PyBuiltin || obj instanceof PyFunction) throw err('notSubscriptable', { what: 'function', type: typeName(obj), name: obj.name.replace(/^.*[.:]/, '') });
-  throw err('notSubscriptable', { type: typeName(obj) });
+  throw err('notSubscriptable', { type: typeName(obj), ...(obj instanceof PyClass ? { name: obj.name } : {}) });
 }
 
 export function setItem(obj, idx, v) {
@@ -890,6 +907,7 @@ export function binary(op, a, b) {
     if (r !== NO_METHOD) return r;
   }
   if (a instanceof PySet && b instanceof PySet && '|&-^'.includes(op) && op.length === 1) return setOp(op, a, b, a.frozen);
+  if (op === '|' && isTypeHint(a) && isTypeHint(b) && (a !== null || b !== null)) return makeUnion([a, b]);
   switch (op) {
     case '+':
       if (typeof a === 'string' && typeof b === 'string') { if (a.length + b.length > MAX_STR) throw err('overflow', {}); return a + b; }
@@ -1065,7 +1083,7 @@ export function toStr(v, asRepr = false, hostRepr = null, seen = new Set()) {
   }
   if (v instanceof PyFloat) return formatFloat(v.v);
   if (v instanceof PyInstance) return instStr(v, asRepr);
-  if (v instanceof PyClass) return v.native ? `<class '${v.name}'>` : `<class '__main__.${v.name}'>`;
+  if (v instanceof PyClass) return v.native ? `<class '${v.name}'>` : `<class '${v.module}.${v.name}'>`;
   if (v instanceof PyMethod) return `<bound method ${v.fn.name} of ${toStr(v.self, true, hostRepr, seen)}>`;
   if (v instanceof PyNotImplemented) return 'NotImplemented';
   if (v instanceof PyGenerator) return `<generator object ${v.fn.name}>`;
@@ -1073,6 +1091,12 @@ export function toStr(v, asRepr = false, hostRepr = null, seen = new Set()) {
   if (v instanceof PyProperty) return '<property object>';
   if (v instanceof PyStaticMethod) return '<staticmethod object>';
   if (v instanceof PyClassMethod) return '<classmethod object>';
+  if (v instanceof PyGenericAlias) {
+    const tupleEllipsis = v.origin.name === 'tuple' && v.args.length === 2 && v.args[1] === null;
+    const args = !v.args.length ? '()' : v.args.map((a, i) => (tupleEllipsis && i === 1 ? '...' : typeRepr(a))).join(', ');
+    return `${typeRepr(v.origin)}[${args}]`;
+  }
+  if (v instanceof PyUnion) return v.args.map((a) => (a instanceof PyBuiltin && a.name === 'class:NoneType' ? 'None' : typeRepr(a))).join(' | ');
   const rec = (x) => toStr(x, true, hostRepr, seen);
   if (v instanceof PyList || v instanceof PyTuple || v instanceof PyDict) {
     if (seen.has(v)) return v instanceof PyList ? '[...]' : v instanceof PyDict ? '{...}' : '(...)';
@@ -1116,7 +1140,7 @@ export function toStr(v, asRepr = false, hostRepr = null, seen = new Set()) {
 }
 
 /** Default repr of an instance, like CPython without the memory address. */
-export const defaultRepr = (v) => `<__main__.${v.cls.name} object at 0x${v.id.toString(16).padStart(12, '0')}>`;
+export const defaultRepr = (v) => `<${v.cls.module}.${v.cls.name} object at 0x${v.id.toString(16).padStart(12, '0')}>`;
 
 /** str() or repr() of an instance: __str__ (falling back to __repr__) or __repr__. */
 function instStr(v, asRepr) {
@@ -1260,4 +1284,32 @@ export function percentFormat(fmt, args) {
   });
   if (k < list.length && args instanceof PyTuple) throw err('type', { what: 'manyFormatArgs' });
   return out;
+}
+
+// ---------- Type hints: list[int], int | None ----------
+
+/** Types that take parameters with [] like CPython's builtins (PEP 585). */
+const GENERIC_TYPES = new Set(['list', 'tuple', 'dict', 'set', 'frozenset', 'type']);
+
+const isTypeObj = (v) => v instanceof PyClass || (v instanceof PyBuiltin && (TYPE_NAMES.has(v.name) || v.name.startsWith('class:')));
+/** What may stand on either side of | in a type hint. */
+const isTypeHint = (v) => v === null || isTypeObj(v) || v instanceof PyGenericAlias || v instanceof PyUnion;
+
+/** int | str | None: flattened, without repeats, a single member stays itself. */
+export function makeUnion(parts) {
+  const out = [];
+  for (let p of parts) {
+    if (p === null) p = new PyBuiltin('class:NoneType');
+    for (const m of p instanceof PyUnion ? p.args : [p]) if (!out.some((x) => eq(x, m))) out.push(m);
+  }
+  return out.length === 1 ? out[0] : new PyUnion(out);
+}
+
+/** How a type appears inside a type hint (CPython's _type_repr): int, __main__.K, list[int]. */
+export function typeRepr(v) {
+  if (v instanceof PyBuiltin && isTypeObj(v)) return v.name.replace(/^class:/, '');
+  if (v instanceof PyClass) return v.native ? v.name : `${v.module}.${v.name}`;
+  if (v instanceof PyFunction) return v.name;
+  if (v === null) return 'None';
+  return toStr(v, true);
 }

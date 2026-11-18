@@ -67,7 +67,7 @@ export function pyMessage(e) {
     case 'unaryOperand': return `bad operand type for unary ${p.op}: '${p.type}'`;
     case 'notIterable': return `'${p.type}' object is not iterable`;
     case 'notCallable': return `'${p.type}' object is not callable`;
-    case 'notSubscriptable': return `'${p.type}' object is not subscriptable`;
+    case 'notSubscriptable': return p.type === 'type' && p.name ? `type '${p.name}' is not subscriptable` : `'${p.type}' object is not subscriptable`;
     case 'notIndex': return p.container === 'str' ? `string indices must be integers, not '${p.type}'` : `${p.container ?? 'list'} indices must be integers or slices, not ${p.type}`;
     case 'unhashable': return `unhashable type: '${p.type}'`;
     case 'argCount': return `${p.name}() takes ${p.max} positional ${plural(p.max, 'argument', 'arguments')} but ${p.given} ${plural(p.given, 'was', 'were')} given`;
@@ -100,6 +100,8 @@ export function pyMessage(e) {
     case 'type':
       switch (p.what) {
         case 'noLen': return `object of type '${p.type}' has no len()`;
+        case 'newArg': return `object.__new__(X): X is not a type object (${p.type})`;
+        case 'isinstanceGeneric': return `${p.name}() argument 2 cannot be a parameterized generic`;
         case 'isinstanceType': return 'isinstance() arg 2 must be a type, a tuple of types, or a union';
         case 'issubclassType': return 'issubclass() arg 2 must be a class, a tuple of classes, or a union';
         case 'issubclassArg': return 'issubclass() arg 1 must be a class';

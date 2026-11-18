@@ -209,13 +209,12 @@ class Parser {
   exprStatement() {
     const p = this.pos();
     const first = this.testListStarExpr();
-    // Annotated assignment: x: int = 5, self.x: int = 5, d[k]: int = 5 (type annotation is ignored)
+    // Annotated assignment: x: int = 5, self.x: int = 5, d[k]: int = 5 (the compiler stores the annotation like CPython)
     if (this.atOp(':') && ['Name', 'Attribute', 'Subscript'].includes(first.type)) {
       this.next();
-      this.test();
-      if (!this.accept('op', '=')) return { type: 'Pass', ...p };
-      const value = this.testListStarExpr();
-      return { type: 'Assign', targets: [first], value, ...p };
+      const annotation = this.test();
+      const value = this.accept('op', '=') ? (this.atKw('yield') ? this.yieldExpr() : this.testListStarExpr()) : null;
+      return { type: 'AnnAssign', target: first, annotation, value, simple: first.type === 'Name' && !first.paren, ...p };
     }
     const aug = this.tok.type === 'op' && AUG_OPS[this.tok.value];
     if (aug) {
@@ -403,13 +402,13 @@ class Parser {
     this.expect('op', '(');
     const params = this.params(')');
     this.expect('op', ')');
-    if (this.accept('op', '->')) this.test();
+    const returns = this.accept('op', '->') ? this.test() : null;
     const body = this.block();
-    return { type: 'FunctionDef', name, params, vararg: params.vararg, kwarg: params.kwarg, kwonly: params.kwonly ?? [], body, decorators, ...p };
+    return { type: 'FunctionDef', name, params, vararg: params.vararg, kwarg: params.kwarg, kwonly: params.kwonly ?? [], returns, body, decorators, ...p };
   }
 
   /**
-   * Parameter list: a, b=1, *args (only as an error), type annotations are ignored.
+   * Parameter list: a, b=1, *args, **kwargs; annotations go to `annotation` (varargAnn, kwargAnn for the starred ones).
    * @returns {{name: string, default: any, line: number, col: number}[]}
    */
   params(close) {
@@ -432,24 +431,24 @@ class Parser {
           continue;
         }
         if (seen(t.value)) throw this.error('duplicateArg', { name: t.value }, t);
-        if (close === ')' && this.accept('op', ':')) this.test();
-        if (star === '*') { if (afterStar) throw this.error('badParams', {}, t); params.vararg = t.value; afterStar = true; }
-        else params.kwarg = t.value;
+        const ann = close === ')' && this.accept('op', ':') ? this.test() : null;
+        if (star === '*') { if (afterStar) throw this.error('badParams', {}, t); params.vararg = t.value; params.varargAnn = ann; afterStar = true; }
+        else { params.kwarg = t.value; params.kwargAnn = ann; }
         if (!this.accept('op', ',')) break;
         continue;
       }
       if (params.kwarg) throw this.error('badParams', {});
       const t = this.expect('name', undefined, 'name');
       if (seen(t.value)) throw this.error('duplicateArg', { name: t.value }, t);
-      if (close === ')' && this.accept('op', ':')) this.test();
+      const annotation = close === ')' && this.accept('op', ':') ? this.test() : null;
       let def = null;
       if (afterStar) {
         // keyword-only: with or without a default, in any order
         if (this.accept('op', '=')) def = this.test();
-        params.kwonly.push({ name: t.value, default: def, line: t.line, col: t.col });
+        params.kwonly.push({ name: t.value, default: def, annotation, line: t.line, col: t.col });
       } else {
         if (this.accept('op', '=')) { def = this.test(); seenDefault = true; } else if (seenDefault) throw this.error('badParams', {}, t);
-        params.push({ name: t.value, default: def, line: t.line, col: t.col });
+        params.push({ name: t.value, default: def, annotation, line: t.line, col: t.col });
       }
       if (!this.accept('op', ',')) break;
     }
@@ -702,7 +701,7 @@ class Parser {
         if (t.value === '(') return this.parenAtom();
         if (t.value === '[') return this.listAtom();
         if (t.value === '{') return this.dictAtom();
-        if (t.value === '...') { this.next(); return { type: 'Const', value: null, ...p }; }
+        if (t.value === '...') { this.next(); return { type: 'Const', value: null, ellipsis: true, ...p }; }
         throw this.error('unexpected', { token: t.value });
       case 'indent': throw this.error('indent', {});
       case 'newline': case 'eof': throw this.error('expected', { what: 'expression', got: this.tokText(t) });

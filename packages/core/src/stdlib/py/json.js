@@ -34,4 +34,7 @@ def dump(obj, fp, **kw):
 
 def load(fp, **kw):
     return loads(fp.read(), **kw)
+
+
+JSONDecodeError.__module__ = "json.decoder"
 `;

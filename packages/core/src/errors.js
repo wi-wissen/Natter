@@ -7,7 +7,7 @@ export const KINDS = {
   syntax: 'SyntaxError', expected: 'SyntaxError', unexpected: 'SyntaxError', unclosed: 'SyntaxError',
   unterminatedString: 'SyntaxError', badNumber: 'SyntaxError', badAssign: 'SyntaxError', badChar: 'SyntaxError',
   notSupported: 'SyntaxError', outsideLoop: 'SyntaxError', outsideFunction: 'SyntaxError', badParams: 'SyntaxError',
-  duplicateArg: 'SyntaxError', badFString: 'SyntaxError', globalLocal: 'SyntaxError', nonlocalMissing: 'SyntaxError',
+  duplicateArg: 'SyntaxError', badFString: 'SyntaxError', globalLocal: 'SyntaxError', nonlocalMissing: 'SyntaxError', future: 'SyntaxError',
   indent: 'IndentationError', unindent: 'IndentationError', expectedIndent: 'IndentationError', mixedIndent: 'TabError',
   nameUnknown: 'NameError', nameUnbound: 'NameError', localUnbound: 'UnboundLocalError',
   type: 'TypeError', notCallable: 'TypeError', argCount: 'TypeError', argUnexpected: 'TypeError', argMissing: 'TypeError',

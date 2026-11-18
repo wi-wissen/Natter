@@ -3342,4 +3342,9 @@ def select_color(color=None, master=None):
     initial = None if color is None else _hex_color(_convert_color(color))
     answer = _dialog("color", "", "", initial)
     return None if answer is None else str(answer)
+
+
+# in guizero every widget lives in a module of its own (guizero.App.App)
+for _cls in (App, Window, Box, TitleBox, Text, TextBox, PushButton, CheckBox, RadioButton, ButtonGroup, Combo, ListBox, Slider, Picture, Waffle, Drawing):
+    _cls.__module__ = "guizero." + _cls.__name__
 `;

@@ -1,0 +1,20 @@
+list[int] dict[str, list[int]] tuple[int, ...] tuple[()] set[__main__.K] type[int] frozenset[str] tuple[int, str]
+<class 'list'> (<class 'int'>,) [] [1, 2] True False True
+int | None int | str | None __main__.K | None list[int] | None <class 'int'> int | str | float (<class 'int'>, <class 'NoneType'>)
+True True False True
+<class 'types.UnionType'> <class 'types.GenericAlias'> UnionType GenericAlias True
+None
+None
+None
+None
+None
+isinstance() argument 2 cannot be a parameterized generic
+issubclass() argument 2 cannot be a parameterized generic
+type 'int' is not subscriptable
+unsupported operand type(s) for |: 'NoneType' and 'NoneType'
+unsupported operand type(s) for |: 'int' and 'type'
+{'x': list[int] | None, 'y': dict[str, int | float], 'return': tuple[int, ...]}
+collections.deque[int] collections.Counter[str] collections.defaultdict[str, list[int]] collections.OrderedDict[str, int]
+list[int] list[int] <class 'NoneType'> <class 'types.GenericAlias'>
+True True True True
+deque([1, 2]) True

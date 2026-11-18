@@ -23,7 +23,7 @@ import {
   PyModule, PyHost, checkInt, isInt, isNum, num, typeName, truthy, eq, lt, iterItems, makeIter, iterNext, DONE, length,
   roundFloat, formatValue, binary, TYPE_NAMES, toIndex, keyOf, normBig, pow10, pushAll,
   keyError, getItem, Suspend, PyGenerator, PySlice, PyUserIter, PySet, setOf, PyClass, PyInstance, PyMethod, PySuper, PyProperty, PyStaticMethod, PyClassMethod, OBJECT, NOT_IMPLEMENTED, NO_METHOD,
-  callDunder, lookupClass, defaultRepr, setOp,
+  callDunder, lookupClass, defaultRepr, setOp, PyGenericAlias, PyUnion,
 } from './values.js';
 
 const radix = (v, base, prefix) => {
@@ -88,6 +88,8 @@ function parseFloatStr(s) {
 /** isinstance(True, int) is true in Python. */
 function isInstance(v, t) {
   if (t instanceof PyTuple) return t.items.some((x) => isInstance(v, x));
+  if (t instanceof PyUnion) return t.args.some((x) => isInstance(v, x));
+  if (t instanceof PyGenericAlias) throw err('type', { what: 'isinstanceGeneric', name: 'isinstance' });
   if (t instanceof PyClass) return t === OBJECT || (v instanceof PyInstance && v.cls.mro.includes(t));
   if (t instanceof PyInstance) {
     // an object whose class defines __instancecheck__ (typing.List, typing.Union[int, str] …), as in CPython
@@ -103,6 +105,8 @@ function isInstance(v, t) {
 /** issubclass(a, b) for classes made in Python and for the built-in types. */
 function isSubclassOf(a, b) {
   if (b instanceof PyTuple) return b.items.some((x) => isSubclassOf(a, x));
+  if (b instanceof PyUnion) return b.args.some((x) => isSubclassOf(a, x));
+  if (b instanceof PyGenericAlias) throw err('type', { what: 'isinstanceGeneric', name: 'issubclass' });
   if (b instanceof PyInstance) {
     const r = callDunder(b, '__subclasscheck__', [a]);
     if (r !== NO_METHOD) return truthy(r);
@@ -340,6 +344,14 @@ export const BUILTINS = {
 
   // ---------- Methods of object and helpers for properties ----------
   'object.__init__'() { return null; },
+  'object.__setattr__'(ctx, args, kw) { const [o, n, v] = params('__setattr__', args, kw, ['self', 'name', 'value']); ctx.vm.setattrRaw(ctx.task, o, needStr(n, 'name'), v); return null; },
+  'object.__delattr__'(ctx, args, kw) { const [o, n] = params('__delattr__', args, kw, ['self', 'name']); ctx.vm.delattrRaw(ctx.task, o, needStr(n, 'name')); return null; },
+  'object.__new__'(ctx, args) {
+    const cls = args[0];
+    if (!(cls instanceof PyClass)) throw err('type', { what: 'newArg', type: typeName(cls) });
+    return new PyInstance(cls);
+  },
+  'object.__init_subclass__'(ctx, args, kw) { if (kw && Object.keys(kw).length) throw err('argUnexpected', { name: '__init_subclass__', arg: Object.keys(kw)[0] }); return null; },
   'object.__repr__'(ctx, args) { return defaultRepr(args[0]); },
   'object.__str__'(ctx, args) { return ctx.vm.repr(args[0]); },
   'object.__eq__'(ctx, args) { return args[0] === args[1] ? true : NOT_IMPLEMENTED; },
@@ -440,6 +452,10 @@ export const BUILTINS = {
   ...FS_NATIVES,
   ...HTTP_NATIVES,
   ...COPY_NATIVES,
+  'class:types.GenericAlias'(ctx, args, kw) {
+    const [origin, a] = params('GenericAlias', args, kw, ['origin', 'args']);
+    return new PyGenericAlias(origin, a instanceof PyTuple ? a.items.slice() : [a]);
+  },
 };
 
 /**
@@ -489,6 +505,10 @@ OBJECT.dict.set('__repr__', new PyBuiltin('object.__repr__'));
 OBJECT.dict.set('__str__', new PyBuiltin('object.__str__'));
 OBJECT.dict.set('__eq__', new PyBuiltin('object.__eq__'));
 OBJECT.dict.set('__ne__', new PyBuiltin('object.__ne__'));
+OBJECT.dict.set('__setattr__', new PyBuiltin('object.__setattr__'));
+OBJECT.dict.set('__delattr__', new PyBuiltin('object.__delattr__'));
+OBJECT.dict.set('__new__', new PyStaticMethod(new PyBuiltin('object.__new__')));
+OBJECT.dict.set('__init_subclass__', new PyBuiltin('object.__init_subclass__'));
 
 export const MODULES = {
   math: MATH_NAMES,
@@ -502,10 +522,18 @@ export const MODULES = {
   _http: HTTP_NAMES,
   _sys: ['write_err'],
   copy: COPY_NAMES,
+  types: ['GenericAlias', 'UnionType', 'NoneType', 'FunctionType', 'LambdaType', 'MethodType', 'BuiltinFunctionType', 'BuiltinMethodType', 'GeneratorType', 'ModuleType'],
 };
 
 /** Values of module attributes that are not functions (constants, classes). */
-const MODULE_CONSTS = { math: MATH_CONSTS };
+/** types: the classes behind type hints and a few others, for isinstance() and annotations. */
+const TYPES_CONSTS = Object.fromEntries([
+  ['GenericAlias', 'types.GenericAlias'], ['UnionType', 'types.UnionType'], ['NoneType', 'NoneType'], ['FunctionType', 'function'],
+  ['LambdaType', 'function'], ['MethodType', 'method'], ['BuiltinFunctionType', 'builtin_function_or_method'],
+  ['BuiltinMethodType', 'builtin_function_or_method'], ['GeneratorType', 'generator'], ['ModuleType', 'module'],
+].map(([k, t]) => [k, new PyBuiltin(`class:${t}`)]));
+
+const MODULE_CONSTS = { math: MATH_CONSTS, types: TYPES_CONSTS };
 
 /**
  * Add natives of a lazily loaded pack (numpy, plots, forms, Pygame Zero): call before a VM is created.

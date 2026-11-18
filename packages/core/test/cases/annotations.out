@@ -1,0 +1,6 @@
+{'x': <class 'int'>, 'y': 'str'} {} {} 
+{'_A__a': <class 'int'>, 'args': <class 'str'>, 'k': <class 'float'>, 'kw': <class 'bool'>, 'return': None}
+{}
+5
+{'q': <class 'int'>}
+True

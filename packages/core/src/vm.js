@@ -14,7 +14,7 @@ import {
   PyFloat, PyList, PyTuple, PyDict, PySlice, PyFunction, PyBuiltin, PyPartial, PyBoundMethod, PyHost, PyModule,
   PySet, setInplace, PyGenerator, PyClass, PyInstance, PyMethod, PySuper, PyProperty, PyStaticMethod, PyClassMethod, OBJECT, NO_METHOD, hooks,
   Cell, binary, binaryDunder, unary, compare, truthy, makeIter, iterNext, DONE, iterItems, getItem, setItem, delItem, toStr,
-  formatValue, typeName, keyOf, pushAll, lookupClass, TYPE_NAMES, Suspend,
+  formatValue, typeName, keyOf, pushAll, lookupClass, TYPE_NAMES, Suspend, PyGenericAlias, PyUnion,
 } from './values.js';
 import { BUILTINS, CLASS_GLOBALS, METHODS, MODULES, moduleAttr } from './builtins.js';
 import { EXCEPTION_CLASSES, exceptionClassFor, isExceptionClass } from './exceptions.js';
@@ -344,6 +344,7 @@ export class VM {
    * or null if the callee is a native (built-in function, host method).
    */
   prepareCall(task, fn, args, kw) {
+    if (fn instanceof PyGenericAlias) return this.prepareCall(task, fn.origin, args, kw) ?? { value: this.callSync(fn.origin, args, kw, task) };
     if (fn instanceof PyFunction) return this.callPython(fn, args, kw);
     if (fn instanceof PyMethod) return this.callPython(fn.fn, [fn.self, ...args], kw);
     if (fn instanceof PyClass) return this.instantiate(task, fn, args, kw);
@@ -364,7 +365,18 @@ export class VM {
 
   /** Create an instance: run __init__ as a frame (its result is replaced by the instance) or native initialisers at once. */
   instantiate(task, cls, args, kw) {
-    const inst = new PyInstance(cls);
+    let made = lookupClass(cls, '__new__');
+    if (made instanceof PyStaticMethod) made = made.fn;
+    if (made instanceof PyFunction) {
+      // __new__ makes the object; __init__ runs only if it is an instance of the class (as in CPython)
+      const r = this.callSync(made, [cls, ...args], kw, task);
+      if (!(r instanceof PyInstance && r.cls.mro.includes(cls))) return { value: r };
+      return this.initInstance(task, cls, r, args, kw, true);
+    }
+    return this.initInstance(task, cls, new PyInstance(cls), args, kw, false);
+  }
+
+  initInstance(task, cls, inst, args, kw, hasNew) {
     if (cls.mro.some((c) => c.native === 'exception')) {
       inst.dict.set('args', new PyTuple(args.slice()));
       if (cls.mro.some((c) => c.name === 'SystemExit')) inst.dict.set('code', args.length ? (args.length === 1 ? args[0] : new PyTuple(args.slice())) : null);
@@ -380,7 +392,7 @@ export class VM {
       this.callNative(task, init, [inst, ...args], kw);
       return { value: inst };
     }
-    if (args.length || (kw && kw.length)) throw new ScriptError('type', { what: 'noArgsClass', name: cls.name });
+    if (!hasNew && (args.length || (kw && kw.length))) throw new ScriptError('type', { what: 'noArgsClass', name: cls.name });
     return { value: inst };
   }
 
@@ -755,7 +767,7 @@ export class VM {
             if (frame.ctor !== undefined) {
               if (v !== null) throw new ScriptError('type', { what: 'initReturn', type: typeName(v) });
               v = frame.ctor;
-            } else if (frame.classInfo) v = this.buildClass(frame);
+            } else if (frame.classInfo) v = this.buildClass(frame, task);
             task.frames.pop();
             if (!task.frames.length) {
               task.state = 'done';
@@ -1032,7 +1044,8 @@ export class VM {
     // standard modules written in Python (turtle, statistics ...): the debugger steps over them like over built-in functions
     if (PYMODULES[name] !== undefined && PYMODULES[name] === src) for (const c of prog.codes) c.lib = true;
     this.codes.push(...prog.codes);
-    const ns = new Map([['__name__', name]]);
+    // modules split into files of their own here keep CPython's dotted name (pgzero_actor is pgzero.actor)
+    const ns = new Map([['__name__', name.startsWith('pgzero_') ? `pgzero.${name.slice(7)}` : name]]);
     if (!prog.codes[0]?.lib) {
       ns.set('__package__', info.package ? name : name.includes('.') ? name.slice(0, name.lastIndexOf('.')) : '');
       if (file) ns.set('__file__', file);
@@ -1109,6 +1122,7 @@ export class VM {
     if (obj instanceof PySlice && (name === 'start' || name === 'stop' || name === 'step')) return obj[name];
     if (obj instanceof PyProperty && (name === 'setter' || name === 'getter' || name === 'deleter')) return new PyPartial(new PyBuiltin(`property.${name}`), [obj]);
     if (obj instanceof PyModule) {
+      if (name === '__annotations__' && !obj.ns?.has(name)) return new PyDict();
       if (obj.ns) {
         const nv = obj.ns.get(name);
         if (nv !== undefined) return nv;
@@ -1125,8 +1139,26 @@ export class VM {
       if (v !== undefined) return v;
       throw new ScriptError('attr', { type: obj.cls, name, suggestion: suggest(name, this.host.dir?.(obj) ?? []) });
     }
-    if (obj instanceof PyFunction && name === '__name__') return obj.name;
-    if (obj instanceof PyBuiltin && name === '__name__') return obj.name.replace(/^class:/, '');
+    if (obj instanceof PyFunction) {
+      if (name === '__name__') return obj.name;
+      const own = obj.attrs?.get(name);
+      if (own !== undefined) return own;
+      // as in CPython, a function without annotations has an empty dict that stays
+      if (name === '__annotations__') { const d = new PyDict(); (obj.attrs ??= new Map()).set(name, d); return d; }
+    }
+    if (obj instanceof PyMethod && obj.fn instanceof PyFunction && name !== '__class__') {
+      const own = obj.fn.attrs?.get(name);
+      if (own !== undefined) return own;
+      if (name === '__annotations__') return this.getattr(task, obj.fn, name);
+    }
+    if (obj instanceof PyBuiltin && name === '__name__') return obj.name.replace(/^class:/, '').replace(/^types\./, '');
+    if (obj instanceof PyGenericAlias) {
+      if (name === '__origin__') return obj.origin;
+      if (name === '__args__') return new PyTuple(obj.args.slice());
+      if (name === '__parameters__') return new PyTuple([]);
+      if (name !== '__class__') return this.getattr(task, obj.origin, name);
+    }
+    if (obj instanceof PyUnion && name === '__args__') return new PyTuple(obj.args.slice());
     if (name === '__class__' && !(obj instanceof PyHost)) { const t = typeName(obj); return new PyBuiltin(TYPE_NAMES.has(t) ? t : `class:${t}`); }
     if (obj instanceof PyBuiltin && METHODS[obj.name] && Object.hasOwn(METHODS[obj.name], name)) return new PyBuiltin(`${obj.name}.${name}`);
     const t = typeName(obj);
@@ -1165,9 +1197,16 @@ export class VM {
   }
 
   classAttr(task, cls, name) {
-    if (name === '__name__') return cls.name;
+    if (name === '__name__' || name === '__qualname__') return cls.name;
+    if (name === '__module__') return cls.native ? 'builtins' : cls.module;
     if (name === '__bases__') return new PyTuple(cls.bases.slice());
     if (name === '__mro__') return new PyTuple(cls.mro.slice());
+    if (name === '__annotations__' && !cls.native) {
+      // only the class's own annotations, an empty dict when it has none (CPython 3.10+)
+      let d = cls.dict.get(name);
+      if (d === undefined) { d = new PyDict(); cls.dict.set(name, d); }
+      return d;
+    }
     const attr = lookupClass(cls, name);
     if (attr !== undefined) {
       if (attr instanceof PyStaticMethod) return attr.fn;
@@ -1195,24 +1234,46 @@ export class VM {
   }
 
   /** Class from the finished body of a class statement. */
-  buildClass(frame) {
+  buildClass(frame, task) {
     const { name, bases } = frame.classInfo;
     for (const b of bases) if (!(b instanceof PyClass)) throw new ScriptError('notSupported', { feature: 'subclassBuiltin' });
     const dict = new Map();
     for (const [k, v] of frame.ns) if (!k.startsWith('.')) dict.set(k, v);
     // As in Python: a class that compares with __eq__ but has no __hash__ is not hashable
     if (dict.has('__eq__') && !dict.has('__hash__')) dict.set('__hash__', null);
+    // implicitly class methods (__init_subclass__, __class_getitem__) and a static method (__new__), as in CPython
+    for (const n of ['__init_subclass__', '__class_getitem__']) if (dict.get(n) instanceof PyFunction) dict.set(n, new PyClassMethod(dict.get(n)));
+    if (dict.get('__new__') instanceof PyFunction) dict.set('__new__', new PyStaticMethod(dict.get('__new__')));
     const cls = new PyClass(name, bases.length ? bases : [OBJECT], dict, null);
+    const modName = frame.g?.get('__name__') ?? this.predef.get('__name__');
+    if (typeof modName === 'string') cls.module = modName;
     // Functions remember their class (for super())
     for (const v of dict.values()) {
       if (v instanceof PyFunction) v.cls = cls;
       else if (v instanceof PyStaticMethod || v instanceof PyClassMethod) { if (v.fn instanceof PyFunction) v.fn.cls = cls; }
       else if (v instanceof PyProperty) for (const f of [v.fget, v.fset, v.fdel]) if (f instanceof PyFunction) f.cls = cls;
     }
+    // the parent's __init_subclass__ sees the new class
+    for (const c of cls.mro.slice(1)) {
+      const hook = c.dict.get('__init_subclass__');
+      if (hook === undefined) continue;
+      const fn = hook instanceof PyClassMethod ? hook.fn : hook;
+      if (fn instanceof PyFunction) this.callSync(fn, [cls], null, task);
+      break;
+    }
     return cls;
   }
 
   delattr(task, obj, name) {
+    if (obj instanceof PyInstance) {
+      const hook = lookupClass(obj.cls, '__delattr__');
+      if (hook instanceof PyFunction) { this.callSync(hook, [obj, name], null, task); return; }
+    }
+    this.delattrRaw(task, obj, name);
+  }
+
+  delattrRaw(task, obj, name) {
+    if (obj instanceof PyFunction && obj.attrs?.delete(name)) return;
     if (obj instanceof PyInstance || obj instanceof PyClass) {
       const d = obj instanceof PyInstance ? obj.dict : obj.dict;
       if (!d.delete(name)) throw new ScriptError('attr', { type: obj instanceof PyInstance ? obj.cls.name : `type object '${obj.name}'`, name });
@@ -1223,6 +1284,15 @@ export class VM {
 
   setattr(task, obj, name, v) {
     if (obj instanceof PyInstance) {
+      const hook = lookupClass(obj.cls, '__setattr__');
+      if (hook instanceof PyFunction) { this.callSync(hook, [obj, name, v], null, task); return; }
+    }
+    this.setattrRaw(task, obj, name, v);
+  }
+
+  /** Setting an attribute without the class's own __setattr__ (that is object.__setattr__). */
+  setattrRaw(task, obj, name, v) {
+    if (obj instanceof PyInstance) {
       const attr = lookupClass(obj.cls, name);
       if (attr instanceof PyProperty) {
         if (!attr.fset) throw new ScriptError('attr', { type: obj.cls.name, name, what: 'noSetter' });
@@ -1232,7 +1302,13 @@ export class VM {
       obj.dict.set(name, v);
       return;
     }
-    if (obj instanceof PyClass) { if (name === '__name__' && typeof v === 'string') obj.name = v; else obj.dict.set(name, v); return; }
+    if (obj instanceof PyClass) {
+      if (name === '__name__' && typeof v === 'string') obj.name = v;
+      else if (name === '__module__' && typeof v === 'string') obj.module = v;
+      else obj.dict.set(name, v);
+      return;
+    }
+    if (obj instanceof PyFunction) { if (name === '__name__' && typeof v === 'string') obj.name = v; else (obj.attrs ??= new Map()).set(name, v); return; }
     if (obj instanceof PyModule && obj.ns) { obj.ns.set(name, v); return; }
     if (obj instanceof PyHost && this.host.setattr?.({ vm: this, task }, obj, name, v)) return;
     throw new ScriptError('attr', { type: typeName(obj), name, readonly: true });

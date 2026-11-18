@@ -1,0 +1,12 @@
+True 2 True
+42
+['A', 'B']
+1
+AttributeError nein: x
+AttributeError loeschen nein: x
+AttributeError nein: y
+set a 5
+5 {'a': 5}
+{'a': <class 'int'>, 'r': <class 'str'>, 'b': 'x', 'k': <class 'float'>, 'return': list[int]}
+hallo
+object.__new__(X): X is not a type object (int)

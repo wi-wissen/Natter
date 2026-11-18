@@ -484,4 +484,13 @@ class DictWriter:
     def writerows(self, rowdicts):
         for rowdict in rowdicts:
             self.writerow(rowdict)
+
+
+# the names CPython's C module _csv gives these
+Error.__module__ = "_csv"
+_Format.__module__ = "_csv"
+_Reader.__name__ = "reader"
+_Reader.__module__ = "_csv"
+_Writer.__name__ = "writer"
+_Writer.__module__ = "_csv"
 `;

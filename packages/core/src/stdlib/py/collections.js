@@ -1,5 +1,8 @@
 // collections: Counter, defaultdict, deque, OrderedDict, namedtuple (written in Python, wrapping the built-in types).
 export default String.raw`
+from types import GenericAlias as _GenericAlias
+
+
 class _MapBase:
     """Behaviour shared by the dictionary-like classes below."""
 
@@ -59,6 +62,8 @@ class _MapBase:
 
 
 class defaultdict(_MapBase):
+    __class_getitem__ = classmethod(_GenericAlias)
+
     def __init__(self, default_factory=None, *args):
         self._d = {}
         self.default_factory = default_factory
@@ -95,6 +100,8 @@ class defaultdict(_MapBase):
 
 
 class OrderedDict(_MapBase):
+    __class_getitem__ = classmethod(_GenericAlias)
+
     def __init__(self, *args, **kw):
         self._d = {}
         self.update(*args, **kw)
@@ -136,6 +143,8 @@ class OrderedDict(_MapBase):
 
 
 class Counter(_MapBase):
+    __class_getitem__ = classmethod(_GenericAlias)
+
     def __init__(self, iterable=None, **kw):
         self._d = {}
         self.update(iterable, **kw)
@@ -231,6 +240,8 @@ class Counter(_MapBase):
 
 
 class deque:
+    __class_getitem__ = classmethod(_GenericAlias)
+
     def __init__(self, iterable=(), maxlen=None):
         self.maxlen = maxlen
         self._items = []
@@ -386,5 +397,6 @@ def namedtuple(typename, field_names, defaults=None):
     for i, name in enumerate(fields):
         setattr(_Tuple, name, property(lambda self, i=i: self._values[i]))
     _Tuple.__name__ = typename
+    _Tuple.__module__ = "__main__"
     return _Tuple
 `;
