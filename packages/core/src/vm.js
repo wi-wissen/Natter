@@ -208,10 +208,6 @@ export class VM {
     const n = c.params.length;
     // CPython's texts name the function by its __qualname__ (A.__init__)
     const name = c.qualname ?? fn.name;
-    if (args.length > n && !c.vararg) {
-      const kwonlyGiven = kw ? kw.filter(([k]) => c.kwonly.includes(k)).length : 0;
-      throw new ScriptError('argCount', { name, max: n, min: c.ndefaults ? n - c.ndefaults : undefined, given: args.length, kwonlyGiven, short: fn.name });
-    }
     const locals = new Array(c.varnames.length).fill(undefined);
     for (let i = 0; i < Math.min(n, args.length); i++) locals[i] = args[i];
     if (c.vararg) locals[n] = new PyTuple(args.slice(n));
@@ -234,6 +230,11 @@ export class VM {
         if (locals[i] !== undefined) throw new ScriptError('argDuplicate', { name, arg: k });
         locals[i] = v;
       }
+    }
+    // as in CPython, wrong keywords are reported before too many positional arguments
+    if (args.length > n && !c.vararg) {
+      const kwonlyGiven = kw ? kw.filter(([k]) => c.kwonly.includes(k)).length : 0;
+      throw new ScriptError('argCount', { name, max: n, min: c.ndefaults ? n - c.ndefaults : undefined, given: args.length, kwonlyGiven, short: fn.name });
     }
     const firstDefault = n - c.ndefaults;
     const missing = [];
@@ -827,10 +828,10 @@ export class VM {
             break;
           }
           case OP.BUILD_CLASS: {
-            const body = stack.pop(), bases = stack.pop(), name = stack.pop();
+            const body = stack.pop(), kwargs = arg ? stack.pop() : null, bases = stack.pop(), name = stack.pop();
             const nf = this.bindFrame(body, [], null);
             nf.ns = new Map();
-            nf.classInfo = { name, bases: bases.items };
+            nf.classInfo = { name, bases: bases.items, kwargs: kwargs ? [...kwargs.entries()] : null };
             if (task.frames.length + (task.base ?? 0) >= MAX_DEPTH) throw this.recursionError(task, body);
             task.frames.push(nf);
             frame = nf; code = this.codes[nf.code]; stack = nf.stack;
@@ -1131,6 +1132,13 @@ export class VM {
     if (obj instanceof PyProperty && (name === 'setter' || name === 'getter' || name === 'deleter')) return new PyPartial(new PyBuiltin(`property.${name}`), [obj]);
     if (obj instanceof PyModule) {
       if (name === '__annotations__' && !obj.ns?.has(name)) return new PyDict();
+      if (name === 'modules' && obj.name === 'sys' && obj.ns?.get('modules') instanceof PyDict) {
+        // sys.modules: the program (__main__) and every module loaded so far, as in CPython
+        const d = obj.ns.get('modules');
+        if (d.get('__main__') === undefined) d.set('__main__', this.mainModule ??= new PyModule('__main__', this.globals));
+        for (const [n, m] of this.moduleCache) if (d.get(n) === undefined) d.set(n, m);
+        return d;
+      }
       if (obj.ns) {
         const nv = obj.ns.get(name);
         if (nv !== undefined) return nv;
@@ -1150,6 +1158,7 @@ export class VM {
     if (obj instanceof PyFunction) {
       if (name === '__name__') return obj.name;
       if (name === '__qualname__') return obj.attrs?.get(name) ?? this.codes[obj.code].qualname ?? obj.name;
+      if (name === '__module__') return obj.attrs?.get(name) ?? (obj.g?.get('__name__') ?? this.predef.get('__name__'));
       const own = obj.attrs?.get(name);
       if (own !== undefined) return own;
       // as in CPython, a function without annotations has an empty dict that stays
@@ -1211,6 +1220,7 @@ export class VM {
     if (name === '__module__') return cls.native ? 'builtins' : cls.module;
     if (name === '__bases__') return new PyTuple(cls.bases.slice());
     if (name === '__mro__') return new PyTuple(cls.mro.slice());
+    if (name === '__dict__') { const d = new PyDict(); for (const [k, v] of cls.dict) d.set(k, v); return d; } // a copy (CPython: a read-only mappingproxy)
     if (name === '__annotations__' && !cls.native) {
       // only the class's own annotations, an empty dict when it has none (CPython 3.10+)
       let d = cls.dict.get(name);
@@ -1269,7 +1279,9 @@ export class VM {
       const hook = c.dict.get('__init_subclass__');
       if (hook === undefined) continue;
       const fn = hook instanceof PyClassMethod ? hook.fn : hook;
-      if (fn instanceof PyFunction) this.callSync(fn, [cls], null, task);
+      const kw = frame.classInfo.kwargs;
+      if (fn instanceof PyFunction) this.callSync(fn, [cls], kw, task);
+      else if (kw?.length) throw new ScriptError('type', { what: 'initSubclassKw', name: cls.qualname ?? cls.name });
       break;
     }
     return cls;

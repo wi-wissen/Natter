@@ -381,18 +381,27 @@ class Parser {
     const p = this.pos();
     this.next();
     const name = this.expect('name', undefined, 'name').value;
-    const bases = [];
+    const bases = [], keywords = [];
     if (this.accept('op', '(')) {
       while (!this.atOp(')')) {
-        if (this.at('name') && this.peek().type === 'op' && this.peek().value === '=') throw this.error('notSupported', { feature: 'metaclass' });
-        if (this.atOp('*') || this.atOp('**')) throw this.error('notSupported', { feature: 'metaclass' });
-        bases.push(this.test());
+        if (this.at('name') && this.peek().type === 'op' && this.peek().value === '=') {
+          // class A(Base, total=False): the keywords go to __init_subclass__ (metaclass= is not supported)
+          const nt = this.next();
+          if (nt.value === 'metaclass') throw this.error('notSupported', { feature: 'metaclass' }, nt);
+          this.next();
+          if (keywords.some((k) => k.name === nt.value)) throw this.error('argDuplicate', { name: nt.value }, nt);
+          keywords.push({ name: nt.value, value: this.test(), line: nt.line, col: nt.col });
+        } else {
+          if (this.atOp('*') || this.atOp('**')) throw this.error('notSupported', { feature: 'metaclass' });
+          if (keywords.length) throw this.error('badParams', { what: 'positionalAfterKeyword' });
+          bases.push(this.test());
+        }
         if (!this.accept('op', ',')) break;
       }
       this.expect('op', ')');
     }
     const body = this.block();
-    return { type: 'ClassDef', name, bases, body, decorators, ...p };
+    return { type: 'ClassDef', name, bases, keywords, body, decorators, ...p };
   }
 
   funcDef(decorators) {

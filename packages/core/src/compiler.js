@@ -242,6 +242,7 @@ class Compiler {
       case 'ClassDef': {
         for (const d of st.decorators) this.collectExpr(d, scope, renames);
         for (const b of st.bases) this.collectExpr(b, scope, renames);
+        for (const k of st.keywords ?? []) this.collectExpr(k.value, scope, renames);
         scope.assigned.add(st.bound ?? st.name);
         const nameNode = { type: 'Name', id: st.bound ?? st.name, line: st.line, col: st.col };
         st.nameNode = nameNode;
@@ -643,7 +644,14 @@ class Compiler {
         this.codes[idx - this.codeBase].classBody = true;
         for (const f of this.codes[idx - this.codeBase].freevars) this.emit(OP.LOAD_CLOSURE, this.cellIndex(f), s);
         this.emit(OP.MAKE_FUNCTION, idx, s);
-        this.emit(OP.BUILD_CLASS, 0, s);
+        const kws = s.keywords ?? [];
+        if (kws.length) {
+          // class keywords: a dict below the body function, BUILD_CLASS 1
+          for (const k of kws) { this.emit(OP.LOAD_CONST, this.constIdx(k.name), s); this.expr(k.value); }
+          this.emit(OP.BUILD_DICT, kws.length, s);
+          this.emit(OP.ROT2, 0, s);
+        }
+        this.emit(OP.BUILD_CLASS, kws.length ? 1 : 0, s);
         for (let i = 0; i < s.decorators.length; i++) this.emit(OP.CALL, 1, s);
         this.storeName(s.nameNode);
         break;

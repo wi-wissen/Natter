@@ -23,7 +23,7 @@ import {
   PyModule, PyHost, checkInt, isInt, isNum, num, typeName, truthy, eq, lt, iterItems, makeIter, iterNext, DONE, length,
   roundFloat, formatValue, binary, TYPE_NAMES, toIndex, keyOf, normBig, pow10, pushAll,
   keyError, getItem, Suspend, PyGenerator, PySlice, PyUserIter, PySet, setOf, PyClass, PyInstance, PyMethod, PySuper, PyProperty, PyStaticMethod, PyClassMethod, OBJECT, NOT_IMPLEMENTED, NO_METHOD,
-  callDunder, lookupClass, defaultRepr, setOp, PyGenericAlias, PyUnion,
+  callDunder, lookupClass, defaultRepr, setOp, PyGenericAlias, PyUnion, hooks,
 } from './values.js';
 
 const radix = (v, base, prefix) => {
@@ -90,7 +90,14 @@ function isInstance(v, t) {
   if (t instanceof PyTuple) return t.items.some((x) => isInstance(v, x));
   if (t instanceof PyUnion) return t.args.some((x) => isInstance(v, x));
   if (t instanceof PyGenericAlias) throw err('type', { what: 'isinstanceGeneric', name: 'isinstance' });
-  if (t instanceof PyClass) return t === OBJECT || (v instanceof PyInstance && v.cls.mro.includes(t));
+  if (t instanceof PyClass) {
+    // what a metaclass's __instancecheck__ does in CPython (TypedDict refuses isinstance)
+    const hook = lookupClass(t, '__natter_instancecheck__');
+    if (hook !== undefined) return truthy(hooks.call(hook instanceof PyClassMethod ? hook.fn : hook, [t, v]));
+    return t === OBJECT || (v instanceof PyInstance && v.cls.mro.includes(t));
+  }
+  // named tuples are tuples in CPython; here they are classes that say so
+  if (t instanceof PyBuiltin && t.name === 'tuple' && v instanceof PyInstance && lookupClass(v.cls, '__natter_tuple__') === true) return true;
   if (t instanceof PyInstance) {
     // an object whose class defines __instancecheck__ (typing.List, typing.Union[int, str] …), as in CPython
     const r = callDunder(t, '__instancecheck__', [v]);
@@ -113,7 +120,12 @@ function isSubclassOf(a, b) {
   }
   if (!isTypeLike(b)) throw err('type', { what: 'issubclassType' });
   if (b === OBJECT) return a instanceof PyClass || a instanceof PyBuiltin;
-  if (a instanceof PyClass && b instanceof PyClass) return a.mro.includes(b);
+  if (a instanceof PyClass && b instanceof PyClass) {
+    const hook = lookupClass(b, '__natter_instancecheck__');
+    if (hook !== undefined) return truthy(hooks.call(hook instanceof PyClassMethod ? hook.fn : hook, [b, null]));
+    return a.mro.includes(b);
+  }
+  if (a instanceof PyClass && b instanceof PyBuiltin && b.name === 'tuple' && lookupClass(a, '__natter_tuple__') === true) return true;
   if (a instanceof PyBuiltin && b instanceof PyBuiltin) {
     const x = a.name.replace(/^class:/, ''), y = b.name.replace(/^class:/, '');
     return x === y || (x === 'bool' && y === 'int');
@@ -331,12 +343,14 @@ export const BUILTINS = {
   hash(ctx, args, kw) {
     const [x] = params('hash', args, kw, ['obj']);
     const k = keyOf(x);
+    // a class's own __hash__: hash() gives its number, as in CPython
+    if (x instanceof PyInstance && k.startsWith('x')) { const h = BigInt(k.slice(1)); return normBig(BigInt.asIntN(64, h === -1n ? -2n : h)); }
     if (isNum(x) && !(x instanceof PyFloat && !Number.isInteger(x.v))) return typeof num(x) === 'bigint' ? fnv(k) : num(x);
     return fnv(k);
   },
   vars(ctx, args, kw) {
     const [o] = params('vars', args, kw, ['object']);
-    if (!(o instanceof PyInstance)) throw err('type', { what: 'varsArg', type: typeName(o) });
+    if (!(o instanceof PyInstance) && !(o instanceof PyClass && !o.native)) throw err('type', { what: 'varsArg', type: typeName(o) });
     const d = new PyDict();
     for (const [k, v] of o.dict) d.set(k, v);
     return d;
@@ -691,6 +705,7 @@ export const METHODS = {
     isdigit: (c, s) => s.length > 0 && /^\d+$/.test(s),
     isnumeric: (c, s) => s.length > 0 && /^\d+$/.test(s),
     isalpha: (c, s) => s.length > 0 && /^\p{L}+$/u.test(s),
+    isidentifier: (c, s) => /^[\p{XID_Start}_][\p{XID_Continue}]*$/u.test(s),
     isalnum: (c, s) => s.length > 0 && /^[\p{L}\d]+$/u.test(s),
     isspace: (c, s) => s.length > 0 && /^\s+$/.test(s),
     isupper: (c, s) => /\p{L}/u.test(s) && s === s.toUpperCase(),

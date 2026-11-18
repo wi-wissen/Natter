@@ -1,0 +1,17 @@
+Type names and field names must be valid identifiers: '1x'
+Type names and field names cannot be a keyword: 'class'
+Field names cannot start with an underscore: '_a'
+Encountered duplicate field name: 'a'
+Type names and field names must be valid identifiers: '1P'
+Got more default values than field names
+TypeError Got unexpected field names: ['c']
+TypeError Expected 2 arguments, got 1
+AttributeError 'P' object has no attribute 'z' and no __dict__ for setting new attributes
+AttributeError can't set attribute
+TypeError P.__new__() missing 2 required positional arguments: 'a' and 'b'
+TypeError P.__new__() takes 3 positional arguments but 4 were given
+TypeError P.__new__() got multiple values for argument 'a'
+TypeError P.__new__() got an unexpected keyword argument 'c'
+(1, 2, 3) (0, 1, 2) (1, 2, 1, 2) 1 1 True (2, 1) True True True True True <class '__main__.P'> P ('a', 'b') ('a', '_1', '_2', '_3') ('a', 'b')
+Q(x=1, y=0, z=5) {'y': 0, 'z': 5} Q(x=1, y=2, z=3) {'x': 1, 'y': 0, 'z': 5} True [5, 0, 1] [Q(x=1, y=9, z=5), Q(x=2, y=0, z=5)]  Q(x=1, y=0, z=5) 4 0 5
+7 [0, 5] 3 (2, 3) False P(a=3, b='a')

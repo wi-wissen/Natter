@@ -237,7 +237,7 @@ export const SECTIONS = [
     id: 'collections', title: 'collections', group: G_STD, source: 'module', module: 'collections', imports: 'import collections', showMembers: true, inherited: false,
     intro: ['`Counter`, `defaultdict`, `deque`, `OrderedDict` and `namedtuple`.'],
     example: { code: 'from collections import Counter, defaultdict, deque, namedtuple\nprint(Counter("abrakadabra").most_common(2))\ngruppen = defaultdict(list)\nfor w in ["Apfel", "Birne", "Ananas"]:\n    gruppen[w[0]].append(w)\nprint(dict(gruppen))\nschlange = deque([1, 2, 3], maxlen=3)\nschlange.append(4)\nprint(schlange)\nPunkt = namedtuple("Punkt", "x y")\nprint(Punkt(2, 3).x)' },
-    notes: ['The classes are written in Python and are not subclasses of `dict`: `isinstance(Counter(), dict)` is `False`. `ChainMap` and `UserDict` are missing.'],
+    notes: ['The classes are written in Python and are not subclasses of `dict`: `isinstance(Counter(), dict)` is `False`. `ChainMap` and `UserDict` are missing.', '`namedtuple` follows CPython (checks, `defaults`, `rename`, `_make`, `_replace`, `_asdict`, comparing with tuples) and `isinstance(p, tuple)` is `True`; as a dictionary key a named tuple and a plain tuple with the same values are still two different keys.'],
     desc: { Counter: 'Counts items.', defaultdict: 'Dict that creates missing keys with `default_factory()`.', deque: 'Queue with fast appends and pops at both ends.', OrderedDict: 'Dict that can change its order.', namedtuple: 'Tuple class with named fields.' },
   },
   {
@@ -299,8 +299,29 @@ export const SECTIONS = [
   {
     id: 'typing', title: 'typing', group: G_STD, source: 'module', module: 'typing', imports: 'from typing import List, Optional',
     intro: ['The names that type hints use. Hints are not checked, so these only make programs from books run.'],
-    notes: ['Printed, compared and checked like CPython 3.13: `List[int]`, `Optional[str]`, `isinstance(x, List)`, `isinstance(1, Union[int, str])`, `get_origin`, `get_args`. `NamedTuple`, `TypedDict`, `ParamSpec` and `Protocol` checks with `isinstance` are missing; `get_origin(Callable[…])` gives `typing.Callable` (Natter has no `collections.abc`).'],
-    example: { code: 'from typing import List, Optional\ndef erstes(werte: List[int]) -> Optional[int]:\n    return werte[0] if werte else None\nprint(erstes([3, 4]), List[int])' },
+    notes: ['Printed, compared and checked like CPython 3.13: `List[int]`, `Optional[str]`, `int | None`, `isinstance(x, List)`, `isinstance(1, Union[int, str])`, `get_origin`, `get_args`, `get_type_hints`, `NamedTuple`, `TypedDict` (with `total`, `Required`, `NotRequired`).', 'Missing: `ParamSpec`, `TypeVarTuple`, `isinstance` with a `Protocol`; `get_origin(Callable[…])` gives `typing.Callable` (Natter has no `collections.abc`). `get_args(tuple[int, ...])` has `None` for `...`.'],
+    example: { code: 'from typing import NamedTuple, Optional, TypedDict\nclass Punkt(NamedTuple):\n    x: int\n    y: int = 0\nclass Film(TypedDict):\n    titel: str\n    jahr: int\ndef erstes(werte: list[int]) -> Optional[int]:\n    return werte[0] if werte else None\nprint(erstes([3, 4]), Punkt(2), Film(titel="M", jahr=1931))' },
+  },
+
+  {
+    id: 'dataclasses', title: 'dataclasses', group: G_STD, source: 'module', module: 'dataclasses', imports: 'from dataclasses import dataclass, field',
+    intro: ['Classes for data: `@dataclass` writes `__init__`, `__repr__`, `__eq__` (and with `order=True` the comparisons) from the annotated fields.'],
+    example: { code: 'from dataclasses import dataclass, field, asdict\n@dataclass(order=True)\nclass Schueler:\n    name: str\n    noten: list[int] = field(default_factory=list)\n    def schnitt(self) -> float:\n        return sum(self.noten) / len(self.noten)\na = Schueler("Ada", [1, 2])\nprint(a, a.schnitt(), a < Schueler("Bob"), asdict(a))' },
+    notes: ['Behaves like CPython 3.13, error messages included: `frozen`, `order`, `unsafe_hash`, `kw_only`, `KW_ONLY`, `InitVar`, `ClassVar`, `__post_init__`, `field(…)`, `fields`, `asdict`, `astuple`, `replace`. Missing: `make_dataclass`; `slots=True` adds no `__slots__`.'],
+    desc: { dataclass: 'Decorator that turns a class with annotated fields into a data class.', field: 'Options for one field: `default`, `default_factory`, `init`, `repr`, `compare`, `kw_only` …', fields: 'The fields of a data class.', asdict: 'The fields as a dictionary (also nested).', astuple: 'The fields as a tuple.', replace: 'A copy with some fields changed.', is_dataclass: 'Is it a data class or an instance of one?', FrozenInstanceError: 'Raised when a field of a `frozen` data class is changed.', InitVar: 'A parameter for `__post_init__` that is not a field.', KW_ONLY: 'Fields after `_: KW_ONLY` are keyword-only.', MISSING: 'Marks a field without a default.', Field: 'What `field()` returns and `fields()` lists.' },
+  },
+  {
+    id: 'types', title: 'types', group: G_STD, source: 'module', module: 'types', imports: 'import types',
+    intro: ['The types behind type hints (`list[int]` is a `types.GenericAlias`, `int | None` a `types.UnionType`) and of functions, methods, generators and modules, for `isinstance()`.'],
+    example: { code: 'import types\nprint(isinstance(int | None, types.UnionType), isinstance(len, types.BuiltinFunctionType))\nprint(types.GenericAlias(list, (int,)), types.NoneType)' },
+    notes: ['Only these names; `SimpleNamespace`, `MappingProxyType` and `new_class` are missing.'],
+    desc: { GenericAlias: 'Type of `list[int]`; `GenericAlias(list, (int,))` makes one.', UnionType: 'Type of `int | None`.', NoneType: 'Type of `None`.', FunctionType: 'Type of functions made with `def`.', LambdaType: 'Same as `FunctionType`.', MethodType: 'Type of bound methods.', BuiltinFunctionType: 'Type of built-in functions such as `len`.', BuiltinMethodType: 'Same as `BuiltinFunctionType`.', GeneratorType: 'Type of generators.', ModuleType: 'Type of modules.' },
+  },
+  {
+    id: 'keyword', title: 'keyword', group: G_STD, source: 'module', module: 'keyword', imports: 'import keyword',
+    intro: ['The reserved words of Python 3.13.'],
+    example: { code: 'import keyword\nprint(keyword.iskeyword("class"), keyword.iskeyword("klasse"), len(keyword.kwlist))' },
+    desc: { iskeyword: 'Is the text a reserved word?', issoftkeyword: 'Is the text a soft keyword (`match`, `case`, `type`, `_`)?', kwlist: 'All reserved words.', softkwlist: 'All soft keywords.' },
   },
 
   // ------------------------------------------------------------------ drawing and games

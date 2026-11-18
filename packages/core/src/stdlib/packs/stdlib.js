@@ -20,5 +20,7 @@ import posixpath from '../py/posixpath.js';
 import requests from '../py/requests.js';
 import typing from '../py/typing.js';
 import csv from '../py/csv.js';
+import dataclasses from '../py/dataclasses.js';
+import keyword from '../py/keyword.js';
 
-Object.assign(PYMODULES, { collections, functools, itertools, statistics, string, json, sys, time, _calendar, datetime, re, textwrap, pprint, turtle, _fileio, os, posixpath, requests, typing, csv });
+Object.assign(PYMODULES, { collections, functools, itertools, statistics, string, json, sys, time, _calendar, datetime, re, textwrap, pprint, turtle, _fileio, os, posixpath, requests, typing, csv, dataclasses, keyword });

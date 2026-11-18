@@ -1,0 +1,20 @@
+Punkt(x=3, y=4) 3 4 5.0 2 [3, 4] True True (3, 4)
+3 4
+('x', 'y') {'y': 0} {'x': <class 'int'>, 'y': <class 'int'>} {'x': 3, 'y': 4} Punkt(x=3, y=9) Punkt(x=5, y=6)
+Punkt(x=1, y=0) Punkt(x=1, y=2) True True [Punkt(x=1, y=5), Punkt(x=2, y=0)]
+TypeError Punkt.__new__() missing 1 required positional argument: 'x'
+TypeError Punkt.__new__() takes from 2 to 3 positional arguments but 4 were given
+TypeError Punkt.__new__() got an unexpected keyword argument 'z'
+AttributeError can't set attribute
+True Punkt <class '__main__.Pun
+P2(a=1, b='z') ('a', 'b') {'a': <class 'int'>, 'b': <class 'str'>}
+P3(a=1, b=2) ('a', 'b') {'b': 2} True
+TypeError Non-default namedtuple field y cannot follow default field x
+ValueError Field names cannot start with an underscore: '_x'
+{'titel': 'Blade', 'jahr': 1982} <class 'dict'> 1982 {'titel': <class 'str'>, 'jahr': <class 'int'>} ['jahr', 'titel'] True []
+{'titel': 'X', 'jahr': 1} {'titel': 'Y'}
+{} False ['a']
+{'a': 1, 'b': 'x'} {'a': <class 'int'>, 'b': <class 'str'>}
+TypeError TypedDict does not support instance and class checks
+{'titel': 't', 'jahr': 1, 'note': 2.0} ['jahr', 'note', 'titel'] {'titel': <class 'str'>, 'jahr': <class 'int'>, 'note': <class 'float'>}
+typing.Optional[typing.List[int]] typing.Union[int, NoneType, str] typing.Optional[~T] typing.Optional[typing.List[str]] typing.Union[int, typing.List[int]] True <class 'types.UnionType'> (list[int], <class 'NoneType'>) <class 'list'> typing.Union[int, str, NoneType]

@@ -3,9 +3,19 @@
 // isinstance()/issubclass() the way CPython does (isinstance([], List), isinstance(1, Union[int, str])).
 export default String.raw`
 import collections as _collections
+from types import GenericAlias as _GenericAlias
 
 TYPE_CHECKING = False
 _NoneType = type(None)
+
+
+class _OrMixin:
+    # List[int] | None, T | None … make a typing.Union, as in CPython
+    def __or__(self, other):
+        return Union[self, other]
+
+    def __ror__(self, other):
+        return Union[other, self]
 
 
 def _type_repr(obj):
@@ -28,7 +38,7 @@ class _EllipsisHint:
 _ELLIPSIS = _EllipsisHint()
 
 
-class ForwardRef:
+class ForwardRef(_OrMixin):
     def __init__(self, arg):
         if not isinstance(arg, str):
             raise TypeError("Forward reference must be a string -- got " + repr(arg))
@@ -164,7 +174,7 @@ _ABC_NAMES = {"AbstractSet": "Set"}
 
 # ------------------------------------------------------------------ the special forms and aliases
 
-class _Alias:
+class _Alias(_OrMixin):
     # List, Dict, Iterable …: bare (args None) or subscripted (List[int])
     def __init__(self, name, origin, args=None, nparams=-1, inst=None, check=None):
         self._name = name
@@ -263,7 +273,7 @@ class _Alias:
         return self._test(cls)
 
 
-class _UnionAlias:
+class _UnionAlias(_OrMixin):
     def __init__(self, args):
         self.__args__ = args
         self.__origin__ = Union
@@ -276,7 +286,7 @@ class _UnionAlias:
         return "typing.Union[" + ", ".join([_type_repr(x) for x in a]) + "]"
 
     def __eq__(self, other):
-        if not isinstance(other, _UnionAlias):
+        if not isinstance(other, _UnionAlias) and type(other).__name__ != "UnionType":
             return NotImplemented
         return set(self.__args__) == set(other.__args__)
 
@@ -312,7 +322,7 @@ class _UnionAlias:
         return False
 
 
-class _SpecialForm:
+class _SpecialForm(_OrMixin):
     # Any, Union, Optional, Literal, ClassVar …
     def __init__(self, name, getitem=None):
         self._name = name
@@ -340,7 +350,7 @@ class _SpecialForm:
         raise TypeError("typing." + self._name + " cannot be used with issubclass()")
 
 
-class _Generic:
+class _Generic(_OrMixin):
     # Literal['a', 1], ClassVar[int], Annotated[int, 'x'] …: printed with repr() of the arguments
     def __init__(self, name, args, text):
         self._name = name
@@ -371,7 +381,7 @@ def _union(form, params):
     args = []
     for p in _as_tuple(params):
         p = _hint(p)
-        if isinstance(p, _UnionAlias):
+        if isinstance(p, _UnionAlias) or type(p).__name__ == "UnionType":
             more = p.__args__
         else:
             more = (p,)
@@ -420,6 +430,9 @@ Literal = _SpecialForm("Literal", _literal)
 ClassVar = _SpecialForm("ClassVar", _one)
 Final = _SpecialForm("Final", _one)
 Annotated = _SpecialForm("Annotated", _annotated)
+Required = _SpecialForm("Required", _one)
+NotRequired = _SpecialForm("NotRequired", _one)
+ReadOnly = _SpecialForm("ReadOnly", _one)
 
 List = _Alias("List", list, nparams=1)
 Dict = _Alias("Dict", dict, nparams=2)
@@ -451,7 +464,7 @@ Hashable = _Alias("Hashable", None, nparams=0, check=_CHECKS["Hashable"])
 Generator = _Alias("Generator", None, nparams=3, check=_CHECKS["Generator"])
 
 
-class TypeVar:
+class TypeVar(_OrMixin):
     def __init__(self, name, *constraints, bound=None, covariant=False, contravariant=False):
         if len(constraints) == 1:
             raise TypeError("A single constraint is not allowed")
@@ -472,7 +485,7 @@ class TypeVar:
         raise TypeError("'TypeVar' object is not callable")
 
 
-class _GenericClassAlias:
+class _GenericClassAlias(_OrMixin):
     # Stapel[int] for a class Stapel(Generic[T])
     def __init__(self, cls, args):
         self.__origin__ = cls
@@ -514,8 +527,13 @@ def runtime_checkable(cls):
 def get_origin(tp):
     if isinstance(tp, (_UnionAlias,)):
         return Union
+    if type(tp).__name__ == "UnionType":
+        return type(tp)
+    if type(tp).__name__ == "GenericAlias":
+        return tp.__origin__
     if isinstance(tp, _Generic):
-        return {"Literal": Literal, "ClassVar": ClassVar, "Final": Final, "Annotated": Annotated}[tp._name]
+        return {"Literal": Literal, "ClassVar": ClassVar, "Final": Final, "Annotated": Annotated,
+                "Required": Required, "NotRequired": NotRequired, "ReadOnly": ReadOnly}[tp._name]
     if isinstance(tp, _GenericClassAlias):
         return tp.__origin__
     if isinstance(tp, _Alias):
@@ -531,6 +549,8 @@ def get_args(tp):
     if isinstance(tp, _Alias) and tp._name == "Tuple" and tp._args == [()]:
         return ()
     if isinstance(tp, (_Alias, _UnionAlias, _Generic, _GenericClassAlias)):
+        return tuple(tp.__args__)
+    if type(tp).__name__ in ("UnionType", "GenericAlias"):
         return tuple(tp.__args__)
     return ()
 
@@ -565,4 +585,283 @@ def final(f):
 
 def no_type_check(arg):
     return arg
+
+
+# ------------------------------------------------------------------ NamedTuple, TypedDict
+
+_NT_PROHIBITED = ("__new__", "__init__", "__slots__", "__getnewargs__", "_fields", "_field_defaults", "_make", "_replace", "_asdict", "_source")
+_NT_SPECIAL = ("__module__", "__name__", "__qualname__", "__annotations__", "__dict__", "__weakref__", "__doc__", "__init_subclass__")
+
+
+def _make_nmtuple(name, types, defaults=()):
+    fields = [n for n, t in types]
+    nm_tpl = _collections.namedtuple(name, fields, defaults=defaults)
+    nm_tpl.__annotations__ = {n: _hint(t) for n, t in types}
+    return nm_tpl
+
+
+class NamedTuple:
+    # class Punkt(NamedTuple): x: int … or NamedTuple("Punkt", [("x", int)]); the class is not a tuple here
+    def __new__(cls, *args, **kwargs):
+        if cls is not NamedTuple:
+            raise TypeError("NamedTuple cannot be instantiated")
+        if len(args) == 2:
+            typename, fields = args
+        elif len(args) == 1:
+            typename, fields = args[0], None
+        else:
+            raise TypeError("NamedTuple() missing 1 required positional argument: 'typename'")
+        if fields is None:
+            fields = list(kwargs.items())
+        return _make_nmtuple(typename, list(fields))
+
+    def __init_subclass__(cls, **kwargs):
+        if NamedTuple not in cls.__bases__:
+            return
+        own = dict(cls.__dict__)
+        types = cls.__annotations__
+        default_names = []
+        for field_name in types:
+            if field_name in own:
+                default_names.append(field_name)
+            elif default_names:
+                raise TypeError("Non-default namedtuple field " + field_name + " cannot follow default field" + ("s" if len(default_names) > 1 else "") + " " + ", ".join(default_names))
+        for key in own:
+            if key in _NT_PROHIBITED:
+                raise AttributeError("Cannot overwrite NamedTuple attribute " + key)
+        nm_tpl = _make_nmtuple(cls.__name__, list(types.items()), [own[n] for n in default_names])
+        cls.__annotations__ = nm_tpl.__annotations__
+        for key, val in nm_tpl.__dict__.items():
+            if key in _NT_SPECIAL:
+                continue
+            if key in own and key not in types:
+                continue
+            setattr(cls, key, val)
+        cls.__new__.__qualname__ = cls.__qualname__ + ".__new__"
+
+
+def _td_unwrap(t):
+    # Required[int] → (int, True), NotRequired[int] → (int, False), else (t, None)
+    if isinstance(t, _Generic) and t._name in ("Required", "NotRequired", "ReadOnly"):
+        inner, flag = _td_unwrap(t.__args__[0])
+        if t._name == "Required":
+            return inner, True
+        if t._name == "NotRequired":
+            return inner, False
+        return inner, flag
+    return t, None
+
+
+def _td_fill(cls, own, total):
+    annotations = {}
+    required = set()
+    optional = set()
+    for base in cls.__bases__:
+        if base is TypedDict or TypedDict not in base.__mro__:
+            continue
+        annotations.update(base.__annotations__)
+        required.update(base.__required_keys__)
+        optional.update(base.__optional_keys__)
+    for key, value in own.items():
+        inner, flag = _td_unwrap(value)
+        is_required = total if flag is None else flag
+        if is_required:
+            required.add(key)
+            optional.discard(key)
+        else:
+            optional.add(key)
+            required.discard(key)
+    annotations.update(own)
+    cls.__annotations__ = annotations
+    cls.__required_keys__ = frozenset(required)
+    cls.__optional_keys__ = frozenset(optional)
+    cls.__total__ = total
+
+
+class TypedDict:
+    # class Film(TypedDict): titel: str … ; Film(...) makes a plain dict, as in CPython
+    def __new__(cls, *args, **kwargs):
+        if cls is TypedDict:
+            if not args:
+                raise TypeError("TypedDict() missing 1 required positional argument: 'typename'")
+            typename = args[0]
+            fields = args[1] if len(args) > 1 else {}
+            total = kwargs.get("total", True)
+
+            class _TD(TypedDict):
+                pass
+
+            _TD.__name__ = typename
+            _TD.__qualname__ = typename
+            _td_fill(_TD, {k: _hint(v) for k, v in dict(fields).items()}, total)
+            return _TD
+        return dict(*args, **kwargs)
+
+    @classmethod
+    def __natter_instancecheck__(cls, obj):
+        raise TypeError("TypedDict does not support instance and class checks")
+
+    def __init_subclass__(cls, total=True, **kwargs):
+        for base in cls.__bases__:
+            if base is not TypedDict and TypedDict not in base.__mro__:
+                raise TypeError("cannot inherit from both a TypedDict type and a non-TypedDict base class")
+        _td_fill(cls, dict(cls.__annotations__), total)
+
+
+def is_typeddict(tp):
+    return isinstance(tp, type) and tp is not TypedDict and TypedDict in tp.__mro__
+
+
+# ------------------------------------------------------------------ get_type_hints
+
+def _eval_hint(text, names, module=None):
+    # the strings of string annotations: names, dots, [], | and literals (Natter has no eval)
+    import re as _re
+    tokens = _re.findall(r"\s*(\.\.\.|[A-Za-z_][A-Za-z_0-9]*|\d+|'[^']*'|\"[^\"]*\"|[\[\],.|()])", text)
+    pos = [0]
+
+    def peek():
+        return tokens[pos[0]] if pos[0] < len(tokens) else None
+
+    def take():
+        t = tokens[pos[0]]
+        pos[0] += 1
+        return t
+
+    def atom():
+        t = take()
+        if t == "(":
+            if peek() == ")":
+                take()
+                return ()
+            v = union()
+            take()
+            return v
+        if t == "[":
+            items = []
+            while peek() != "]":
+                items.append(union())
+                if peek() == ",":
+                    take()
+            take()
+            return items
+        if t[0] in "'\"":
+            return t[1:-1]
+        if t[0].isdigit():
+            return int(t)
+        if t == "...":
+            return None
+        if t == "None":
+            return None
+        if t in ("True", "False"):
+            return t == "True"
+        if t in names:
+            v = names[t]
+        elif module is not None and hasattr(module, t):
+            v = getattr(module, t)
+        else:
+            raise NameError("name '" + t + "' is not defined")
+        while peek() in (".", "["):
+            if take() == ".":
+                v = getattr(v, take())
+            else:
+                items = [union()]
+                while peek() == ",":
+                    take()
+                    if peek() == "]":
+                        break
+                    items.append(union())
+                take()
+                v = v[items[0] if len(items) == 1 else tuple(items)]
+        return v
+
+    def union():
+        v = atom()
+        while peek() == "|":
+            take()
+            v = v | atom()
+        return v
+
+    return union()
+
+
+def get_type_hints(obj, globalns=None, localns=None, include_extras=False):
+    names = {"int": int, "float": float, "str": str, "bool": bool, "list": list, "dict": dict, "tuple": tuple,
+             "set": set, "frozenset": frozenset, "type": type, "object": object, "range": range}
+    names.update(_TYPING_NAMES)
+    # names of the module that made obj (sys.modules), unless globalns is given, as in CPython
+    module = None
+    if globalns is None:
+        import sys as _sys
+        module = _sys.modules.get(getattr(obj, "__module__", None) or "")
+    else:
+        names.update(globalns)
+    if localns:
+        names.update(localns)
+
+    def resolve(v):
+        if v is None:
+            return _NoneType
+        if isinstance(v, ForwardRef):
+            v = v.__forward_arg__
+        while isinstance(v, str):
+            v = _eval_hint(v, names, module)
+            if isinstance(v, ForwardRef):
+                v = v.__forward_arg__
+        if v is None:
+            return _NoneType
+        v = inner_refs(v)
+        if not include_extras:
+            inner, flag = _td_unwrap(v)
+            if isinstance(inner, _Generic) and inner._name == "Annotated":
+                inner = inner.__args__[0]
+            v = inner
+        return v
+
+    def inner_refs(v):
+        # ForwardRef('Knoten') inside List[...], Optional[...] … gets resolved, too
+        if isinstance(v, ForwardRef):
+            return resolve(v)
+        if isinstance(v, list):
+            return [inner_refs(a) for a in v]
+        if isinstance(v, _UnionAlias):
+            return Union[tuple(inner_refs(a) for a in v.__args__)]
+        if isinstance(v, _Alias) and v._args is not None:
+            return v._with([inner_refs(a) for a in v._args])
+        if isinstance(v, _GenericClassAlias):
+            return _GenericClassAlias(v.__origin__, tuple(inner_refs(a) for a in v.__args__))
+        if type(v).__name__ == "GenericAlias":
+            return _GenericAlias(v.__origin__, tuple(inner_refs(a) for a in v.__args__))
+        if type(v).__name__ == "UnionType":
+            out = None
+            for a in v.__args__:
+                a = inner_refs(a)
+                out = a if out is None else out | a
+            return out
+        return v
+
+    hints = {}
+    if isinstance(obj, type):
+        for base in reversed(obj.__mro__):
+            ann = base.__dict__.get("__annotations__", {}) if hasattr(base, "__dict__") else {}
+            if base is obj and is_typeddict(obj):
+                ann = obj.__annotations__
+            for name, value in ann.items():
+                hints[name] = resolve(value)
+        return hints
+    ann = getattr(obj, "__annotations__", None)
+    if ann is None:
+        raise TypeError(repr(obj) + " is not a module, class, method, or function.")
+    for name, value in ann.items():
+        hints[name] = resolve(value)
+    return hints
+
+_TYPING_NAMES = {
+    "Any": Any, "Union": Union, "Optional": Optional, "List": List, "Dict": Dict, "Tuple": Tuple, "Set": Set,
+    "FrozenSet": FrozenSet, "Callable": Callable, "Iterable": Iterable, "Iterator": Iterator, "Generator": Generator,
+    "Sequence": Sequence, "Mapping": Mapping, "MutableSequence": MutableSequence, "MutableMapping": MutableMapping,
+    "Type": Type, "ClassVar": ClassVar, "Final": Final, "Literal": Literal, "Annotated": Annotated,
+    "Required": Required, "NotRequired": NotRequired, "ReadOnly": ReadOnly, "Deque": Deque, "DefaultDict": DefaultDict,
+    "OrderedDict": OrderedDict, "Counter": Counter, "NoReturn": NoReturn, "Never": Never, "Self": Self, "Text": Text,
+}
 `;

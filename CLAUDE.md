@@ -25,6 +25,11 @@ When you add or change behaviour:
 4. If something cannot match (a missing module such as `collections.abc`, `...` being `None`), say so in the module's
    `notes` in `scripts/reference/content.mjs` and run `npm run reference`. Do not leave silent differences.
 
+Natter has no metaclasses and no subclasses of built-in types. Where CPython needs them, two class attributes
+stand in, so the behaviour still matches: `__natter_instancecheck__` (a class method `isinstance()`/`issubclass()`
+call, like a metaclass's `__instancecheck__`; used by `TypedDict`) and `__natter_tuple__ = True` (instances count as
+tuples for `isinstance(x, tuple)`; used by `namedtuple`). Prefer these over new special cases in the core.
+
 Modules written in Python (`packages/core/src/stdlib/py/*.js`) should follow CPython's own source where that is
 written in Python too (for example `csv.DictReader` is CPython's `csv.py`), and its C code where it is not
 (the `csv` reader follows the state machine in `_csv.c`).

@@ -1,0 +1,32 @@
+Schueler(name='Ada', noten=[1, 2, 3], klasse=None) 2.0 0 {'einheit': 'Punkte'} Punkte
+Field(name='name',type='str',default=<dataclasses._MISSING_TYPE object at 0x…>,default_factory=<dataclasses._MISSING_TYPE object at 0x…>,init=True,repr=True,hash=None,compare=True,metadata=mappingproxy({}),kw_only=False,_field_type=_FIELD)
+_DataclassParams(init=True,repr=True,eq=True,order=False,unsafe_hash=False,frozen=False,match_args=True,kw_only=False,slots=False,weakref_slot=False)
+dataclasses.InitVar[int] dataclasses.InitVar[list[int]]
+lokal.<locals>.Innen(a=1)
+TypeError Schueler.__init__() missing 1 required positional argument: 'name'
+TypeError Schueler.__init__() takes from 2 to 4 positional arguments but 5 were given
+TypeError must be called with a dataclass type or instance
+TypeError asdict() should be called on dataclass instances
+TypeError astuple() should be called on dataclass instances
+TypeError replace() should be called on dataclass instances
+ValueError cannot specify both default and default_factory
+TypeError 'b' is KW_ONLY, but KW_ONLY has already been specified
+TypeError 'x' is a field but has no type annotation
+TypeError cannot inherit non-frozen dataclass from a frozen one
+TypeError cannot inherit frozen dataclass from a non-frozen one
+ValueError eq must be true if order is true
+TypeError Cannot overwrite attribute __lt__ in class A Consider using functools.total_ordering
+TypeError Cannot overwrite attribute __hash__ in class A
+TypeError field x cannot have a default factory
+Opt(a=1, b=7, c=[], d=4) 7 [] 7 False 4
+TypeError field b is declared with init=False, it cannot be specified with replace()
+TypeError InitVar 'f' must be specified with replace()
+IV(a=13)
+Eigen! True ('a',)
+G(x=1, y=2) True 1
+FrozenInstanceError cannot assign to field 'z'
+Bruch(zaehler=5, nenner=6)
+ValueError Nenner darf nicht 0 sein
+{'name': 'B', 'noten': [4], 'klasse': None} ('C', [], None)
+Schueler.__init__ __repr__ {'name': 'str', 'noten': 'list[int]', 'klasse': 'Optional[str]', 'anzahl': 'ClassVar[int]'}
+True True

@@ -3,7 +3,7 @@
 
 /** Module names of each pack (a test checks this table against what the packs really register). */
 export const PACKS = {
-  stdlib: ['collections', 'functools', 'itertools', 'statistics', 'string', 'json', 'sys', 'time', '_calendar', 'datetime', 're', 'textwrap', 'pprint', 'turtle', '_fileio', 'os', 'posixpath', 'requests', 'typing', 'csv'],
+  stdlib: ['collections', 'functools', 'itertools', 'statistics', 'string', 'json', 'sys', 'time', '_calendar', 'datetime', 're', 'textwrap', 'pprint', 'turtle', '_fileio', 'os', 'posixpath', 'requests', 'typing', 'csv', 'dataclasses', 'keyword'],
   numpy: ['numpy', 'numpy.random', 'numpy.linalg'],
   pyplot: ['matplotlib', 'matplotlib.pyplot'],
   guizero: ['guizero'],

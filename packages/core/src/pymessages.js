@@ -113,6 +113,7 @@ export function pyMessage(e) {
         case 'noLen': return `object of type '${p.type}' has no len()`;
         case 'newArg': return `object.__new__(X): X is not a type object (${p.type})`;
         case 'isinstanceGeneric': return `${p.name}() argument 2 cannot be a parameterized generic`;
+        case 'initSubclassKw': return `${p.name}.__init_subclass__() takes no keyword arguments`;
         case 'isinstanceType': return 'isinstance() arg 2 must be a type, a tuple of types, or a union';
         case 'issubclassType': return 'issubclass() arg 2 must be a class, a tuple of classes, or a union';
         case 'issubclassArg': return 'issubclass() arg 1 must be a class';
