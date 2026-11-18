@@ -1,0 +1,92 @@
+Any typing.Any | Any cannot be instantiated
+Union typing.Union | Cannot instantiate typing.Union
+Optional typing.Optional | Cannot instantiate typing.Optional
+List typing.List | Type List cannot be instantiated; use list() instead
+Dict typing.Dict | Type Dict cannot be instantiated; use dict() instead
+Tuple typing.Tuple | Type Tuple cannot be instantiated; use tuple() instead
+Set typing.Set | Type Set cannot be instantiated; use set() instead
+FrozenSet typing.FrozenSet | Type FrozenSet cannot be instantiated; use frozenset() instead
+Callable typing.Callable | Can't instantiate abstract class Callable without an implementation for abstract method '__call__'
+Iterable typing.Iterable | Can't instantiate abstract class Iterable without an implementation for abstract method '__iter__'
+Iterator typing.Iterator | Can't instantiate abstract class Iterator without an implementation for abstract method '__next__'
+Generator typing.Generator | Can't instantiate abstract class Generator without an implementation for abstract methods 'send', 'throw'
+Sequence typing.Sequence | Can't instantiate abstract class Sequence without an implementation for abstract methods '__getitem__', '__len__'
+Mapping typing.Mapping | Can't instantiate abstract class Mapping without an implementation for abstract methods '__getitem__', '__iter__', '__len__'
+Type typing.Type | Type Type cannot be instantiated; use type() instead
+ClassVar typing.ClassVar | Cannot instantiate typing.ClassVar
+Final typing.Final | Cannot instantiate typing.Final
+Literal typing.Literal | Cannot instantiate typing.Literal
+NoReturn typing.NoReturn | Cannot instantiate typing.NoReturn
+Self typing.Self | Cannot instantiate typing.Self
+Deque call ok deque([])
+DefaultDict call ok defaultdict(None, {})
+Counter call ok Counter()
+OrderedDict call ok OrderedDict()
+MutableSequence typing.MutableSequence | Can't instantiate abstract class MutableSequence without an implementation for abstract methods '__delitem__', '__getitem__', '__len__', '__setitem__', 'insert'
+MutableMapping typing.MutableMapping | Can't instantiate abstract class MutableMapping without an implementation for abstract methods '__delitem__', '__getitem__', '__iter__', '__len__', '__setitem__'
+Collection typing.Collection | Can't instantiate abstract class Collection without an implementation for abstract methods '__contains__', '__iter__', '__len__'
+Hashable typing.Hashable | Can't instantiate abstract class Hashable without an implementation for abstract method '__hash__'
+Sized typing.Sized | Can't instantiate abstract class Sized without an implementation for abstract method '__len__'
+Reversible typing.Reversible | Can't instantiate abstract class Reversible without an implementation for abstract methods '__iter__', '__reversed__'
+Container typing.Container | Can't instantiate abstract class Container without an implementation for abstract method '__contains__'
+AbstractSet typing.AbstractSet | Can't instantiate abstract class Set without an implementation for abstract methods '__contains__', '__iter__', '__len__'
+MutableSet typing.MutableSet | Can't instantiate abstract class MutableSet without an implementation for abstract methods '__contains__', '__iter__', '__len__', 'add', 'discard'
+Never typing.Never | Cannot instantiate typing.Never
+LiteralString typing.LiteralString | Cannot instantiate typing.LiteralString
+TypeAlias typing.TypeAlias | Cannot instantiate typing.TypeAlias
+Annotated typing.Annotated | Cannot instantiate typing.Annotated
+typing.List[__main__.K] typing.List[f] typing.List[1] typing.List[typing.List] typing.Dict[str, ForwardRef('K')] typing.Tuple[()] typing.Tuple[int]
+typing.Callable[[int, str], __main__.K] typing.Callable[[], int]
+True typing.Union[int, str] typing.Union[str, int] <class 'int'> typing.Optional[int] typing.Union[int, str, NoneType]
+<class 'NoneType'> typing.Optional[int] typing.Union[NoneType, int, str]
+True False True True
+typing.List TFFFFFFFFFFFF 
+typing.Dict FFTFFFFFFFFFF 
+typing.Set FFFTFFFFFFFFF 
+typing.Tuple FTFFFFFFFFFFF 
+typing.FrozenSet FFFFFFFFFFFFT 
+typing.Callable FFFFFFFTTFFFF 
+typing.Iterable TTTTTFFFFTTTT 
+typing.Iterator FFFFFFFFFTTFF 
+typing.Sequence TTFFTFFFFFFTF 
+typing.Mapping FFTFFFFFFFFFF 
+typing.Type FFFFFFFFTFFFF 
+typing.Union[int, str] FFFFTTFFFFFFF 
+typing.Optional[int] FFFFFTTFFFFFF 
+typing.Optional[int] FFFFFTTFFFFFF 
+typing.Generator FFFFFFFFFFTFF 
+typing.Deque FFFFFFFFFFFFF 
+typing.Counter FFFFFFFFFFFFF 
+typing.DefaultDict FFFFFFFFFFFFF 
+typing.OrderedDict FFFFFFFFFFFFF 
+typing.Hashable FTFFTTTTTTTTT 
+typing.Sized TTTTTFFFFFFTT 
+typing.Collection TTTTTFFFFFFTT 
+typing.Container TTTTTFFFFFFTT 
+typing.Reversible TTTFTFFFFFFTF 
+typing.AbstractSet FFFTFFFFFFFFT 
+typing.MutableSequence TFFFFFFFFFFFF 
+typing.MutableMapping FFTFFFFFFFFFF 
+typing.MutableSet FFFTFFFFFFFFF 
+typing.Any EEEEEEEEEEEEE typing.Any cannot be used with isinstance()
+typing.List[int] EEEEEEEEEEEEE Subscripted generics cannot be used with class and instance checks
+typing.Literal[1] EEEEEEEEEEEEE Subscripted generics cannot be used with class and instance checks
+typing.ClassVar EEEEEEEEEEEEE typing.ClassVar cannot be used with isinstance()
+True False
+False False
+True False
+False True
+False False
+(<class 'int'>,) () (<class 'int'>, <class 'str'>) ([<class 'int'>], <class 'str'>) (<class 'str'>, <class 'int'>) (1, 'a')
+<class 'list'>  (<class 'int'>, <class 'str'>) (<class 'int'>, <class 'NoneType'>)
+~T ~S ~B T (<class 'int'>, <class 'str'>) <class 'int'> typing.List[~T] typing.Dict[~T, ~S]
+__main__.Stapel[int] True Stapel True
+P 
+typing.List[int] is not a generic class
+x 3 False
+__main__.UserId 5
+typing.Literal['a', 1] typing.Literal[True] typing.Final[int] typing.ClassVar[int] typing.Type[__main__.K] typing.Annotated[int, 'm']
+typing.List[typing.Optional[__main__.K]] typing.Dict[str, typing.Callable[[int], typing.List[__main__.K]]]
+<class 'list'> <class 'list'> typing.Union typing.Union None typing.Literal
+typing.Callable[..., int] typing.Tuple[int, ...] <class 'str'>
+(3,)
